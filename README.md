@@ -2,43 +2,62 @@
 
 <br>
 
+<div align="center">
+      <img src="https://github.com/turbodeliveryapi/welcome.code/blob/main/docs/img/Logo%20da%20Equipe" width="200">
+      <h2 align="center"> Platypus Dev</h2>
+</div>
+
+<br>
+
+> **Status:** 🟨 Em andamento
+> 
+> **Etapa:** Sprint 1
+
+<br>
+
 ## **🚀API 2º Semestre**
 
-Descrição...
+  Projeto acadêmico desenvolvido por alunos do 2º Semestre de Análise e Desenvolvimento de Sistemas com o objetivo de fazer uma Landing Page para captação e pré-qualificação de clientes interessados nos cartões oferecidos pela empresa DM Financeira.
 
 ## **🏅 Desafio**
 
-Descrição...
+  O desafio propõe desenvolver uma Landing Page de Captação e Pré-Qualificação de Clientes, com uma experiência simples e intuitiva. O sistema deve aplicar corretamente as regras de aprovação, reprovação e seleção de lojas, considerando o tipo de cliente, cartão solicitado e restrições geográficas. O escopo do projeto está concentrado na captação do cliente, não incluindo o envio do cartão ou etapas posteriores da jornada.
+
+## 📋 Metodologia
+
+  O projeto utiliza a metodologia ágil Scrum para organizar e acompanhar o desenvolvimento. O trabalho é dividido em Sprints, nas quais a equipe planeja, desenvolve e acompanha as tarefas do projeto a partir do Product Backlog. Essa abordagem permite acompanhar o progresso, priorizar funcionalidades e realizar ajustes ao longo do desenvolvimento, mantendo a equipe alinhada com os objetivos do projeto.
 
 ---
 
 ## **🗂️ Backlog do produto**
 
-| Rank | ID | User story | Prioridade | Estimativa | Sprint |
-| ---- | -- | ---------- | ---------- | -----------| ------ |
-| 1 | US01 | Como visitante, quero acessar uma landing page simples e intuitiva para solicitar meu cartão, para iniciar o processo de contratação sem dificuldades. | Alta | 5 | 1 |
+| Rank | ID | User story | Prioridade | Estimativa | Sprint | Status |
+| ---- | -- | ---------- | ---------- | -----------| ------ | ------ |
+| 1 | US01 | Como visitante, quero acessar uma landing page simples e intuitiva para solicitar meu cartão, para iniciar o processo de contratação sem dificuldades. | Alta | 5 | 1 | |
 | 2 | US02 | Como cliente, quero preencher meus dados na landing page, para que minha solicitação possa ser pré-qualificada. | Alta | 8 | 1 |
-| 3 | US03 | Como cliente, quero visualizar o status da minha solicitação após a pré-qualificação, para entender se posso prosseguir ou se minha solicitação permanecerá em análise. | Média | 2 | 1 |
-| 4 | US04 | Como cliente pré-qualificado, quero ser encaminhado automaticamente para a etapa de seleção de loja e tipo de cartão, para dar continuidade ao meu processo de contratação. | Baixa | 5 | 1 |
-| 5 | US05 | Como cliente, quero visualizar apenas as lojas parceiras disponíveis no meu estado, para selecionar uma loja compatível com meu CEP. | Alta | 3 | 1 |
-| 6 | US06 | Como cliente, quero visualizar os cartões disponíveis para a loja selecionada, para escolher uma opção compatível com o estabelecimento. | Média | 3 | 1 |
-| 7 | US08 | Como atendente DM, quero visualizar o status e as informações da solicitação do cliente, para orientá-lo em caso de dúvidas sobre seu processo. | Média | 5 | 2 |
-| 8 | US09 | Como atendente DM, quero enviar mensagens ao cliente pela plataforma, para orientá-lo sem depender dos canais externos de atendimento. | Média | 8 | 2 |
-| 9 | US10 | Como equipe DM, quero visualizar indicadores das solicitações de cartões, para acompanhar os resultados da captação de clientes. | Alta | 5 | 2 |
-| 10 | US07 | Como cliente que não foi aprovado para um cartão, quero visualizar outros produtos disponíveis, para conhecer alternativas que possam atender às minhas necessidades. | Baixa | 5 | 3 |
+| 3 | US03 | Como cliente, quero visualizar o status da minha solicitação após a pré-qualificação, para entender se posso prosseguir ou se minha solicitação permanecerá em análise. | Média | 2 | 1 | |
+| 4 | US04 | Como cliente pré-qualificado, quero ser encaminhado automaticamente para a etapa de seleção de loja e tipo de cartão, para dar continuidade ao meu processo de contratação. | Baixa | 5 | 1 | |
+| 5 | US05 | Como cliente, quero visualizar apenas as lojas parceiras disponíveis no meu estado, para selecionar uma loja compatível com meu CEP. | Alta | 3 | 1 | |
+| 6 | US06 | Como cliente, quero visualizar os cartões disponíveis para a loja selecionada, para escolher uma opção compatível com o estabelecimento. | Média | 3 | 1 | |
+| 7 | US08 | Como atendente DM, quero visualizar o status e as informações da solicitação do cliente, para orientá-lo em caso de dúvidas sobre seu processo. | Média | 5 | 2 | |
+| 8 | US09 | Como atendente DM, quero enviar mensagens ao cliente pela plataforma, para orientá-lo sem depender dos canais externos de atendimento. | Média | 8 | 2 | |
+| 9 | US10 | Como equipe DM, quero visualizar indicadores das solicitações de cartões, para acompanhar os resultados da captação de clientes. | Alta | 5 | 2 | |
+| 10 | US07 | Como cliente que não foi aprovado para um cartão, quero visualizar outros produtos disponíveis, para conhecer alternativas que possam atender às minhas necessidades. | Baixa | 5 | 3 | |
 
 
 ## DoR - Definition of Ready
 * User Stories com critérios de aceitação
-* Subtarefas divididas
-* Entendimento claro da tarefa
+* Subtarefas divididas apartir das US
+* Entendimento claro das tarefas
 
 
 ## DoD - Definition of Done
+* Protótipo no Figma
+* Modelagem do Banco de Dados
 * Código implementado
+* Código organizado
 * Critérios de aceitação atendidos
 * Testado manualmente
-* Código organizado
 
 ## 
 
