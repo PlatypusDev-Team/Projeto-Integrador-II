@@ -1,4 +1,4 @@
-# <div align="center"> DM - LandingPage de Captação e Pré Qualificação de Clientes </div>
+# <div align="center"> DM - Landing Page de Captação e Pré-Qualificação de Clientes </div>
 
 <br>
 
@@ -15,7 +15,7 @@
 
 <br>
 
-## **🚀API 2º Semestre**
+## **🚀 API 2º Semestre**
 
   Projeto acadêmico desenvolvido por alunos do 2º Semestre de Análise e Desenvolvimento de Sistemas com o objetivo de fazer uma Landing Page para captação e pré-qualificação de clientes interessados nos cartões oferecidos pela empresa DM Financeira.
 
@@ -44,43 +44,90 @@
 | 9 | US10 | Como equipe DM, quero visualizar indicadores das solicitações de cartões, para acompanhar os resultados da captação de clientes. | Alta | 5 | 2 | |
 | 10 | US07 | Como cliente que não foi aprovado para um cartão, quero visualizar outros produtos disponíveis, para conhecer alternativas que possam atender às minhas necessidades. | Baixa | 5 | 3 | |
 
+## **🟢 DoR - Definition of Ready**
 
-## DoR - Definition of Ready
-* User Stories com critérios de aceitação
-* Subtarefas divididas apartir das US
-* Entendimento claro das tarefas
+Uma User Story é considerada pronta para ser desenvolvida quando:
 
+* Possui critérios de aceitação definidos.
+* Possui subtarefas devidamente divididas.
+* A equipe possui entendimento claro dos objetivos e das tarefas.
+* As regras de negócio relacionadas estão compreendidas.
+* Os requisitos necessários para o desenvolvimento estão disponíveis.
 
-## DoD - Definition of Done
-* Protótipo no Figma
-* Modelagem do Banco de Dados
-* Código implementado
-* Código organizado
-* Critérios de aceitação atendidos
-* Testado manualmente
+## **✅ DoD - Definition of Done**
 
-## 
+Uma User Story é considerada concluída quando:
+
+* O protótipo no Figma foi desenvolvido, quando aplicável.
+* A modelagem do banco de dados foi realizada, quando necessária.
+* O código foi implementado.
+* O código está organizado e versionado no GitHub.
+* Os critérios de aceitação foram atendidos.
+* Foram realizados testes manuais.
+* A documentação correspondente foi atualizada, quando aplicável.
 
 ## **📆 Cronograma das Sprints**
 
 | Sprint | Período | MVP | Link para Documentação | Link para Vídeo no Youtube do Incremento Entregue |
 | ----------- | ----------- | ----------- | ----------- | ----------- |
-| 1 | 07/09/2026 a 27/09/2026 | [Sprint 1](./mvp/sprint-01/README.md) | <h4 align="center"> <a href=""><img src="https://img.shields.io/badge/Jira-0052CC?style=for-the-badge&logo=jira&logoColor=white"/></a>  </h4> | <h4 align="center"> <a href=""><img src="https://img.shields.io/badge/YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white"/></a>  </h4> |
+| 1 | 07/09/2026 a 27/09/2026 | [Sprint 1](./mvp/sprint-01/README.md) | <h4 align="center"> <a href="https://platypusdev.atlassian.net/jira/software/projects/SCRUM/boards/1/backlog?atlOrigin=eyJpIjoiMmZmMjFhMzQwNzhlNDAxYzkwMTJlMGUyZDM2MGFhYmYiLCJwIjoiaiJ9"><img src="https://img.shields.io/badge/Jira-0052CC?style=for-the-badge&logo=jira&logoColor=white"/></a>  </h4> | <h4 align="center"> <a href=""><img src="https://img.shields.io/badge/YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white"/></a>  </h4> |
 | 2 | 05/10/2026 a 25/10/2026 | [Sprint 2](./mvp/sprint-02/README.md) | <h4 align="center"> <a href=""><img src="https://img.shields.io/badge/Jira-0052CC?style=for-the-badge&logo=jira&logoColor=white"/></a>  </h4>  | <h4 align="center"> <a href=""><img src="https://img.shields.io/badge/YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white"/></a>  </h4> |
 | 3 | 02/11/2026 a 22/11/2026 |  [Sprint 3](./mvp/sprint-03/README.md) | <h4 align="center"> <a href= ""><img src="https://img.shields.io/badge/Jira-0052CC?style=for-the-badge&logo=jira&logoColor=white"/></a>  </h4> | <h4 align="center"> <a href=""><img src="https://img.shields.io/badge/YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white"/></a>  </h4> |
 
 ## **🔧 Tecnologias utilizadas**
 
-<h4 align="center">
+<div align="center">
+  <a href="https://www.figma.com/"><img src="https://img.shields.io/badge/Figma-F24E1E?style=for-the-badge&logo=figma&logoColor=white"/></a>
+  <a href="https://developer.mozilla.org/pt-BR/docs/Web/HTML"><img src="https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white"/></a>
+  <a href="https://developer.mozilla.org/pt-BR/docs/Web/CSS"><img src="https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white"/></a>
+  <a href="https://developer.mozilla.org/pt-BR/docs/Web/JavaScript"><img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black"/></a>
+  <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white"/></a>
+  <a href="https://www.mysql.com/"><img src="https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white"/></a>
+  <a href="https://www.docker.com/"><img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white"/></a>
+  <a href="https://git-scm.com/"><img src="https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white"/></a>
   <a href="https://www.atlassian.com/software/jira"><img src="https://img.shields.io/badge/Jira-0052CC?style=for-the-badge&logo=jira&logoColor=white"/></a>
   <a href="https://github.com/"><img src="https://img.shields.io/badge/github-%23121011.svg?style=for-the-badge&logo=github&logoColor=white"/></a>
-  <a></a>
-</h4>
+</div>
 
 ## **🧱 Estrutura do projeto**
-````
-Descrição...
-````
+
+O projeto está organizado em diretórios que separam o código-fonte, os scripts do banco de dados, a documentação e os arquivos de configuração. Essa organização facilita a manutenção, o versionamento e o trabalho colaborativo da equipe.
+
+```text
+DM-LandingPage/
+│
+├── docs/
+│   ├── img/
+│   ├── modelagem/
+│   └── prototipos/
+│
+├── mvp/
+│   ├── sprint-01/
+│   ├── sprint-02/
+│   └── sprint-03/
+│
+├── database/
+│   ├── init/
+│   │   └── schema.sql
+│   │
+│   ├── seeds/
+│   │   └── insert.sql
+│   │
+│   └── migrations/
+│
+├── src/
+│   ├── index.html
+│   ├── scripts/
+│   └── css/
+│
+├── docker-compose.yml
+├── .env.example
+├── .gitignore
+└── README.md
+```
+
+> A estrutura será atualizada conforme o desenvolvimento do projeto e a definição da arquitetura da aplicação.
+
 ---
 
 ## **📖 Manual do usuário**
