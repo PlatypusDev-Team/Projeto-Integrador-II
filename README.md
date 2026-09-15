@@ -3,7 +3,7 @@
 <br>
 
 <div align="center">
-      <img src="https://github.com/turbodeliveryapi/welcome.code/blob/main/docs/img/Logo%20da%20Equipe" width="200">
+      <img src="./docs/img/platypus-logo.png" width="200">
       <h2 align="center"> Platypus Dev</h2>
 </div>
 
