@@ -1,4 +1,4 @@
-create database projeto_dm;
+-- create database projeto_dm;
 use projeto_dm;
 
 create table tb_cliente (
