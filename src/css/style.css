@@ -23,9 +23,9 @@ body {
     display: flex;
     flex-direction: column;
     overflow-x: hidden;
+    font-family: 'Catamaran', sans-serif;
 }
 
-/* --- HEADER / NAVBAR --- */
 header {
     background-color: #212acf;
     font-family: 'Catamaran', sans-serif;;
@@ -71,9 +71,10 @@ nav a:hover {
 }
 
 .btn-header {
-    background-color:#22C55E;
+    background-color:#68e69a;
     color: white;
     font-family: 'Catamaran', sans-serif;
+    text-decoration: none;
     border: none;
     padding: 10px 20px;
     border-radius: 50px;
@@ -84,11 +85,11 @@ nav a:hover {
 }
 
 .btn-header:hover {
-    background-color: #29ad07;
+    background-color: #21d368;
      color:#ffffff
 }
 
-/* --- HERO SECTION --- */
+
 .hero {
     display: flex;
     flex: 1;
@@ -155,7 +156,7 @@ nav a:hover {
 }
 
 .btn-primary {
-    background-color:#ff9a98;
+    background-color:#68e69a;
     color: white;
     padding: 14px 28px;
     border-radius: 50px;
@@ -171,22 +172,6 @@ nav a:hover {
     transform: translateY(-2px);
 }
 
-.btn-secondary {
-    background-color:#ff9a98;
-    color: white;
-    padding: 14px 28px;
-    border-radius: 50px;
-    font-weight: 600;
-    font-size: 0.95rem;
-    text-decoration: none;
-    transition: transform 0.2s, background-color 0.2s;
-    box-shadow: 0 4px 14px rgba(27, 43, 107, 0.25);
-}
-
-.btn-secondary:hover {
-    background-color:#ff9a98;
-    border-color: #94A3B8;
-}
 
 /* Trust Badges */
 .trust-badges {
@@ -360,13 +345,13 @@ nav a:hover {
     image-resolution:calc(100);
 }
 
-/* Responsividade para celulares */
+
 @media (max-width: 768px) {
     .cartao-item {
-        flex: 0 0 85%; /* No celular o cartão ocupa boa parte da tela para rolar arrastando */
+        flex: 0 0 85%; 
     }
     .prev-btn, .next-btn {
-        display: none; /* Oculta as setas em telas touch, permitindo arrastar com o dedo */
+        display: none; 
     }
 }
 
@@ -460,17 +445,17 @@ nav a:hover {
   margin-bottom: 12px;
 }
 
-/* Efeito do círculo/elipse ao redor de "DM App" */
+
 .highlight-circle {
   position: relative;
   display: inline-block;
-  border: 2px solid #e07a8a; /* Cor avermelhada/rosa parecida com a da imagem */
-  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px; /* Bordas levemente orgânicas estilo desenho à mão */
+  border: 2px solid #e07a8a; 
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px; 
   padding: 2px 10px;
-  transform: rotate(-1deg5); /* Leve rotação opcional para dar toque orgânico */
+  transform: rotate(-1deg5); 
 }
 
-/* Parágrafo descritivo */
+
 .app-content p {
   font-size: 16px;
   color: #555;
@@ -478,17 +463,17 @@ nav a:hover {
   line-height: 1.5;
 }
 
-/* Container dos botões das lojas */
+
 .store-buttons {
   display: flex;
-  gap: 12px;
+  gap: 50px;
   align-items: center;
-  flex-wrap: wrap; /* Garante responsividade em telas menores */
+  flex-wrap: wrap; 
 }
 
-/* Estilo individual dos links/botões das lojas */
+
 .store-link img {
-  height: 44px; /* Altura padrão para os badges das lojas */
+  height: 60px; 
   width: auto;
   transition: transform 0.2s ease;
 }
@@ -496,6 +481,7 @@ nav a:hover {
 .store-link img:hover {
   transform: scale(1.03);
 }
+
 
 .top-color-bar {
     display: flex;
@@ -528,6 +514,7 @@ nav a:hover {
 .page-title {
     background-color: #68e69a; 
     color: #212acf;
+    font-family: 'Catamaran', sans-serif;
     font-size: 1.5rem;
     font-weight: 700;
     padding: 12px 40px;
@@ -572,7 +559,7 @@ nav a:hover {
 
 
 .card-visual {
-    background-color: #000b68;
+    background-color: #ffe372;
     width: 100%;
     height: 300px;
     position: relative;
@@ -584,12 +571,12 @@ nav a:hover {
 }
 
 .card-img {
-    width: 150%;  /* Deixa a imagem mais larga que o background */
-    height: 130%; /* Deixa a imagem mais alta que os 300px do background, forçando o transbordo */
+    width: 150%;  
+    height: 130%; 
     object-fit: contain;
     position: relative;
-    z-index: 5;   /* Garante que a imagem fique por cima do background e de outros elementos se necessário */
-    filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.3));
+    z-index: 5; 
+    filter: drop-shadow(0 15px 30px rgba(0, 0, 0, 0.3));
 }
 .btn-select {
     background-color: #5be492;
