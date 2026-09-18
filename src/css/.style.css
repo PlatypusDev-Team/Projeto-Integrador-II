@@ -1,0 +1,610 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Catamaran', sans-serif;
+}
+
+:root {
+    --bg-dark-blue: #1B2B6B;
+    --primary-blue: #0A3BAA;
+    --accent-blue: #2563EB;
+    --text-dark: #1E293B;
+    --text-muted: #64748B;
+    --accent-orange: #FF6B35;
+    --accent-yellow: #FFC107;
+    --accent-green: #22C55E;
+}
+
+body {
+    background-color: var(--light-bg);
+    color: var(--text-dark);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+}
+
+/* --- HEADER / NAVBAR --- */
+header {
+    background-color: #212acf;
+    font-family: 'Catamaran', sans-serif;;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 5%;
+    color: white;
+    z-index: 10;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+}
+
+.logo-img {
+    height: 40px; 
+    width: auto;
+    object-fit: contain;
+    display: block;
+    border-radius: 10px;
+}
+
+nav ul {
+    display: flex;
+    list-style: none;
+    gap: 32px;
+}
+
+nav a {
+    color: #CBD5E1;
+    text-decoration:none;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: color 0.2s;
+     font-family: 'Catamaran', sans-serif;
+}
+
+nav a:hover {
+    color: #ffe372;
+}
+
+.btn-header {
+    background-color:#22C55E;
+    color: white;
+    font-family: 'Catamaran', sans-serif;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-header:hover {
+    background-color: #29ad07;
+     color:#ffffff
+}
+
+/* --- HERO SECTION --- */
+.hero {
+    display: flex;
+    flex: 1;
+    position: relative;
+    min-height: calc(100vh - 70px);
+    font-family: 'Catamaran', sans-serif; 
+}
+
+/* Coluna da Esquerda (Clara) */
+.hero-left {
+    flex: 0.7;
+    padding: 80px 5% 60px 8%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    z-index: 2;
+    font-family:'Catamaran', sans-serif;
+}
+
+.tagline {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+}
+
+.tagline-dot {
+    width: 6px;
+    height: 6px;
+    background-color: #22C55E;
+    border-radius: 50%;
+    font-family: 'Catamaran', sans-serif;
+}
+
+.hero-title {
+    font-size: 3rem;
+    font-weight: 800;
+    line-height: 1.15;
+    color: #0F172A;
+    margin-bottom: 20px;
+    font-family:'Catamaran', sans-serif;
+    max-width: 600px;
+}
+
+.hero-subtitle {
+    font-size: 1.10rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin-bottom: 36px;
+    max-width: 600px;
+    font-family: 'Catamaran', sans-serif;
+}
+
+.cta-group {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 60px;
+}
+
+.btn-primary {
+    background-color:#ff9a98;
+    color: white;
+    padding: 14px 28px;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-decoration: none;
+    transition: transform 0.2s, background-color 0.2s;
+    box-shadow: 0 4px 14px rgba(27, 43, 107, 0.25);
+}
+
+.btn-primary:hover {
+    background-color: #22C55E;
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background-color:#ff9a98;
+    color: white;
+    padding: 14px 28px;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-decoration: none;
+    transition: transform 0.2s, background-color 0.2s;
+    box-shadow: 0 4px 14px rgba(27, 43, 107, 0.25);
+}
+
+.btn-secondary:hover {
+    background-color:#ff9a98;
+    border-color: #94A3B8;
+}
+
+/* Trust Badges */
+.trust-badges {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border-top: 1px solid #E2E8F0;
+    padding-top: 24px;
+    max-width: 800px;
+    margin-bottom: 10px;
+}
+
+.badge-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.badge-icon {
+    width: 40px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.0rem;
+}
+
+.badge-text {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #0147a8;
+    line-height: 1.2;
+}
+
+/* Coluna da Direita (Azul com Corte Diagonal) */
+.hero-right {
+    flex: 1.5;
+    background-color:#1a20a1;
+    position: relative;
+    padding: 60px 5% 60px 5%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    clip-path: polygon(8% 0, 100% 0, 100% 100%, 0% 100%);
+    margin-left: -4%;
+    font-family:'Catamaran', sans-serif;
+}
+.card-tabs {
+    display: flex;
+    gap: 10px;
+    color: #e9ebf0;
+    margin-bottom: 30px;
+    margin-left: 15px;
+    z-index: 2;
+}
+
+.card-image {
+    width: 100%;
+    height: 560px;
+    max-width: fit-content;
+    justify-content: center;
+    object-fit: contain;
+    border-radius: 16px;
+}
+.card-badge-popular {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background-color:#212acf;
+    color: #e9ebf0;
+    font-size: 1rem;
+    font-weight: 800;
+    padding: 4px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.linha-colorida {
+    height: 10px; /* Altura da linha */
+    width: 100%; /* Largura total da tela */
+    background: linear-gradient(
+      to right,
+      #212acf 0%,   #212acf 25%,  
+      #ff9a98 25%,  #ff9a98 50%,  
+      #ffe372 50%,  #ffe372 75%,  
+      #68e69a 75%,  #22c55e 100%  
+    );
+  }
+
+/* Responsividade Básica */
+@media (max-width: 900px) {
+    .hero {
+        flex-direction: column;
+    }
+
+    .hero-right {
+        clip-path: none;
+        margin-left: 0;
+        padding: 60px 20px;
+    }
+
+    .hero-left {
+        padding: 40px 20px;
+    }
+
+    .hero-title {
+        font-size: 2.2rem;
+    }
+
+    nav ul {
+        display: none;
+    }
+}
+
+.cartoes {
+    padding: 40px 20px;
+    font-family:'Catamaran', sans-serif;
+}
+.cartoes-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    h3{
+        color: #000b68;
+        font-family: 'Catamaran', sans-serif;
+    }
+    text-align: center;
+    font-family:'Catamaran', sans-serif;
+    font-size: large;
+}
+
+.carousel-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin-top: 30px;
+}
+
+.cartoes-carousel {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    width: 100%;
+    padding-bottom: 15px;
+    scrollbar-width: none; /* Esconde a barra de rolagem no Firefox */
+}
+
+
+.cartao-item {
+    flex: 0 0 320px; /* Largura fixa de cada cartão no carrossel */
+    scroll-snap-align: start;
+    background: #f0da76;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    text-align: left;
+    box-sizing: border-box;
+    font-family:'Catamaran', sans-serif;
+}
+
+.cartao-img {
+    width: 100%;
+    height: 180px;
+    border-radius: 8px;
+    object-fit: contain;
+    image-rendering: auto;
+    image-resolution:calc(100);
+}
+
+/* Responsividade para celulares */
+@media (max-width: 768px) {
+    .cartao-item {
+        flex: 0 0 85%; /* No celular o cartão ocupa boa parte da tela para rolar arrastando */
+    }
+    .prev-btn, .next-btn {
+        display: none; /* Oculta as setas em telas touch, permitindo arrastar com o dedo */
+    }
+}
+
+.sobre {
+    background-color: #7df4ed;
+    color: #092158;
+    font-family: 'Catamaran', sans-serif;
+    display: flex;
+    flex-direction: row; 
+    align-items: center;
+    gap: 30px; 
+    font-size: 1.1rem;
+}
+ .sobre-img {
+    border-radius: 25px;
+    margin: 30px;
+    
+ }
+
+ .footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center; 
+    text-align: center; 
+    background-color: #171ea3;
+}
+
+.nav-footer {
+    padding-left: 0;
+    list-style: none;
+}
+
+.nav-footer a {
+    text-decoration: none;
+    color: #ffffff;
+    font-size: 1rem;
+    transition: color 0.3s ease;
+    font-family: 'Catamaran', sans-serif;
+}
+
+.nav-footer a:hover {
+    color: #ffe372;
+}
+
+.footer-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    text-align: center;
+    margin: 2rem auto 1rem auto; 
+    color: #ffffff;
+    font-family: 'Catamaran', sans-serif;
+}
+
+.footer-bottom{
+    width: 100%;
+    text-align: center;
+    padding: 1rem 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    font-size: 0.9rem;
+}
+
+
+ .download-app-section {
+  max-width: 800px;
+  margin: 0 auto;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #333;
+  padding: 20px;
+  text-align: left; 
+}
+
+/* Container da imagem com cantos arredondados */
+.app-image-container {
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+.app-image-container img {
+  width: 100%;
+  height: auto;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  display: block;
+}
+
+/* Estilização do Título */
+.app-content h2 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #111;
+  margin-bottom: 12px;
+}
+
+/* Efeito do círculo/elipse ao redor de "DM App" */
+.highlight-circle {
+  position: relative;
+  display: inline-block;
+  border: 2px solid #e07a8a; /* Cor avermelhada/rosa parecida com a da imagem */
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px; /* Bordas levemente orgânicas estilo desenho à mão */
+  padding: 2px 10px;
+  transform: rotate(-1deg5); /* Leve rotação opcional para dar toque orgânico */
+}
+
+/* Parágrafo descritivo */
+.app-content p {
+  font-size: 16px;
+  color: #555;
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+/* Container dos botões das lojas */
+.store-buttons {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap; /* Garante responsividade em telas menores */
+}
+
+/* Estilo individual dos links/botões das lojas */
+.store-link img {
+  height: 44px; /* Altura padrão para os badges das lojas */
+  width: auto;
+  transition: transform 0.2s ease;
+}
+
+.store-link img:hover {
+  transform: scale(1.03);
+}
+
+.top-color-bar {
+    display: flex;
+    width: 100%;
+    height: 12px;
+}
+
+.top-color-bar span {
+    flex: 1;
+    height: 100%;
+}
+
+.bar-blue { background-color: #0056b3; }
+.bar-yellow { background-color: #ffe372; }
+.bar-pink { background-color: #ff9a98; }
+.bar-green { background-color: #68e69a; }
+.bar-cyan { background-color: #7df4ed; }
+
+
+.cards-container-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 80px 60px;
+
+
+}
+
+
+.page-title {
+    background-color: #68e69a; 
+    color: #212acf;
+    font-size: 1.5rem;
+    font-weight: 700;
+    padding: 12px 40px;
+    border-radius: 30px;
+    margin-bottom: 40px;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+
+.cards-grid {
+    display: flex;
+    gap: 70px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+
+.card-box {
+    border-radius: 12px;
+    width: 260px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+
+.card-header {
+    background-color: #212acf;
+    color: #68e69a;
+    box-shadow: 0 10px 10px rgba(0, 0, 0, 0.1);
+    font-weight: 800;
+    font-size: 1rem;
+    text-align: center;
+    width: 100%;
+    height: 40px;
+    padding: 10px 0;
+    border-radius: 6px;
+    margin-bottom: 20px;
+}
+
+
+.card-visual {
+    background-color: #000b68;
+    width: 100%;
+    height: 300px;
+    position: relative;
+    border-radius: 12px;
+    overflow: visible;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card-img {
+    width: 150%;  /* Deixa a imagem mais larga que o background */
+    height: 130%; /* Deixa a imagem mais alta que os 300px do background, forçando o transbordo */
+    object-fit: contain;
+    position: relative;
+    z-index: 5;   /* Garante que a imagem fique por cima do background e de outros elementos se necessário */
+    filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.3));
+}
+.btn-select {
+    background-color: #5be492;
+    color: #212acf;
+    box-shadow: 0 6px 6px rgba(0, 0, 0, 0.1);
+    text-decoration: none;
+    font-weight: 700;
+    margin-top: 20px;
+    text-align: center;
+    width: 100%;
+    padding: 12px 0;
+    border-radius: 30px;
+    transition: background-color 0.3s ease;
+}
+
+.btn-select:hover {
+    background-color: #0056b3;
+}
