@@ -6,7 +6,7 @@
 [ HTML/CSS/TS (frontend) ]  --fetch GET-->  [ Flask (backend) ]
                                                   |-- ViaCEP (CEP -> endereço)
                                                   |-- Nominatim (endereço -> lat/lon)
-                                                  '-- Haversine vs. MOCK_SHOPPINGS
+                                                  '-- Haversine vs. shoppings do OpenStreetMap
 ```
 
 1. O usuário digita o CEP no input estilizado da landing page.
@@ -36,9 +36,22 @@ python app.py
 
 ```bash
 cd frontend
-npx tsc script.ts --target ES2020 --lib ES2020,DOM --strict   # gera script.js
+   npx tsc   # gera script.js e status.js
 # depois é só abrir index.html no navegador (ou servir com um live-server)
 ```
+
+## Tela de status
+
+A tela da US03 está em `status.html` e consulta a API Flask, que busca a
+solicitação no MySQL. O identificador deve ser enviado pelo fluxo da aplicação:
+
+- `status.html?solicitacao=1` — Ana Silva, em análise
+- `status.html?solicitacao=2` — Bruno Santos, aprovado
+- `status.html?solicitacao=3` — Carla Oliveira, rejeitada
+
+Sem o parâmetro `solicitacao`, a tela não escolhe um cliente automaticamente.
+Os IDs acima correspondem aos registros existentes no banco inicializado pelo
+Docker, não a dados cadastrados no código Python.
 
 ## Bibliotecas usadas
 
@@ -49,6 +62,6 @@ npx tsc script.ts --target ES2020 --lib ES2020,DOM --strict   # gera script.js
 
 ## Próximos passos sugeridos
 
-- Trocar `MOCK_SHOPPINGS` por uma tabela no banco de dados da DM
+- Integrar autenticação para enviar automaticamente o ID da solicitação
 - Adicionar cache para não bater no Nominatim a cada busca do mesmo CEP
 - Definir `API_BASE_URL` via variável de ambiente no build do frontend

@@ -6,5 +6,5 @@
     "strict": true,
     "noImplicitAny": true
   },
-  "include": ["script.ts"]
+  "include": ["script.ts", "status.ts"]
 }
