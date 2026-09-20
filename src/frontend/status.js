@@ -193,7 +193,7 @@ function renderStatus(solicitacao) {
 async function carregarSolicitacao(id) {
     activeRequestId = id;
     try {
-        const response = await fetch(`http://localhost:5000/api/solicitacoes/${id}`);
+        const response = await fetch(`http://localhost:5001/api/solicitacoes/${id}`);
         const body = await response.json();
         if (!response.ok)
             throw new Error(body.erro);

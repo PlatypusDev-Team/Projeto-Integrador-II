@@ -45,6 +45,13 @@ cd frontend
 A tela da US03 está em `status.html` e consulta a API Flask, que busca a
 solicitação no MySQL. O identificador deve ser enviado pelo fluxo da aplicação:
 
+Para iniciar o ponto de entrada da tela de status:
+
+```powershell
+python src/backend/status_app.py
+# API de status disponível em http://localhost:5001
+```
+
 - `status.html?solicitacao=1` — Ana Silva, em análise
 - `status.html?solicitacao=2` — Bruno Santos, aprovado
 - `status.html?solicitacao=3` — Carla Oliveira, rejeitada

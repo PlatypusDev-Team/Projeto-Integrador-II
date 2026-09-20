@@ -213,7 +213,7 @@ function renderStatus(solicitacao: Solicitacao): void {
 async function carregarSolicitacao(id: number): Promise<void> {
   activeRequestId = id;
   try {
-    const response = await fetch(`http://localhost:5000/api/solicitacoes/${id}`);
+    const response = await fetch(`http://localhost:5001/api/solicitacoes/${id}`);
     const body: Solicitacao | ApiError = await response.json();
     if (!response.ok) throw new Error((body as ApiError).erro);
     renderStatus(body as Solicitacao);
