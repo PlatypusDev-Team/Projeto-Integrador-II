@@ -1,0 +1,301 @@
+body {
+    font-family: 'Catamaran', sans-serif ;
+    font-optical-sizing: auto;
+    font-weight: weight;
+    font-style: normal;
+
+}
+
+header {
+    margin-bottom: 3%;
+    background-color: #212ACF;
+}
+
+footer {
+    background-color: #212ACF;
+}
+
+/* SELECAO DE CARTAO */
+
+#barraColorida {
+    background-color:#212ACF;
+    height: 10%;
+    margin-bottom: 3%;
+}
+
+#barraColorida div {
+    background-color: #68E69A;
+    margin-left: 10%;
+}
+
+#titulo-cartoes {
+    color:#212ACF;
+    background-color: #68E69A;
+    border-radius: 40px;
+    text-align: center;
+    margin-left: 20%;
+    margin-right: 20%;
+    justify-self: center;
+    padding-left: 5%;
+    padding-right: 5%;
+}
+
+.cards-cartoes {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 3%;
+}
+
+#card-cartao {
+    background-color: #212ACF;
+    background-image: linear-gradient(to bottom, #212ACF,#212ACF, #0c17ea);
+    margin: 30px;
+    padding:20px;
+    width: 280px;
+    height: 100%;
+    border-radius: 30px;
+    text-align: center;
+    padding-bottom: 2%;
+    
+}
+
+#card-cartao img {
+    display: block;
+    width: 350px;
+    border-radius: 10px;
+    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+    margin-bottom: 10%;
+    transform: translateX(-35px);
+}
+
+#card-cartao h1 {
+    color: #68E69A;
+    font-weight: bolder;
+    margin-top: 0;
+}
+
+#card-cartao h2 {
+    color:#68E69A;
+    font-size: 90%;
+    margin-bottom: 0;
+    border: solid;
+    text-align: center;
+    margin-left: 90%;
+    border-radius: 100%;
+}
+
+#card-cartao button {
+    background-color: #68E69A;
+    border-radius: 30px;
+    border: none;
+    color:#212ACF;
+    font-weight: bolder;
+    font-size:large;
+    width: 60%;
+    height: 40px;
+    cursor: pointer;
+}
+
+#card-cartao button:hover {
+    background-color:#FF9A98;
+}
+
+
+/* SELECAO DE LOJA */
+
+#titulo-lojas h1 {
+    color:#68E69A;
+    background-color: #212ACF;
+    margin: 0 5% 1%;
+    padding-left: 4%;
+    border-radius: 30px;
+}
+
+#titulo-lojas h2 {
+    color:#212ACF;
+    background-color: #FF9A98;
+    margin: 0 74% 0 5%;
+    padding-left: 4%;
+    padding-right: 4%;
+    border-radius: 30px;
+}
+
+.badge-fisico {
+    background-color:#0c17ea;
+    color: white;
+    padding: 4px 8px;
+    text-align: center;
+    border-radius: 10px;
+    margin-left: 2%;
+}
+
+.badge-digital {
+    background-color:#ff4b48;
+    color: white;
+    padding: 4px 8px;
+    text-align: center;
+    border-radius: 10px;
+    margin-left: 2%;
+}
+
+.barraLoja {
+    display: grid;
+    grid-template-columns: 85% 15%;
+    margin: 5%;
+    margin-top: 0;
+}
+
+#titulo-barra h1 {
+    margin-left: 5%;
+    margin-bottom: 1%;
+    margin-top: 5%;
+    font-size:large;
+}
+
+#barraBuscar input {
+    background-color: #F5F5F5;
+    color: #686868;
+    border: none;
+    font-size: medium;
+    border-radius: 30px;
+    width: 95%;
+    height: 42px;
+    padding-left: 2%;
+}
+
+#barraBuscar input[type=text]:focus {
+  background-color: #d0d0d0;
+}
+
+
+#botaoBuscar input {
+
+    background-color: #68E69A;
+    border-radius: 30px;
+    border: none;
+    color:#212ACF;
+    font-weight: bolder;
+    font-size:large;
+    width: 100%;
+    height: 44px;
+    cursor: pointer;
+}
+
+#botaoBuscar input:hover {
+    background-color:#FF9A98;
+}
+
+.resultadoBuscar {
+    display: grid;
+    grid-template-columns: auto auto auto;
+    background-color: #F5F5F5;
+    margin: 5%;
+    padding: 5%;
+    border-radius: 30px;
+    justify-content: center;
+}
+
+.resultadoLoja {
+    margin-right: 10%;
+    margin-bottom: 20%;
+    margin-left: 10%;
+}
+
+.resultadoLoja h1 {
+    font-size: medium;
+}
+
+.resultadoLoja p {
+    text-align: justify;
+}
+
+.resultadoLoja button {
+    background-color: #68E69A;
+    border-radius: 30px;
+    border: none;
+    color:#212ACF;
+    font-weight: bolder;
+    font-size:large;
+    width: 60%;
+    height: 40px;
+    cursor: pointer;
+    text-align: center;
+    margin-left: 20%;
+}
+
+.resultadoLoja button:hover {
+    background-color:#FF9A98;
+}
+
+/* Responsividade */
+
+@media screen and (max-width:600px) {
+    #titulo-cartoes {
+        font-size: smaller;
+        width: 80%;
+    }
+}
+
+@media screen and (max-width:600px) {
+    #card-cartao {
+        padding-bottom: 5%;
+    }
+}
+
+@media screen and (max-width:600px) {
+    #titulo-lojas h1 {
+        margin-right: 5%;
+        margin-left: 5%;
+        text-align: center;
+    }
+}
+
+@media screen and (max-width:600px) {
+    #titulo-lojas h2 {
+        margin-right: 5%;
+        margin-left: 5%;
+        font-size: large;
+        text-align: center;
+        margin-bottom: 10%;
+    }
+}
+
+@media screen and (max-width:600px) {
+    #titulo-barra h1 {
+        margin-right: 10%;
+        margin-left: 10%;
+        font-size: large;
+        text-align: center;
+    }
+}
+
+@media screen and (max-width:600px) {
+    #botaoBuscar input {
+        margin-right: 10%;
+        margin-left: 10%;
+        font-size: small;
+        text-align: center;
+        margin-bottom: 10%;
+    }
+}
+
+@media screen and (max-width:600px) {
+    #barraBuscar {
+        margin-right: 5%;
+    }
+}
+
+@media screen and (max-width:600px) {
+    #barraBuscar input {
+        padding-left: 5%;
+    }
+}
+
+@media screen and (max-width:600px) {
+    .resultadoBuscar {
+        grid-template-columns: auto;
+        columns: 3 auto;
+        column-gap: 1em;
+    }
+}
