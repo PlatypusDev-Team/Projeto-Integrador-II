@@ -71,19 +71,16 @@ async function buscarShoppings(cep) {
     setFeedback("Buscando shoppings perto de você...", "loading");
     limparResultados();
     let resposta;
-
     try {
         resposta = await fetch(`${API_BASE_URL}/api/shoppings/${cep}`);
     }
     catch (erroDeRede) {
         console.error("Falha ao conectar na API:", erroDeRede);
-        setFeedback(`Não foi possível conectar à API em ${API_BASE_URL}. Verifique se o backend Flask está rodando.`, "erro");
+        setFeedback('Não foi possível conectar à API em ${API_BASE_URL}. Verifique se o backend Flask está rodando.', "erro");
         submitButton.disabled = false;
         return;
     }
-
     let corpo;
-
     try {
         corpo = await resposta.json();
     }
@@ -104,7 +101,6 @@ async function buscarShoppings(cep) {
     renderizarShoppings(dados);
     submitButton.disabled = false;
 }
-
 form.addEventListener("submit", (evento) => {
     evento.preventDefault();
     const cepDigitado = input.value.replace(/\D/g, "");

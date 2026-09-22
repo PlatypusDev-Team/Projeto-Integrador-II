@@ -1,7 +1,12 @@
 import os
+from pathlib import Path
 
 import mysql.connector
 from mysql.connector import Error
+from dotenv import load_dotenv
+
+
+load_dotenv(Path(__file__).resolve().parents[3] / "docker" / ".env")
 
 
 STATUS_PRE_QUALIFICACAO = "CONCLUIDA"

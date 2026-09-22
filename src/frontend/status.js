@@ -49,7 +49,11 @@ const userCpf = document.querySelector("#user-cpf");
 const requestType = document.querySelector("#request-type");
 const userAvatar = document.querySelector("#user-avatar");
 const refreshStatusButton = document.querySelector("#refresh-status");
+const notFoundState = document.querySelector("#not-found-state");
 let activeRequestId = null;
+function ocultarSolicitacaoNaoEncontrada() {
+    notFoundState?.setAttribute("hidden", "true");
+}
 function setLoadingIcon(element) {
     element.innerHTML = '<svg class="hourglass-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m17.029,12c2.033-1.972,3.971-4.837,3.971-8.591,0-1.88-1.529-3.409-3.409-3.409H6.409c-1.88,0-3.409,1.53-3.409,3.41,0,3.754,1.945,6.619,3.986,8.591-2.041,1.971-3.986,4.835-3.986,8.59v3.409h18v-3.409c0-3.753-1.938-6.619-3.971-8.591Zm.971,9H6v-.409c0-3.385,2.281-5.9,4.195-7.414l1.487-1.176-1.487-1.176c-1.914-1.514-4.195-4.03-4.195-7.415,0-.226.184-.409.409-.409h11.182c.226,0,.409.183.409.409,0,3.385-2.271,5.901-4.177,7.417l-1.476,1.174,1.476,1.174c1.905,1.516,4.177,4.032,4.177,7.417v.409Zm-5.422-11.739l-.566.45-.576-.456c-1.229-.973-2.644-2.427-3.197-4.255h7.524c-.55,1.831-1.96,3.287-3.184,4.261Z" /></svg>';
 }
@@ -121,6 +125,7 @@ function renderStatus(solicitacao) {
     const content = contentByStatus[status];
     if (!page || !prequalificationCard || !prequalificationIcon || !prequalificationTitle || !prequalificationMessage || !prequalificationDescription || !prequalificationStep || !creditStep || !resultStep || !creditCard || !creditIcon || !resultCard || !resultIcon || !resultMessage || !resultDetail || !noticeIcon || !noticeTitle || !noticeMessage || !creditDescription || !creditNote || !userName || !userCpf || !requestType || !userAvatar)
         return;
+    ocultarSolicitacaoNaoEncontrada();
     page.dataset.status = status;
     const prequalificationPending = solicitacao.pre_qualificacao === "EM ANALISE";
     const resultActive = status === "aprovada" || status === "rejeitada";
@@ -192,9 +197,14 @@ function renderStatus(solicitacao) {
 }
 async function carregarSolicitacao(id) {
     activeRequestId = id;
+    ocultarSolicitacaoNaoEncontrada();
     try {
         const response = await fetch(`http://localhost:5001/api/solicitacoes/${id}`);
         const body = await response.json();
+        if (response.status === 404) {
+            mostrarSolicitacaoNaoEncontrada();
+            return;
+        }
         if (!response.ok)
             throw new Error(body.erro);
         renderStatus(body);
@@ -220,6 +230,7 @@ refreshStatusButton?.addEventListener("click", () => {
     });
 });
 function mostrarSolicitacaoAusente() {
+    ocultarSolicitacaoNaoEncontrada();
     page?.setAttribute("data-status", "analise");
     updateTimeline(0);
     prequalificationCard?.classList.add("status-card--active");
@@ -240,4 +251,13 @@ if (requestId === null) {
 }
 else {
     void carregarSolicitacao(requestId);
+}
+function mostrarSolicitacaoNaoEncontrada() {
+    page?.setAttribute("data-view", "not-found");
+    const requestId = getRequestId();
+    if (requestId === null) {
+        mostrarSolicitacaoAusente();
+        return;
+    }
+    notFoundState?.removeAttribute("hidden");
 }

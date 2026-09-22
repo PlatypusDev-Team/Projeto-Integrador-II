@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Acompanhe o status da sua solicitação de cartão DM." />
   <title>DM | Acompanhe seu pedido</title>
+  <link rel="icon" type="image/png" href="https://play-lh.googleusercontent.com/lzoSveaHXSO1BCWYEhKNGe4FFcyR73F9X3-5uPkH0ofuK0oXLhayqTXjYG6NxgjsoqS7BcqHV-mHKTRa25U2" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Catamaran:wght@600;700;800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet" />
@@ -30,6 +31,12 @@
         <p>CPF: <span id="user-cpf">***.***.***-**</span></p>
         <p id="request-type">Tipo de solicitação: Cartão DM</p>
       </div>
+    </section>
+
+    <section class="not-found-state" id="not-found-state" aria-live="polite" hidden>
+      <div class="not-found-state__icon" aria-hidden="true">!</div>
+      <h1>Solicitação não encontrada</h1>
+      <p>Não localizamos uma solicitação com este identificador. Verifique o link ou inicie uma nova solicitação.</p>
     </section>
 
     <section id="pedido" class="order" aria-labelledby="order-title">
