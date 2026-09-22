@@ -4,4 +4,3 @@
 <h2> Tecnologias Front-End </h2>
 <p> HTML, CSS, JavaScript </p>
 <h3>Tecnologias Back-End</h3>
-<p> Python, SQL, Docker </p>
