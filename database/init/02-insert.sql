@@ -18,37 +18,49 @@ values
 
 -- filiais
 
-insert into tb_filial (cep_filial, id_loja)
+insert into tb_filial (cep_filial, uf_filial, id_loja)
 values
-    ('12233000', 1),
-    ('12234000', 1),
-    ('20010000', 2),
-    ('20020000', 2),
-    ('30110000', 3),
-    ('30120000', 3),
-    ('80010000', 1),
-    ('80020000', 1),
-    ('40010000', 2),
-    ('40020000', 2),
-    ('50010000', 3),
-    ('50020000', 3);
+    ('12233000', 'SP', 1),
+    ('12234000', 'SP', 2),
+
+    ('20010000', 'RJ', 2),
+    ('20020000', 'RJ', 3),
+
+    ('30110000', 'MG', 1),
+    ('30120000', 'MG', 3),
+
+    ('80010000', 'PR', 1),
+    ('80020000', 'PR', 2),
+
+    ('40010000', 'BA', 2),
+    ('40020000', 'BA', 3),
+
+    ('50010000', 'PE', 1),
+    ('50020000', 'PE', 3);
 
 
 -- cartoes
 
 insert into tb_cartao (nome_cartao, tipo_cartao, descricao_cartao, modalidade, bandeirado) 
 values
-    ('Cartao DM', 'DM', 'Cartao bandeirado DM.', 'FISICO', true),
-    ('cartao DM digital', 'DM', 'Cartao bandeirado DM.', 'DIGITAL', true),
-    ('Cartao loja A', 'LOJA', 'Cartao exclusivo para compras na loja A.','FISICO', false),
-    ('Cartao loja B', 'LOJA', 'Cartao digital oferecido pela loja beta.', 'DIGITAL', true);
+	('Cartao DM', 'DM', 'Cartao bandeirado DM.', 'FISICO', true),
+    ('Cartao DM Digital', 'DM', 'Cartao bandeirado DM.', 'DIGITAL', true),
+
+    ('Cartao Loja A', 'LOJA', 'Cartao exclusivo para compras na Loja A.', 'FISICO', false),
+    ('Cartao Loja A Digital', 'LOJA', 'Cartao exclusivo para compras na Loja A.', 'DIGITAL', false),
+    
+    ('Cartao Loja B Digital', 'LOJA', 'Cartao digital oferecido pela Loja B.', 'DIGITAL', true),
+
+    ('Cartao Loja C', 'LOJA', 'Cartao exclusivo para compras na Loja C.', 'FISICO', false);
 
 -- cartoes loja
 
 insert into tb_cartao_loja (id_cartao, id_loja)
 values
     (3, 1),
-    (4, 2);
+    (4, 1),
+    (5, 2),
+    (6, 3);
 
 
 -- solicitacoes
