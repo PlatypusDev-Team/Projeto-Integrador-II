@@ -1,7 +1,11 @@
 # Variáveis de ambiente locais
 .env
 
-# Dados persistidos do MySQL (docker)
+# Ambiente virtual Python
+.venv/
+venv/
+
+# Dados persistidos do MySQL (Docker)
 mysql-data/
 
 # Logs
@@ -11,11 +15,17 @@ mysql-data/
 *.tmp
 *.temp
 
+# Cache Python
+__pycache__/
+*.pyc
+
 # Configurações pessoais de IDE
 .vscode/
 .idea/
 
 # Arquivos do sistema operacional
 .DS_Store
-Thumbs.dbvenv/
-__pycache__/
+Thumbs.db
+
+# Dependências Node
+node_modules/

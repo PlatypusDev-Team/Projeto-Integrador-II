@@ -1,42 +1,26 @@
-from flask import Flask, jsonify
+from flask import Flask
+from flask_cors import CORS
 
-from cep import buscar_uf_por_cep
-from db import buscar_lojas_por_uf
-
-
-app = Flask(__name__)
-
-app.json.sort_keys = False
-app.json.ensure_ascii = False
+from routes.cep import cep_bp
+from routes.status import solicitacoes_bp
 
 
-@app.get("/api/lojas/<cep>")
-def consultar_lojas(cep):
+def create_app():
+    app = Flask(__name__)
 
-    try:
-        uf = buscar_uf_por_cep(cep)
+    CORS(app)
 
-        lojas = buscar_lojas_por_uf(uf)
+    app.json.sort_keys = False
+    app.json.ensure_ascii = False
 
-        if not lojas:
-            return jsonify({
-                "cep": cep,
-                "uf": uf,
-                "lojas": [],
-                "mensagem": "Nenhuma loja disponível para este CEP."
-            }), 200
+    app.register_blueprint(cep_bp)
+    app.register_blueprint(solicitacoes_bp)
 
-        return jsonify({
-            "cep": cep,
-            "uf": uf,
-            "lojas": lojas
-        }), 200
+    return app
 
-    except ValueError as erro:
-        return jsonify({
-            "erro": str(erro)
-        }), 400
+
+app = create_app()
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, port=5001)
