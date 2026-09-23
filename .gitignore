@@ -17,5 +17,9 @@ mysql-data/
 
 # Arquivos do sistema operacional
 .DS_Store
+
 Thumbs.db
 *.pyc
+
+Thumbs.dbvenv/
+__pycache__/
