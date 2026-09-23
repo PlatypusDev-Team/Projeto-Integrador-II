@@ -53,3 +53,18 @@ create table tb_filial (
     id_loja int not null,
     foreign key (id_loja) references tb_loja(id_loja)
 );
+
+create table tb_busca_cep (
+    id_busca_cep int auto_increment primary key,
+    cep_busca varchar(9) not null,
+    cidade_busca varchar(100),
+    uf_busca varchar(2),
+    latitude decimal(9, 6),
+    longitude decimal(9, 6),
+    id_cliente int null,
+    data_busca datetime not null default current_timestamp,
+    foreign key (id_cliente) references tb_cliente(id_cliente)
+        on delete set null
+);
+
+create index idx_cep_busca on tb_busca_cep (cep_busca);
