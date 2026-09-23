@@ -1,0 +1,31 @@
+# Variáveis de ambiente locais
+.env
+
+# Ambiente virtual Python
+.venv/
+venv/
+
+# Dados persistidos do MySQL (Docker)
+mysql-data/
+
+# Logs
+*.log
+
+# Arquivos temporários
+*.tmp
+*.temp
+
+# Cache Python
+__pycache__/
+*.pyc
+
+# Configurações pessoais de IDE
+.vscode/
+.idea/
+
+# Arquivos do sistema operacional
+.DS_Store
+Thumbs.db
+
+# Dependências Node
+node_modules/
