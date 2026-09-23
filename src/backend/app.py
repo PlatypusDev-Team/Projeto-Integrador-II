@@ -21,6 +21,11 @@ import math
 from flask import Flask, jsonify
 from flask_cors import CORS
 import requests
+from dotenv import load_dotenv
+
+import db
+
+load_dotenv()  # carrega variáveis de ambiente do arquivo .env
 
 app = Flask(__name__)
 CORS(app)
@@ -173,6 +178,11 @@ def shoppings_proximos(cep):
         return jsonify({"erro": "Não foi possível geolocalizar esse CEP."}), 404
 
     lat_usuario, lon_usuario = coords
+
+    try:
+        db.salvar_busca_cep(cep_limpo, endereco.get("localidade"), endereco.get("uf"), lat_usuario, lon_usuario),
+    except Exception:
+        app.logger.exception("Erro ao salvar busca de CEP no banco de dados.")
 
     try:
         shoppings = buscas_shoppings_via_osm(lat_usuario, lon_usuario, MAX_DISTANCIA_KM)

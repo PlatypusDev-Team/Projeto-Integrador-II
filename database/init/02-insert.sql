@@ -21,11 +21,6 @@ values
 insert into tb_filial (cep_filial, id_loja)
 values
     ('12233000', 1),
-    ('12234000', 1)
-    insert into tb_filial (cep_filial, id_loja)
-
-values
-    ('12233000', 1),
     ('12234000', 1),
     ('20010000', 2),
     ('20020000', 2),
@@ -53,7 +48,7 @@ values
 insert into tb_cartao_loja (id_cartao, id_loja)
 values
     (3, 1),
-    (4, 2),
+    (4, 2);
 
 
 -- solicitacoes
