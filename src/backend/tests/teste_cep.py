@@ -1,5 +1,5 @@
-from cep import buscar_uf_por_cep
-from db import buscar_lojas_por_uf
+from backend.services.cep_service import buscar_uf_por_cep
+from backend.services.loja_service import buscar_lojas_por_uf
 
 
 cep = "30110-000"

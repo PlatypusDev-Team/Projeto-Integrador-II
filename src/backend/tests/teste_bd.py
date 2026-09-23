@@ -1,4 +1,4 @@
-from db import obter_conexao
+from backend.services.loja_service import obter_conexao
 
 conexao = obter_conexao()
 
