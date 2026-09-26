@@ -7,109 +7,181 @@
     <link href="https://fonts.googleapis.com/css?family=Catamaran" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/cadastro-validacao.css">
 </head>
 <body>
-    <header>
-        <div class="logo">
-             <img src="https://play-lh.googleusercontent.com/lzoSveaHXSO1BCWYEhKNGe4FFcyR73F9X3-5uPkH0ofuK0oXLhayqTXjYG6NxgjsoqS7BcqHV-mHKTRa25U2" alt="logo DM" class="logo-img">
+<header>
+    <div class="logo">
+        <img src="https://play-lh.googleusercontent.com/lzoSveaHXSO1BCWYEhKNGe4FFcyR73F9X3-5uPkH0ofuK0oXLhayqTXjYG6NxgjsoqS7BcqHV-mHKTRa25U2" alt="logo DM" class="logo-img">
+    </div>
+    <nav>
+        <ul>
+            <li><a href="index.html">Início</a></li>
+            <li><a href="cartoes.html">Nossos cartões</a></li>
+            <li><a href="faq.html">Dúvidas</a></li>
+        </ul>
+    </nav>
+    <a href="cadastro.html" class="btn-header">Acessar Status</a>
+</header>
+
+<div class="linha-colorida"></div>
+
+<main>
+<section class="cadastro-container">
+    <div class="cadastro-title">
+        <h1>Preencha seus dados</h1>
+        <p>Informe seus dados abaixo para continuar. Seus dados serão analisados de forma segura.</p>
+    </div>
+
+    <div id="mensagem-status" class="mensagem-status" style="display:none;"></div>
+
+    <form id="form-cadastro" method="POST" action="/cadastro"
+          enctype="multipart/form-data" novalidate>
+
+        <div class="dados-container">
+
+            <div class="dados">
+                <label for="nome" class="titulo-campo">Nome completo</label>
+                <input type="text" id="nome" name="nome" maxlength="50"
+                       placeholder="Digite seu nome completo" required>
+                <span class="erro-campo" data-erro-de="nome"></span>
+            </div>
+
+            <div class="dados">
+                <label for="cpf" class="titulo-campo">CPF</label>
+                <input type="text" id="cpf" name="cpf" maxlength="11"
+                       inputmode="numeric" placeholder="Digite seu CPF sem pontos" required>
+                <span class="erro-campo" data-erro-de="cpf"></span>
+            </div>
+
+            <div class="dados">
+                <label for="cep" class="titulo-campo">CEP</label>
+                <input type="text" id="cep" name="cep" maxlength="9"
+                       inputmode="numeric" placeholder="00000-000" required>
+                <span class="erro-campo" data-erro-de="cep"></span>
+            </div>
+
+            <div class="dados">
+                <label for="nascimento" class="titulo-campo">Data de nascimento</label>
+                <input type="text" id="nascimento" name="data_nascimento"
+                       maxlength="10" inputmode="numeric" placeholder="DD/MM/AAAA" required>
+                <span class="erro-campo" data-erro-de="data_nascimento"></span>
+            </div>
+
+            <div class="dados">
+                <label for="telefone" class="titulo-campo">Número de telefone</label>
+                <input type="text" id="telefone" name="telefone" maxlength="11"
+                       inputmode="numeric" placeholder="11999999999" required>
+                <span class="erro-campo" data-erro-de="telefone"></span>
+            </div>
+
+            <div class="dados">
+                <label for="email" class="titulo-campo">Email</label>
+                <input type="email" id="email" name="email" maxlength="100"
+                       placeholder="emailexemplo@gmail.com" required>
+                <span class="erro-campo" data-erro-de="email"></span>
+            </div>
+
+            <div class="dados">
+                <label for="genero" class="titulo-campo">Gênero</label>
+                <select id="genero" name="genero" required>
+                    <option value="" disabled selected>Selecione</option>
+                    <option value="MASCULINO">Masculino</option>
+                    <option value="FEMININO">Feminino</option>
+                    <option value="OUTRO">Outro</option>
+                </select>
+                <span class="erro-campo" data-erro-de="genero"></span>
+            </div>
+
+            <div class="dados">
+                <label for="tipo_cliente" class="titulo-campo">Tipo de cliente</label>
+                <select id="tipo_cliente" name="tipo_cliente" required>
+                    <option value="" disabled selected>Selecione</option>
+                    <option value="COLABORADOR">Colaborador</option>
+                    <option value="NAO COLABORADOR">Não colaborador</option>
+                </select>
+                <span class="erro-campo" data-erro-de="tipo_cliente"></span>
+            </div>
+
+            <div class="dados">
+                <label for="id_cartao" class="titulo-campo">Cartão desejado</label>
+                <select id="id_cartao" name="id_cartao" required>
+                    <option value="" disabled selected>Selecione</option>
+                    <option value="1">Cartão DM</option>
+                    <option value="2">Cartão DM Digital</option>
+                    <option value="3">Cartão Loja A</option>
+                    <option value="4">Cartão Loja A Digital</option>
+                    <option value="5">Cartão Loja B Digital</option>
+                    <option value="6">Cartão Loja C</option>
+                </select>
+                <span class="erro-campo" data-erro-de="id_cartao"></span>
+            </div>
+
+            <div class="dados">
+                <label for="nivel_dm_cred" class="titulo-campo">Nível atual do DM Cred</label>
+                <input type="number" id="nivel_dm_cred" name="nivel_dm_cred"
+                       min="0" max="7" value="0" required>
+                <small>Para DM Visa, a pré-qualificação ocorre a partir do nível 7.</small>
+                <span class="erro-campo" data-erro-de="nivel_dm_cred"></span>
+            </div>
+
+            <div class="dados">
+                <label for="documento" class="titulo-campo">Documento de identificação</label>
+                <input type="file" id="documento" name="documento"
+                       accept=".pdf,.jpg,.jpeg,.png" required>
+                <small>Envie RG ou CNH legível, com foto atualizada.</small>
+                <span class="erro-campo" data-erro-de="documento"></span>
+            </div>
+
+            <div class="dados">
+                <label for="senha" class="titulo-campo">Senha</label>
+                <input type="password" id="senha" name="senha"
+                       minlength="6" placeholder="Mínimo 6 caracteres" required>
+                <span class="erro-campo" data-erro-de="senha"></span>
+            </div>
+
+            <div class="dados">
+                <label for="confirmar_senha" class="titulo-campo">Confirmar senha</label>
+                <input type="password" id="confirmar_senha" name="confirmar_senha"
+                       minlength="6" placeholder="Repita a senha" required>
+                <span class="erro-campo" data-erro-de="confirmar_senha"></span>
+            </div>
+
+            <div class="dados dados-checkbox">
+                <input type="checkbox" id="politica" name="politica" required>
+                <label for="politica" class="titulo-campo-checkbox">
+                    Li e aceito a política de privacidade.
+                </label>
+                <span class="erro-campo" data-erro-de="politica"></span>
+            </div>
+
         </div>
 
-        <nav>
-            <ul>
-                <li><a href="index.html">Início</a></li>
-                <li><a href="cartoes.html">Nossos cartões</a></li>
-                <li><a href="faq.html">Dúvidas</a></li>
-            </ul>
-        </nav>
+        <button type="submit" class="btn-enviar">Enviar dados</button>
+        <p>Seus dados serão utilizados para cadastro e análise da solicitação.</p>
+    </form>
+</section>
+</main>
 
-        <a href="cadastro.html" class="btn-header">Acessar Status</a>
-    </header>
-     <div class="linha-colorida"></div>
-    <main>
-        <section class="cadastro-container">
-            <div class="cadastro-title"> 
-                <h1> Preencha seus dados </h1>
-                 <p>Informe seus dados abaixo para continuar. Seus dados serão analisados de forma segura.</p>
-            </div>
-            <form> 
-            <div class="dados-container">
-               <div class="dados">
-                  <label for="nome" class="titulo-campo">Nome completo</label>
-                  <input type="text" id="nome" placeholder="Digite seu nome completo">
-                </div>
+<div class="linha-colorida"></div>
 
-                <div class="dados">
-                 <label for="cpf" class="titulo-campo">CPF</label>
-                 <input type="text" id="nome" placeholder="Digite seu CPF sem pontos" maxlength="11">
-                </div>
-
-                 <div class="dados"> 
-                  <label for="doc" class="titulo-campo">Envie seu documento</label>
-                   <div class="doc-text"> Clique para adicionar uma foto do seu documento.</div>
-                <input type="file" id="arquivo-doc" accept="image/*">
-                </div>
-
-                <div class="dados">
-                 <label for="nascimento" class="titulo-campo">Data de nascimento</label>
-                <input type="text" id="nascimento" placeholder="DD/MM/AAAA" maxlength="10">
-               </div>
-
-               <div class="dados">
-                 <label for="numero" class="titulo-campo">Número de telefone</label>
-                <input type="text" id="nascimento" placeholder="11 9999-9999" maxlength="11">
-               </div>
-
-               <div class="dados">
-                 <label for="email" class="titulo-campo">Email</label>
-                <input type="text" id="email" placeholder="emailexemplo@gmail.com">
-               </div>
-            </div>
-            <button type="submit" class="btn-enviar">Enviar dados</button>
-            <p> Seus dados estão seguros e serão analisados de maneira eficiente.</p>
-            </form>
-        </section>
-    </main>
-<script> 
-  const inputNascimento = document.getElementById('nascimento');
-
-  inputNascimento.addEventListener('input', (e) => {
-    let valor = e.target.value.replace(/\D/g, ''); // Remove tudo o que não for número
-    
-    // Limita o tamanho máximo a 8 dígitos (DDMMAAAA)
-    if (valor.length > 8) {
-        valor = valor.slice(0, 8);
-    }
-
-    // Formata automaticamente com as barras
-    if (valor.length > 4) {
-        valor = valor.slice(0, 2) + '/' + valor.slice(2, 4) + '/' + valor.slice(4);
-    } else if (valor.length > 2) {
-        valor = valor.slice(0, 2) + '/' + valor.slice(2);
-    }
-
-    e.target.value = valor;
-});
-
-</script>
- <div class="linha-colorida"></div>
-     <footer class="footer" id="footer"> 
-        <div class="footer-top">
-               <div class="footer-products">
-                <h3 class="footer-title">Produtos</h3>
-                <ul class="nav-footer">
-                    <div class="footer-links">
+<footer class="footer" id="footer">
+    <div class="footer-top">
+        <div class="footer-products">
+            <h3 class="footer-title">Produtos</h3>
+            <ul class="nav-footer">
+                <div class="footer-links">
                     <li><a href="dmapp.html">DM app</a></li>
                     <li><a href="cartoes.html">Cartão DM Visa</a></li>
                     <li><a href="cartoes.html">Cartão de Loja</a></li>
                     <li><a href="https://www.vocedm.com.br/portal/seguros/">Seguros</a></li>
-                    </div>
-                </ul>
-            </div>
-
-        <div class="footer-bottom">
-            &copy; 2025 DM. Todos os direitos reservados.
+                </div>
+            </ul>
         </div>
-    </footer>
+    </div>
+    <div class="footer-bottom">&copy; 2025 DM. Todos os direitos reservados.</div>
+</footer>
+
+<script src="js/cadastro.js"></script>
 </body>
 </html>
-

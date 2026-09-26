@@ -1,0 +1,66 @@
+.erro-campo {
+    display: block;
+    color: #d32f2f;
+    font-size: 13px;
+    margin-top: 4px;
+    min-height: 16px;
+}
+
+.mensagem-status {
+    padding: 12px 16px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    font-size: 14px;
+}
+
+.mensagem-status.sucesso {
+    background-color: #e6f4ea;
+    color: #1e7e34;
+    border: 1px solid #1e7e34;
+}
+
+.mensagem-status.erro {
+    background-color: #fdecea;
+    color: #d32f2f;
+    border: 1px solid #d32f2f;
+}
+
+.dados select,
+.dados input[type="password"],
+.dados input[type="file"],
+.dados input[type="number"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 14px;
+    background-color: #fff;
+    box-sizing: border-box;
+}
+
+.dados-checkbox {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.dados-checkbox input[type="checkbox"] {
+    margin-top: 4px;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+.titulo-campo-checkbox {
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.dados small {
+    display: block;
+    margin-top: 4px;
+    color: #666;
+    font-size: 12px;
+}
