@@ -5,18 +5,16 @@ create table tb_cliente (
 	id_cliente int auto_increment primary key,
     nome_cliente varchar(50) not null,
     cpf_cliente varchar(15) not null unique,
-    cep_cliente varchar(9) not null,
     email_cliente varchar(100) not null unique,
     telefone_cliente varchar(14) not null unique,
     genero_cliente enum('MASCULINO', 'FEMININO', 'OUTRO') not null,
     data_nascimento date not null,
-    tipo_cliente enum('COLABORADOR','NAO COLABORADOR') not null,
-    senha_cliente VARCHAR(250) not null
+    tipo_cliente enum('COLABORADOR','NAO COLABORADOR') not null
 );
 
 create table tb_cartao (
 	id_cartao int auto_increment primary key,
-    nome_cartao varchar(20) not null,
+    nome_cartao varchar(30) not null,
     tipo_cartao enum('DM', 'LOJA') not null,
     descricao_cartao longtext not null,
     modalidade enum('FISICO', 'DIGITAL') not null,
@@ -50,6 +48,7 @@ create table tb_cartao_loja (
 create table tb_filial (
 	id_filial int auto_increment primary key,
     cep_filial varchar(9) not null,
+    uf_filial char(2) not null,
     id_loja int not null,
     foreign key (id_loja) references tb_loja(id_loja)
 );
