@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Landing Page DM</title>
+
+    <link rel="stylesheet" href="./css/style.css">
+    <link rel="stylesheet" href="./css/selecaoCartao.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Catamaran:wght@100..900&display=swap" rel="stylesheet">
+
+    <script src="./js/selecaoLoja.js" defer></script>
+</head>
+<body>
+    <header>
+        <div class="logo">
+             <img src="https://play-lh.googleusercontent.com/lzoSveaHXSO1BCWYEhKNGe4FFcyR73F9X3-5uPkH0ofuK0oXLhayqTXjYG6NxgjsoqS7BcqHV-mHKTRa25U2" alt="logo DM" class="logo-img">
+        </div>
+
+        <nav>
+            <ul>
+                <li><a href="index.html">Início</a></li>
+                <li><a href="cartoes.html">Nossos cartões</a></li>
+                <li><a href="duvidas.html">Dúvidas</a></li>
+            </ul>
+        </nav>
+
+        <a href="cadastro.html" class="btn-header">Acessar Status</a>
+          
+    </header>
+
+    <div id="titulo-lojas">
+        <h1>CARTÃO LOJA</h1>
+        <h2 id="cepUsuario">CEP: carregando...</h2>
+    </div>
+
+    <div id="titulo-barra">
+        <h1>Digite seu CEP para buscar lojas:</h1>
+    </div>
+
+    <div class="barraLoja">
+
+    <form id="barraBuscar">
+
+        <input
+            type="text"
+            id="buscarLoja"
+            name="buscarLoja"
+            placeholder="Digite seu CEP"
+        >
+
+        <div id="botaoBuscar">
+            <input
+                type="submit"
+                value="Buscar"
+            >
+        </div>
+
+    </form>
+
+</div>
+
+    <section class="resultadoBuscar" id="resultadoBuscar">
+    </section>
+    
+    <div class="linha-colorida"></div>
+    <footer class="footer" id="footer"> 
+            <div class="footer-top">
+                <div class="footer-products">
+                    <h3 class="footer-title">Produtos</h3>
+                    <ul class="nav-footer">
+                        <div class="footer-links">
+                        <li><a href="dmapp.html">DM app</a></li>
+                        <li><a href="cartoes.html">Cartão DM Visa</a></li>
+                        <li><a href="cartoes.html">Cartão de Loja</a></li>
+                        <li><a href="https://www.vocedm.com.br/portal/seguros/">Seguros</a></li>
+                        </div>
+                    </ul>
+                </div>
+
+            <div class="footer-bottom">
+                &copy; 2025 DM. Todos os direitos reservados.
+            </div>
+        </footer>
+</body>
+</html>
+    
+</body>
+</html>
