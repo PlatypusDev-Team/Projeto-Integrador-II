@@ -5,23 +5,57 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Acompanhe o status da sua solicitação de cartão DM." />
   <title>DM | Acompanhe seu pedido</title>
+      <link rel="icon" type="image/x-icon" href="https://play-lh.googleusercontent.com/lzoSveaHXSO1BCWYEhKNGe4FFcyR73F9X3-5uPkH0ofuK0oXLhayqTXjYG6NxgjsoqS7BcqHV-mHKTRa25U2">
   <link rel="icon" type="image/png" href="https://play-lh.googleusercontent.com/lzoSveaHXSO1BCWYEhKNGe4FFcyR73F9X3-5uPkH0ofuK0oXLhayqTXjYG6NxgjsoqS7BcqHV-mHKTRa25U2" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Catamaran:wght@600;700;800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="./css/status.css" />
+  <link rel="stylesheet" href="./css/style.css" />
 </head>
 <body>
   <main class="status-page">
-    <header class="topbar">
-      <a class="brand" href="#" data-landing-placeholder aria-label="Página inicial da DM">
-        <img src="https://play-lh.googleusercontent.com/lzoSveaHXSO1BCWYEhKNGe4FFcyR73F9X3-5uPkH0ofuK0oXLhayqTXjYG6NxgjsoqS7BcqHV-mHKTRa25U2" alt="Logo DM" />
-      </a>
-      <nav class="topbar__nav" aria-label="Navegação principal">
-        <a href="#" data-landing-placeholder>Início</a>
-        <a href="cartoes.html">Nossos cartões</a>
-        <a href="faq.html">Dúvidas</a>
-      </nav>
+        <header>
+
+        <div class="logo">
+            <img
+                src="https://play-lh.googleusercontent.com/lzoSveaHXSO1BCWYEhKNGe4FFcyR73F9X3-5uPkH0ofuK0oXLhayqTXjYG6NxgjsoqS7BcqHV-mHKTRa25U2"
+                alt="Logo DM"
+                class="logo-img"
+            >
+        </div>
+
+        <nav>
+            <ul>
+                <li>
+                    <a href="index.html#inicio">Início</a>
+                </li>
+
+                <li>
+                    <a href="index.html#cartoes">Nossos cartões</a>
+                </li>
+
+                <li>
+                    <a href="index.html#app">DM App</a>
+                </li>
+
+                <li>
+                    <a href="index.html#sobre">Sobre nós</a>
+                </li>
+
+                <li>
+                    <a href="index.html#duvidas">Dúvidas</a>
+                </li>
+            </ul>
+        </nav>
+
+        <a
+            href="status.html"
+            class="btn-header"
+        >
+            Acessar Status
+        </a>
+
     </header>
 
     <section class="profile" aria-labelledby="profile-title">
@@ -82,5 +116,60 @@
     <div class="brand-stripe" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
   </main>
   <script src="./js/status.js"></script>
+      <footer
+        class="footer"
+        id="footer"
+    >
+
+        <div class="footer-top">
+
+            <div class="footer-products">
+
+                <h3 class="footer-title">
+                    Produtos
+                </h3>
+
+                <ul class="nav-footer">
+
+                    <li>
+                        <a href="#app">
+                            DM App
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="#cartoes">
+                            Cartão DM Visa
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="#cartoes">
+                            Cartão de Loja
+                        </a>
+                    </li>
+
+                    <li>
+                        <a
+                            href="https://www.vocedm.com.br/portal/seguros/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            Seguros
+                        </a>
+                    </li>
+
+                </ul>
+
+            </div>
+
+        </div>
+
+
+        <div class="footer-bottom">
+            © 2025 DM. Todos os direitos reservados.
+        </div>
+
+    </footer>
 </body>
 </html>

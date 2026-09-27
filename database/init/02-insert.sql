@@ -2,11 +2,11 @@ use projeto_dm;
 
 -- clientes
 
-insert into tb_cliente (nome_cliente, cpf_cliente, cep_cliente, email_cliente, telefone_cliente, genero_cliente, data_nascimento, tipo_cliente, senha_cliente)
+insert into tb_cliente (nome_cliente, cpf_cliente, email_cliente, telefone_cliente, genero_cliente, data_nascimento, tipo_cliente)
 values
-    ('Ana Silva', '12345678901', '12230000', 'ana.silva@email.com', '12999990001', 'FEMININO', '2002-04-15', 'COLABORADOR', 'hash_senha_ana'),
-    ('Bruno Santos', '23456789012', '12231000', 'bruno.santos@email.com', '12999990002', 'MASCULINO', '1998-08-22', 'NAO COLABORADOR', 'hash_senha_bruno'),
-    ('Carla Oliveira', '34567890123', '12232000', 'carla.oliveira@email.com', '12999990003', 'FEMININO', '2001-11-03', 'NAO COLABORADOR', 'hash_senha_carla');
+    ('Ana Silva', '76019455459', 'ana.silva@email.com', '12999990001', 'FEMININO', '2002-04-15', 'COLABORADOR'),
+    ('Bruno Santos', '15313972049', 'bruno.santos@email.com', '12999990002', 'MASCULINO', '1998-08-22', 'NAO COLABORADOR'),
+    ('Carla Oliveira', '01953044620', 'carla.oliveira@email.com', '12999990003', 'FEMININO', '2001-11-03', 'NAO COLABORADOR');
 
 -- lojas
 
@@ -20,20 +20,6 @@ values
 
 insert into tb_filial (cep_filial, uf_filial, id_loja)
 values
-<<<<<<< HEAD
-    ('12233000', 1),
-    ('12234000', 1),
-    ('20010000', 2),
-    ('20020000', 2),
-    ('30110000', 3),
-    ('30120000', 3),
-    ('80010000', 1),
-    ('80020000', 1),
-    ('40010000', 2),
-    ('40020000', 2),
-    ('50010000', 3),
-    ('50020000', 3);
-=======
     ('12233000', 'SP', 1),
     ('12234000', 'SP', 2),
 
@@ -51,7 +37,6 @@ values
 
     ('50010000', 'PE', 1),
     ('50020000', 'PE', 3);
->>>>>>> origin/main
 
 
 -- cartoes
@@ -66,26 +51,26 @@ values
     
     ('Cartao Loja B Digital', 'LOJA', 'Cartao digital oferecido pela Loja B.', 'DIGITAL', true),
 
-    ('Cartao Loja C', 'LOJA', 'Cartao exclusivo para compras na Loja C.', 'FISICO', false);
+    ('Cartao Loja C', 'LOJA', 'Cartao exclusivo para compras na Loja C.', 'FISICO', false),
+
+    ('Cartao Loja DM', 'DM', 'Cartao loja bandeirado DM', 'FISICO', true),
+    ('Cartao Loja DM', 'DM', 'Cartao loja bandeirado DM', 'digital', true);
 
 -- cartoes loja
 
 insert into tb_cartao_loja (id_cartao, id_loja)
 values
     (3, 1),
-<<<<<<< HEAD
-    (4, 2);
-=======
     (4, 1),
     (5, 2),
     (6, 3);
->>>>>>> origin/main
 
 
 -- solicitacoes
 
 insert into tb_solicitacao (status, id_cliente, id_cartao)
 values
-    ('EM ANALISE', 1, 1),
-    ('ACEITO', 2, 3),
-    ('NEGADO', 3, 2);
+    ('ACEITO', 1, 1),
+    ('EM ANALISE', 2, 3),
+    ('EM ANALISE', 3, 2),
+    ('NEGADO', 1, 4);

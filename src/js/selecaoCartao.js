@@ -109,7 +109,7 @@ function adicionarEventosSelecao() {
                 );
 
                 window.location.href =
-                    "formulario.html";
+                    "cadastro.html";
             }
         );
     });

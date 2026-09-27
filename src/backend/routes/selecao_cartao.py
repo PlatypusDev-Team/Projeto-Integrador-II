@@ -7,13 +7,19 @@ from services.selecionar_cartao_service import (
 )
 
 
-from flask import Blueprint
-
 selecao_cartao_bp = Blueprint(
     "selecao_cartao",
     __name__,
     url_prefix="/api"
 )
+
+
+@selecao_cartao_bp.get("/lojas/<int:id_loja>/cartoes")
+def consultar_cartoes_loja(id_loja):
+
+    resultado = verificar_modalidade(id_loja)
+
+    return jsonify(resultado), 200
 
 
 @selecao_cartao_bp.get("/filiais/<int:id_filial>/cartoes")

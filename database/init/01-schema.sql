@@ -5,13 +5,11 @@ create table tb_cliente (
 	id_cliente int auto_increment primary key,
     nome_cliente varchar(50) not null,
     cpf_cliente varchar(15) not null unique,
-    cep_cliente varchar(9) not null,
     email_cliente varchar(100) not null unique,
     telefone_cliente varchar(14) not null unique,
     genero_cliente enum('MASCULINO', 'FEMININO', 'OUTRO') not null,
     data_nascimento date not null,
-    tipo_cliente enum('COLABORADOR','NAO COLABORADOR') not null,
-    senha_cliente VARCHAR(250) not null
+    tipo_cliente enum('COLABORADOR','NAO COLABORADOR') not null
 );
 
 create table tb_cartao (

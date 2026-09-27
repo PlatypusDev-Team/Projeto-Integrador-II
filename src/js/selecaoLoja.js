@@ -1,26 +1,39 @@
-const resultadoBuscar = document.querySelector("#resultadoBuscar");
-const cepUsuario = document.querySelector("#cepUsuario");
+const resultadoBuscar =
+    document.querySelector("#resultadoBuscar");
 
-const barraBuscar = document.querySelector("#barraBuscar");
-const buscarLoja = document.querySelector("#buscarLoja");
+const cepUsuario =
+    document.querySelector("#cepUsuario");
+
+const barraBuscar =
+    document.querySelector("#barraBuscar");
+
+const buscarLoja =
+    document.querySelector("#buscarLoja");
 
 let lojasDisponiveis = [];
 
-barraBuscar.addEventListener("submit", async (evento) => {
 
-    evento.preventDefault();
+barraBuscar.addEventListener(
+    "submit",
+    async (evento) => {
 
-    const cep = buscarLoja.value.trim();
+        evento.preventDefault();
 
-    if (!cep) {
-        alert("Digite um CEP.");
-        return;
+        const cep =
+            buscarLoja.value.trim();
+
+        if (!cep) {
+            alert("Digite um CEP.");
+            return;
+        }
+
+        cepUsuario.textContent =
+            `CEP: ${cep}`;
+
+        await carregarLojas(cep);
     }
+);
 
-    cepUsuario.textContent = `CEP: ${cep}`;
-
-    await carregarLojas(cep);
-});
 
 async function carregarLojas(cep) {
 
@@ -30,31 +43,44 @@ async function carregarLojas(cep) {
             <p>Buscando lojas disponíveis...</p>
         `;
 
-        const resposta = await fetch(
-            `http://127.0.0.1:5000/api/lojas/${cep}`
-        );
+        const resposta =
+            await fetch(
+                `http://127.0.0.1:5000/api/lojas/${cep}`
+            );
 
         if (!resposta.ok) {
-            throw new Error("Erro ao buscar lojas.");
+            throw new Error(
+                "Erro ao buscar lojas."
+            );
         }
 
-        const dados = await resposta.json();
+        const dados =
+            await resposta.json();
 
-        console.log("Resposta da API:", dados);
+        console.log(
+            "Resposta da API:",
+            dados
+        );
 
-        lojasDisponiveis = dados.lojas || [];
+        lojasDisponiveis =
+            dados.lojas || [];
 
-        mostrarLojas(lojasDisponiveis);
+        mostrarLojas(
+            lojasDisponiveis
+        );
 
     } catch (erro) {
 
         console.error(erro);
 
         resultadoBuscar.innerHTML = `
-            <p>Não foi possível carregar as lojas.</p>
+            <p>
+                Não foi possível carregar as lojas.
+            </p>
         `;
     }
 }
+
 
 function mostrarLojas(lojas) {
 
@@ -63,7 +89,9 @@ function mostrarLojas(lojas) {
     if (lojas.length === 0) {
 
         resultadoBuscar.innerHTML = `
-            <p>Nenhuma loja disponível para este CEP.</p>
+            <p>
+                Nenhuma loja disponível para este CEP.
+            </p>
         `;
 
         return;
@@ -71,12 +99,14 @@ function mostrarLojas(lojas) {
 
     lojas.forEach(loja => {
 
-        const card = document.createElement("div");
+        const card =
+            document.createElement("div");
 
-        card.classList.add("resultadoLoja");
+        card.classList.add(
+            "resultadoLoja"
+        );
 
         let badges = "";
-
 
         if (loja.cartao_fisico) {
 
@@ -86,7 +116,6 @@ function mostrarLojas(lojas) {
                 </span>
             `;
         }
-
 
         if (loja.cartao_digital) {
 
@@ -104,8 +133,10 @@ function mostrarLojas(lojas) {
             </h1>
 
             <p>
-                ${loja.descricao_loja ||
-                "Loja disponível para solicitação de cartão."}
+                ${
+                    loja.descricao_loja ||
+                    "Loja disponível para solicitação de cartão."
+                }
             </p>
 
             <button
@@ -120,182 +151,184 @@ function mostrarLojas(lojas) {
         resultadoBuscar.appendChild(card);
     });
 
-
     adicionarEventosBotoes();
 }
 
+
 function adicionarEventosBotoes() {
 
-    const botoes = document.querySelectorAll(
-        ".botao-fazer-cartao"
-    );
+    const botoes =
+        document.querySelectorAll(
+            ".botao-fazer-cartao"
+        );
 
     console.log(
         "Quantidade de botões encontrados:",
         botoes.length
     );
 
-
     botoes.forEach(botao => {
 
-        botao.addEventListener("click", async () => {
+        botao.addEventListener(
+            "click",
+            async () => {
 
-            const idLoja = botao.dataset.loja;
-            const idFilial = botao.dataset.filial;
+                const idLoja =
+                    botao.dataset.loja;
 
-            console.log(
-                "Loja escolhida:",
-                idLoja
-            );
-
-            console.log(
-                "Filial escolhida:",
-                idFilial
-            );
-
-
-            try {
-
-                let url;
-
-                if (idFilial) {
-
-                    url =
-                        `http://127.0.0.1:5000/api/filiais/${idFilial}/cartoes`;
-
-                }
-
-                else {
-
-                    url =
-                        `http://127.0.0.1:5000/api/lojas/${idLoja}/cartoes`;
-                }
-
-
-                const resposta = await fetch(url);
-
-                if (!resposta.ok) {
-
-                    throw new Error(
-                        "Erro ao consultar cartões."
-                    );
-                }
-
-
-                const resultado =
-                    await resposta.json();
-
+                const idFilial =
+                    botao.dataset.filial;
 
                 console.log(
-                    "Resposta API:",
-                    resultado
+                    "Loja escolhida:",
+                    idLoja
                 );
 
-                if (resultado.tipo === "automatico") {
+                console.log(
+                    "Filial escolhida:",
+                    idFilial
+                );
 
-                    const idCartao =
-                        resultado.cartao.id_cartao;
+                try {
 
-                    const idCliente = 1;
-
-                    console.log(
-                        "Cartão escolhido:",
-                        idCartao
-                    );
-
-
-                    const respostaSolicitacao =
-                        await fetch(
-                            "http://127.0.0.1:5000/api/solicitacoes",
-                            {
-                                method: "POST",
-
-                                headers: {
-                                    "Content-Type":
-                                        "application/json"
-                                },
-
-                                body: JSON.stringify({
-                                    id_cliente: idCliente,
-                                    id_cartao: idCartao
-                                })
-                            }
-                        );
-
-
-                    const resultadoSolicitacao =
-                        await respostaSolicitacao.json();
-
-
-                    console.log(
-                        "Resposta da solicitação:",
-                        resultadoSolicitacao
-                    );
-
-
-                    if (!respostaSolicitacao.ok) {
-
-                        throw new Error(
-                            "Erro ao criar solicitação."
-                        );
-                    }
-
-                }
-
-                else if (
-                    resultado.tipo === "escolha"
-                ) {
-
-                    console.log(
-                        "Cartões disponíveis:",
-                        resultado.cartoes
-                    );
-
-
-                    localStorage.setItem(
-                        "cartoesDisponiveis",
-                        JSON.stringify(
-                            resultado.cartoes
-                        )
-                    );
-
-
-                    localStorage.setItem(
-                        "idLoja",
-                        idLoja
-                    );
-
+                    let url;
 
                     if (idFilial) {
 
-                        localStorage.setItem(
-                            "idFilial",
-                            idFilial
+                        url =
+                            `http://127.0.0.1:5000/api/filiais/${idFilial}/cartoes`;
+
+                    } else {
+
+                        url =
+                            `http://127.0.0.1:5000/api/lojas/${idLoja}/cartoes`;
+                    }
+
+                    const resposta =
+                        await fetch(url);
+
+                    if (!resposta.ok) {
+
+                        throw new Error(
+                            "Erro ao consultar cartões."
                         );
                     }
 
+                    const resultado =
+                        await resposta.json();
 
-                    window.location.href =
-                        "selecaoCartao.html";
-                }
+                    console.log(
+                        "Resposta API:",
+                        resultado
+                    );
 
-                else if (
-                    resultado.tipo === "indisponivel"
-                ) {
+
+                    // =========================
+                    // APENAS UM CARTÃO
+                    // =========================
+
+                    if (
+                        resultado.tipo ===
+                        "automatico"
+                    ) {
+
+                        const idCartao =
+                            resultado.cartao.id_cartao;
+
+                        console.log(
+                            "Cartão escolhido:",
+                            idCartao
+                        );
+
+                        localStorage.setItem(
+                            "idCartao",
+                            idCartao
+                        );
+
+                        localStorage.setItem(
+                            "idLoja",
+                            idLoja
+                        );
+
+                        if (idFilial) {
+
+                            localStorage.setItem(
+                                "idFilial",
+                                idFilial
+                            );
+                        }
+
+                        window.location.href =
+                            "cadastro.html";
+
+                        return;
+                    }
+
+
+                    // =========================
+                    // MAIS DE UM CARTÃO
+                    // =========================
+
+                    if (
+                        resultado.tipo ===
+                        "escolha"
+                    ) {
+
+                        console.log(
+                            "Cartões disponíveis:",
+                            resultado.cartoes
+                        );
+
+                        localStorage.setItem(
+                            "cartoesDisponiveis",
+                            JSON.stringify(
+                                resultado.cartoes
+                            )
+                        );
+
+                        localStorage.setItem(
+                            "idLoja",
+                            idLoja
+                        );
+
+                        if (idFilial) {
+
+                            localStorage.setItem(
+                                "idFilial",
+                                idFilial
+                            );
+                        }
+
+                        window.location.href =
+                            "selecaoCartao.html";
+
+                        return;
+                    }
+
+
+                    // =========================
+                    // NENHUM CARTÃO
+                    // =========================
+
+                    if (
+                        resultado.tipo ===
+                        "indisponivel"
+                    ) {
+
+                        alert(
+                            "Nenhum cartão disponível para esta loja."
+                        );
+                    }
+
+                } catch (erro) {
+
+                    console.error(erro);
 
                     alert(
-                        "Nenhum cartão disponível para esta loja."
+                        "Não foi possível continuar com a solicitação."
                     );
                 }
-
-            } catch (erro) {
-
-                console.error(erro);
-
-                alert(
-                    "Não foi possível continuar com a solicitação."
-                );
             }
-        });
+        );
     });
 }
