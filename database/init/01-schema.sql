@@ -16,7 +16,7 @@ create table tb_cliente (
 
 create table tb_cartao (
 	id_cartao int auto_increment primary key,
-    nome_cartao varchar(20) not null,
+    nome_cartao varchar(30) not null,
     tipo_cartao enum('DM', 'LOJA') not null,
     descricao_cartao longtext not null,
     modalidade enum('FISICO', 'DIGITAL') not null,
@@ -50,6 +50,7 @@ create table tb_cartao_loja (
 create table tb_filial (
 	id_filial int auto_increment primary key,
     cep_filial varchar(9) not null,
+    uf_filial char(2) not null,
     id_loja int not null,
     foreign key (id_loja) references tb_loja(id_loja)
 );

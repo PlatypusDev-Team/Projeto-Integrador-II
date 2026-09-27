@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Acompanhe o status da sua solicitação de cartão DM." />
+  <title>DM | Acompanhe seu pedido</title>
+  <link rel="icon" type="image/png" href="https://play-lh.googleusercontent.com/lzoSveaHXSO1BCWYEhKNGe4FFcyR73F9X3-5uPkH0ofuK0oXLhayqTXjYG6NxgjsoqS7BcqHV-mHKTRa25U2" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Catamaran:wght@600;700;800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./css/status.css" />
+</head>
+<body>
+  <main class="status-page">
+    <header class="topbar">
+      <a class="brand" href="#" data-landing-placeholder aria-label="Página inicial da DM">
+        <img src="https://play-lh.googleusercontent.com/lzoSveaHXSO1BCWYEhKNGe4FFcyR73F9X3-5uPkH0ofuK0oXLhayqTXjYG6NxgjsoqS7BcqHV-mHKTRa25U2" alt="Logo DM" />
+      </a>
+      <nav class="topbar__nav" aria-label="Navegação principal">
+        <a href="#" data-landing-placeholder>Início</a>
+        <a href="cartoes.html">Nossos cartões</a>
+        <a href="faq.html">Dúvidas</a>
+      </nav>
+    </header>
+
+    <section class="profile" aria-labelledby="profile-title">
+      <div class="profile__avatar" id="user-avatar" aria-hidden="true">U</div>
+      <div class="profile__identity">
+        <h1 id="profile-title">Olá, <span id="user-name">Usuário</span> :)</h1>
+        <p>CPF: <span id="user-cpf">***.***.***-**</span></p>
+        <p id="request-type">Tipo de solicitação: Cartão DM</p>
+      </div>
+    </section>
+
+    <section class="not-found-state" id="not-found-state" aria-live="polite" hidden>
+      <div class="not-found-state__icon" aria-hidden="true">!</div>
+      <h1>Solicitação não encontrada</h1>
+      <p>Não localizamos uma solicitação com este identificador. Verifique o link ou inicie uma nova solicitação.</p>
+    </section>
+
+    <section id="pedido" class="order" aria-labelledby="order-title">
+      <h2 id="order-title">Acompanhe seu Pedido</h2>
+      <div class="progress" aria-label="Etapas da solicitação">
+        <div class="progress__line" aria-hidden="true"><span id="progress-segment-one"></span><span id="progress-segment-two"></span></div>
+        <article class="step step--current" id="prequalification-step"><div class="step__icon" aria-hidden="true"><span class="clock-icon"></span></div><p>PRÉ-QUALIFICAÇÃO</p></article>
+        <article class="step" id="credit-step"><div class="step__icon" aria-hidden="true">•</div><p>ANÁLISE DE CRÉDITO</p></article>
+        <article class="step" id="result-step"><div class="step__icon" aria-hidden="true">•</div><p>RESULTADO</p></article>
+      </div>
+
+      <div class="status-cards">
+        <article class="status-card status-card--prequalification status-card--active" id="prequalification-card">
+          <div class="status-card__icon prequalification-icon prequalification-icon--pending" id="prequalification-icon" aria-hidden="true"><span class="clock-icon"></span></div>
+          <h3 id="prequalification-title">Análise de<br />Pré-Qualificação</h3>
+          <p id="prequalification-message"></p>
+          <small id="prequalification-description">Estamos fazendo uma verificação rápida do seu perfil e do seu registo. Esta etapa leva apenas alguns instantes.</small>
+        </article>
+        <div class="status-arrow" aria-hidden="true">→</div>
+        <article class="status-card status-card--credit status-card--upcoming" id="credit-card">
+          <div class="status-card__icon credit-icon" id="credit-icon" aria-hidden="true"><svg class="question-icon" viewBox="0 0 24 24"><path d="m23.994,21.873l-5.947-5.947c1.225-1.66,1.959-3.703,1.959-5.92C20.006,4.492,15.52.006,10.006.006S.006,4.492.006,10.006s4.486,10,10,10c2.217,0,4.26-.734,5.92-1.959l5.947,5.947,2.121-2.121Zm-13.988-4.867c-3.859,0-7-3.14-7-7s3.141-7,7-7,7,3.14,7,7-3.141,7-7,7Zm-1.006-4.006h2v2h-2v-2Zm4-5c0,1.125-.621,2.146-1.621,2.665-.227.118-.379.425-.379.765v.571h-2v-.571c0-1.1.559-2.073,1.458-2.54.335-.173.542-.514.542-.889,0-.551-.448-1-1-1s-1,.449-1,1h-2c0-1.654,1.346-3,3-3s3,1.346,3,3Z" /></svg></div>
+          <h3>Análise de Crédito</h3>
+          <p id="credit-description">Sua solicitação está em análise. Estamos revisando seus dados e documentos.</p>
+          <small id="credit-note">A solicitação ainda não foi concluída. Uma especialista entrará em contato se necessário.</small>
+        </article>
+        <div class="status-arrow" aria-hidden="true">→</div>
+        <article class="status-card status-card--result status-card--upcoming" id="result-card">
+          <div class="status-card__icon result-pending-icon" id="result-icon" aria-hidden="true"><span class="status-dots"><i></i><i></i><i></i></span></div>
+          <h3 id="result-label">Resultado</h3><p class="result-status" id="result-message">Aguardando</p>
+          <small id="result-detail">Assim que a análise for concluída, seu resultado aparecerá aqui.</small>
+        </article>
+      </div>
+    </section>
+
+    <section class="notice" id="notice" aria-live="polite">
+      <div class="notice__illustration" id="notice-icon" aria-hidden="true"><svg class="hourglass-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m17.029,12c2.033-1.972,3.971-4.837,3.971-8.591,0-1.88-1.529-3.409-3.409-3.409H6.409c-1.88,0-3.409,1.53-3.409,3.41,0,3.754,1.945,6.619,3.986,8.591-2.041,1.971-3.986,4.835-3.986,8.59v3.409h18v-3.409c0-3.753-1.938-6.619-3.971-8.591Zm.971,9H6v-.409c0-3.385,2.281-5.9,4.195-7.414l1.487-1.176-1.487-1.176c-1.914-1.514-4.195-4.03-4.195-7.415,0-.226.184-.409.409-.409h11.182c.226,0,.409.183.409.409,0,3.385-2.271,5.901-4.177,7.417l-1.476,1.174,1.476,1.174c1.905,1.516,4.177,4.032,4.177,7.417v.409Zm-5.422-11.739l-.566.45-.576-.456c-1.229-.973-2.644-2.427-3.197-4.255h7.524c-.55,1.831-1.96,3.287-3.184,4.261Z" /></svg></div>
+      <div class="notice__content">
+        <h2 id="notice-title">Análise de Pré-Qualificação</h2>
+        <p id="notice-message">Estamos a rever as suas informações básicas. Assim que concluirmos esta triagem inicial, informaremos se o seu pedido avança para a análise de crédito detalhada.</p>
+      </div>
+      <button class="notice__button" id="refresh-status" type="button" hidden>Atualizar Status</button>
+    </section>
+    <div class="brand-stripe" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+  </main>
+  <script src="./js/status.js"></script>
+</body>
+</html>
