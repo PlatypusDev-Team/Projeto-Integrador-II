@@ -202,7 +202,7 @@ async function carregarSolicitacao(id) {
     activeRequestId = id;
     ocultarSolicitacaoNaoEncontrada();
     try {
-        const response = await fetch(`http://localhost:5001/api/solicitacoes/${id}`);
+        const response = await fetch(`http://localhost:5000/api/solicitacoes/${id}`);
         const body = await response.json();
         if (response.status === 404) {
             mostrarSolicitacaoNaoEncontrada();
