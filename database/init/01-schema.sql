@@ -69,6 +69,7 @@ create table tb_solicitacao (
 create table tb_atendimento (
 	id_atendimento int auto_increment primary key,
     historico_atendimento longtext not null,
+    data_atendimento timestamp default current_timestamp,
     id_solicitacao int not null,
     id_atendente int not null,
     foreign key (id_solicitacao) references tb_solicitacao(id_solicitacao),
