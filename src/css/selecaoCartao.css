@@ -1,8 +1,17 @@
 body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+
     font-family: 'Catamaran', sans-serif;
     font-optical-sizing: auto;
     font-style: normal;
     background-color: #ffffff;
+}
+
+main {
+    width: 100%;
+    flex: 1;
 }
 
 body header {
@@ -66,7 +75,7 @@ body footer {
 
 .barraLoja {
     width: 90%;
-    margin: 0 auto;
+    margin: 0 auto 60px;
 }
 
 #barraBuscar {
@@ -142,17 +151,10 @@ body footer {
 
 .resultadoBuscar {
     width: 90%;
-
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-
-    gap: 30px;
-
+    box-sizing: border-box;
     background-color: #F5F5F5;
-
-    margin: 45px auto 60px;
+    margin: 0 auto 60px;
     padding: 40px;
-
     border-radius: 30px;
 }
 
@@ -248,16 +250,66 @@ body footer {
     height: 10px;
 }
 
-@media screen and (max-width: 900px) {
-
-    .resultadoBuscar {
-        grid-template-columns: repeat(2, 1fr);
-
-        padding: 30px;
-    }
-
+.listaLojas {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 30px;
 }
 
+.mensagemLojas {
+    grid-column: 1 / -1;
+    margin: 0;
+    padding: 15px 0;
+
+    color: #686868;
+    font-size: 1rem;
+    text-align: center;
+}
+
+.filtroLojas {
+    width: 100%;
+    margin-bottom: 30px;
+}
+
+.filtroLojas input {
+    width: 100%;
+    height: 48px;
+    box-sizing: border-box;
+
+    padding: 0 20px;
+    margin-top: 10px;
+
+    background-color: #FFFFFF;
+    color: #2d3748;
+
+    border: 2px solid #D9D9D9;
+    border-radius: 30px;
+
+    font-family: 'Catamaran', sans-serif;
+    font-size: 1rem;
+}
+
+.filtroLojas input:focus {
+    outline: none;
+    border-color: #68E69A;
+    box-shadow: 0 0 0 3px rgba(104, 230, 154, 0.2);
+}
+
+#resultadoBuscar[hidden],
+#filtroLojas[hidden] {
+    display: none !important;
+}
+
+@media screen and (max-width: 900px) {
+
+    .listaLojas {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .resultadoBuscar {
+        padding: 30px;
+    }
+}
 
 @media screen and (max-width: 600px) {
 
@@ -463,25 +515,19 @@ body footer {
 }
 
 @media screen and (max-width: 600px) {
-
     #titulo-cartoes {
         width: 80%;
-
         padding: 10px 20px;
-
         font-size: smaller;
     }
 
     .cards-cartoes {
         flex-direction: column;
-
         align-items: center;
-
         gap: 25px;
     }
 
     .card-cartao {
         width: 280px;
     }
-
 }
