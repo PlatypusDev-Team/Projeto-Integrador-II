@@ -1,24 +1,14 @@
 import os
 import re
-from datetime import datetime
+import bcrypt
 
+from datetime import datetime
 from db import get_connection
 
 
-GENEROS_VALIDOS = {
-    "MASCULINO",
-    "FEMININO",
-    "OUTRO"
-}
-
+GENEROS_VALIDOS = {"MASCULINO", "FEMININO", "OUTRO"}
 TIPO_CLIENTE_NOVO = "NAO COLABORADOR"
-
-EXTENSOES_PERMITIDAS = {
-    ".pdf",
-    ".jpg",
-    ".jpeg",
-    ".png"
-}
+EXTENSOES_PERMITIDAS = {".pdf", ".jpg", ".jpeg", ".png"}
 
 
 def apenas_numeros(texto):
@@ -26,41 +16,25 @@ def apenas_numeros(texto):
 
 
 def email_valido(email):
-    return re.match(
-        r"^[^\s@]+@[^\s@]+\.[^\s@]+$",
-        email or ""
-    ) is not None
+    return re.match(r"^[^\s@]+@[^\s@]+\.[^\s@]+$", email or "") is not None
 
 
 def cpf_valido(cpf):
     cpf = apenas_numeros(cpf)
 
-    if len(cpf) != 11:
+    if len(cpf) != 11 or cpf == cpf[0] * 11:
         return False
 
-    if cpf == cpf[0] * 11:
-        return False
-
-    soma = sum(
-        int(cpf[i]) * (10 - i)
-        for i in range(9)
-    )
-
+    soma = sum(int(cpf[i]) * (10 - i) for i in range(9))
     digito1 = (soma * 10) % 11
-
     if digito1 == 10:
         digito1 = 0
 
     if digito1 != int(cpf[9]):
         return False
 
-    soma = sum(
-        int(cpf[i]) * (11 - i)
-        for i in range(10)
-    )
-
+    soma = sum(int(cpf[i]) * (11 - i) for i in range(10))
     digito2 = (soma * 10) % 11
-
     if digito2 == 10:
         digito2 = 0
 
@@ -69,27 +43,16 @@ def cpf_valido(cpf):
 
 def data_valida(data_str):
     try:
-        return datetime.strptime(
-            data_str,
-            "%d/%m/%Y"
-        ).date()
-
+        return datetime.strptime(data_str, "%d/%m/%Y").date()
     except (ValueError, TypeError):
         return None
 
 
 def idade_em_anos(data_nascimento):
     hoje = datetime.now().date()
+    idade = hoje.year - data_nascimento.year
 
-    idade = (
-        hoje.year
-        - data_nascimento.year
-    )
-
-    if (
-        hoje.month,
-        hoje.day
-    ) < (
+    if (hoje.month, hoje.day) < (
         data_nascimento.month,
         data_nascimento.day
     ):
@@ -98,220 +61,70 @@ def idade_em_anos(data_nascimento):
     return idade
 
 
-def buscar_cartao(cursor, id_cartao):
-    cursor.execute(
-        """
-        SELECT
-            id_cartao,
-            nome_cartao,
-            tipo_cartao,
-            modalidade,
-            bandeirado
-        FROM tb_cartao
-        WHERE id_cartao = %s
-        """,
-        (id_cartao,)
-    )
+def validar_documento(documento):
+    if not documento or not documento.filename:
+        return False, "RG ou CNH é obrigatório para solicitar um cartão."
 
-    return cursor.fetchone()
+    extensao = os.path.splitext(documento.filename)[1].lower()
 
+    if extensao not in EXTENSOES_PERMITIDAS:
+        return False, "Use PDF, JPG, JPEG ou PNG."
 
-def buscar_cliente_por_cpf(cursor, cpf):
-    cursor.execute(
-        """
-        SELECT
-            id_cliente,
-            nome_cliente,
-            cpf_cliente,
-            tipo_cliente
-        FROM tb_cliente
-        WHERE cpf_cliente = %s
-        """,
-        (cpf,)
-    )
-
-    return cursor.fetchone()
-
-
-def criar_cliente(
-    cursor,
-    nome,
-    cpf,
-    email,
-    telefone,
-    genero,
-    data_nascimento
-):
-    cursor.execute(
-        """
-        INSERT INTO tb_cliente
-        (
-            nome_cliente,
-            cpf_cliente,
-            email_cliente,
-            telefone_cliente,
-            genero_cliente,
-            data_nascimento,
-            tipo_cliente
-        )
-        VALUES
-        (
-            %s,
-            %s,
-            %s,
-            %s,
-            %s,
-            %s,
-            %s
-        )
-        """,
-        (
-            nome,
-            cpf,
-            email,
-            telefone,
-            genero,
-            data_nascimento,
-            TIPO_CLIENTE_NOVO
-        )
-    )
-
-    return cursor.lastrowid
-
-
-def criar_solicitacao(
-    cursor,
-    id_cliente,
-    id_cartao,
-    status
-):
-    cursor.execute(
-        """
-        INSERT INTO tb_solicitacao
-        (
-            status,
-            id_cliente,
-            id_cartao
-        )
-        VALUES
-        (
-            %s,
-            %s,
-            %s
-        )
-        """,
-        (
-            status,
-            id_cliente,
-            id_cartao
-        )
-    )
-
-    return cursor.lastrowid
-
-
-def aplicar_regras(tipo_cliente, tipo_cartao):
-    if (
-        tipo_cliente == "COLABORADOR"
-        and tipo_cartao == "LOJA"
-    ):
-        return (
-            "NEGADO",
-            "Colaboradores não podem solicitar cartões de loja."
-        )
-
-    return (
-        "EM ANALISE",
-        "Solicitação encaminhada para análise."
-    )
+    return True, None
 
 
 def validar_dados(dados):
     erros = {}
 
-    nome = (
-        dados.get("nome") or ""
-    ).strip()
+    nome = (dados.get("nome") or "").strip()
+    cpf = apenas_numeros(dados.get("cpf"))
+    data_nascimento = data_valida(dados.get("data_nascimento"))
+    telefone = apenas_numeros(dados.get("telefone"))
+    email = (dados.get("email") or "").strip()
+    genero = (dados.get("genero") or "").strip().upper()
+    senha = dados.get("senha") or ""
+    confirmar_senha = dados.get("confirmar_senha") or ""
 
-    cpf = apenas_numeros(
-        dados.get("cpf")
-    )
-
-    data_nascimento_form = (
-        dados.get("data_nascimento")
+    id_produto_str = (
+        dados.get("id_produto")
+        or dados.get("id_cartao")
         or ""
-    )
-
-    telefone = apenas_numeros(
-        dados.get("telefone")
-    )
-
-    email = (
-        dados.get("email") or ""
     ).strip()
 
-    genero = (
-        dados.get("genero") or ""
-    ).strip().upper()
+    id_produto = None
 
-    id_cartao_str = (
-        dados.get("id_cartao") or ""
-    )
+    if id_produto_str:
+        try:
+            id_produto = int(id_produto_str)
+            if id_produto <= 0:
+                raise ValueError
+        except (ValueError, TypeError):
+            erros["id_cartao"] = "Cartão inválido."
 
     if len(nome) < 3 or len(nome) > 50:
-        erros["nome"] = (
-            "Informe o nome completo "
-            "(máximo 50 caracteres)."
-        )
+        erros["nome"] = "Informe um nome de 3 a 50 caracteres."
 
     if not cpf_valido(cpf):
-        erros["cpf"] = (
-            "Informe um CPF válido."
-        )
-
-    data_nascimento = data_valida(
-        data_nascimento_form
-    )
+        erros["cpf"] = "Informe um CPF válido."
 
     if not data_nascimento:
-        erros["data_nascimento"] = (
-            "Data inválida. Use DD/MM/AAAA."
-        )
-
+        erros["data_nascimento"] = "Data inválida. Use DD/MM/AAAA."
     elif idade_em_anos(data_nascimento) < 18:
-        erros["data_nascimento"] = (
-            "É necessário ter pelo menos "
-            "18 anos completos."
-        )
+        erros["data_nascimento"] = "É necessário ter pelo menos 18 anos completos."
 
     if len(telefone) not in (10, 11):
-        erros["telefone"] = (
-            "Informe um telefone válido "
-            "com DDD."
-        )
+        erros["telefone"] = "Informe um telefone válido com DDD."
 
-    if (
-        not email_valido(email)
-        or len(email) > 100
-    ):
-        erros["email"] = (
-            "Informe um email válido."
-        )
+    if not email_valido(email) or len(email) > 100:
+        erros["email"] = "Informe um e-mail válido."
 
     if genero not in GENEROS_VALIDOS:
-        erros["genero"] = (
-            "Selecione um gênero válido."
-        )
+        erros["genero"] = "Selecione um gênero válido."
 
-    try:
-        id_cartao = int(id_cartao_str)
-
-    except (ValueError, TypeError):
-        id_cartao = None
-
-        erros["id_cartao"] = (
-            "Cartão inválido."
-        )
+    if len(senha) < 8:
+        erros["senha"] = "A senha deve ter pelo menos 8 caracteres."
+    elif senha != confirmar_senha:
+        erros["confirmar_senha"] = "As senhas não coincidem."
 
     return {
         "erros": erros,
@@ -321,166 +134,181 @@ def validar_dados(dados):
         "telefone": telefone,
         "email": email,
         "genero": genero,
-        "id_cartao": id_cartao
+        "senha": senha,
+        "id_produto": id_produto,
     }
 
 
-def validar_documento(documento):
-    if (
-        not documento
-        or not documento.filename
-    ):
-        return (
-            False,
-            "RG ou CNH é obrigatório."
-        )
+def aplicar_regras(tipo_cliente, tipo_cartao):
+    if tipo_cliente == "COLABORADOR" and tipo_cartao == "LOJA":
+        return "NEGADO", "Colaboradores não podem solicitar cartões de loja."
 
-    extensao = os.path.splitext(
-        documento.filename
-    )[1].lower()
-
-    if extensao not in EXTENSOES_PERMITIDAS:
-        return (
-            False,
-            "Use PDF, JPG, JPEG ou PNG."
-        )
-
-    return True, None
+    return "EM ANALISE", "Solicitação encaminhada para análise."
 
 
-def processar_solicitacao(
-    dados,
-    documento
-):
+def processar_solicitacao(dados, documento=None):
     validacao = validar_dados(dados)
-
     erros = validacao["erros"]
+    id_produto = validacao["id_produto"]
 
-    documento_valido, erro_documento = (
-        validar_documento(documento)
-    )
-
-    if not documento_valido:
-        erros["documento"] = erro_documento
+    if id_produto is not None:
+        documento_valido, erro_documento = validar_documento(documento)
+        if not documento_valido:
+            erros["documento"] = erro_documento
 
     if erros:
         return {
             "status_code": 400,
             "resposta": {
                 "mensagem": "Corrija os campos indicados.",
-                "erros": erros
-            }
+                "erros": erros,
+            },
         }
 
-    nome = validacao["nome"]
-    cpf = validacao["cpf"]
-    data_nascimento = validacao["data_nascimento"]
-    telefone = validacao["telefone"]
-    email = validacao["email"]
-    genero = validacao["genero"]
-    id_cartao = validacao["id_cartao"]
-
     conexao = None
-    cursor = None
 
     try:
         conexao = get_connection()
-        cursor = conexao.cursor()
 
-        cartao = buscar_cartao(
-            cursor,
-            id_cartao
-        )
-
-        if not cartao:
-            return {
-                "status_code": 400,
-                "resposta": {
-                    "mensagem": "O cartão selecionado não existe no banco.",
-                    "erros": {
-                        "id_cartao": "Cartão inválido."
-                    }
-                }
-            }
-
-        cliente = buscar_cliente_por_cpf(
-            cursor,
-            cpf
-        )
-
-        if cliente:
-            id_cliente = cliente["id_cliente"]
-            tipo_cliente = cliente["tipo_cliente"]
-
-        else:
-            tipo_cliente = TIPO_CLIENTE_NOVO
-
-            id_cliente = criar_cliente(
-                cursor,
-                nome,
-                cpf,
-                email,
-                telefone,
-                genero,
-                data_nascimento
+        with conexao.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT id_cliente
+                FROM tb_cliente
+                WHERE cpf_cliente = %s
+                   OR email_cliente = %s
+                   OR telefone_cliente = %s
+                """,
+                (
+                    validacao["cpf"],
+                    validacao["email"],
+                    validacao["telefone"],
+                ),
             )
 
-        status, motivo = aplicar_regras(
-            tipo_cliente,
-            cartao["tipo_cartao"]
-        )
+            if cursor.fetchone():
+                return {
+                    "status_code": 409,
+                    "resposta": {
+                        "mensagem": (
+                            "Já existe uma conta com esse CPF, "
+                            "e-mail ou telefone. Faça login."
+                        ),
+                        "erros": {
+                            "cadastro": "Dados já cadastrados."
+                        },
+                    },
+                }
 
-        id_solicitacao = criar_solicitacao(
-            cursor,
-            id_cliente,
-            id_cartao,
-            status
-        )
+            cartao = None
+
+            if id_produto is not None:
+                cursor.execute(
+                    """
+                    SELECT id_produto, nome_cartao, tipo_cartao
+                    FROM tb_cartao
+                    WHERE id_produto = %s
+                    """,
+                    (id_produto,),
+                )
+                cartao = cursor.fetchone()
+
+                if not cartao:
+                    return {
+                        "status_code": 400,
+                        "resposta": {
+                            "mensagem": "O cartão selecionado não existe.",
+                            "erros": {"id_cartao": "Cartão inválido."},
+                        },
+                    }
+
+            senha_hash = bcrypt.hashpw(
+                validacao["senha"].encode("utf-8"),
+                bcrypt.gensalt(),
+            ).decode("utf-8")
+
+            cursor.execute(
+                """
+                INSERT INTO tb_cliente (
+                    nome_cliente,
+                    cpf_cliente,
+                    email_cliente,
+                    telefone_cliente,
+                    genero_cliente,
+                    data_nascimento,
+                    tipo_cliente,
+                    senha_hash_cliente
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                """,
+                (
+                    validacao["nome"],
+                    validacao["cpf"],
+                    validacao["email"],
+                    validacao["telefone"],
+                    validacao["genero"],
+                    validacao["data_nascimento"],
+                    TIPO_CLIENTE_NOVO,
+                    senha_hash,
+                ),
+            )
+
+            id_cliente = cursor.lastrowid
+            id_solicitacao = None
+            status = None
+            motivo = None
+
+            if cartao:
+                status, motivo = aplicar_regras(
+                    TIPO_CLIENTE_NOVO,
+                    cartao["tipo_cartao"],
+                )
+
+                cursor.execute(
+                    """
+                    INSERT INTO tb_solicitacao (
+                        status,
+                        id_cliente,
+                        id_produto
+                    )
+                    VALUES (%s, %s, %s)
+                    """,
+                    (status, id_cliente, id_produto),
+                )
+
+                id_solicitacao = cursor.lastrowid
 
         conexao.commit()
 
-        if status == "NEGADO":
-            mensagem = "Solicitação não aprovada."
-        else:
-            mensagem = (
-                "Solicitação registrada "
-                "e encaminhada para análise."
-            )
-
-        return {
-            "status_code": 201,
-            "resposta": {
-                "mensagem": mensagem,
-                "status": status,
-                "motivo": motivo,
-                "id_solicitacao": id_solicitacao,
-                "id_cliente": id_cliente,
-                "id_cartao": id_cartao
-            }
+        resposta = {
+            "mensagem": (
+                "Conta criada com sucesso."
+                if id_solicitacao is None
+                else "Conta criada e solicitação registrada."
+            ),
+            "id_cliente": id_cliente,
+            "id_solicitacao": id_solicitacao,
+            "id_produto": id_produto,
+            "status": status,
+            "motivo": motivo,
         }
 
-    except Exception as erro:
+        return {"status_code": 201, "resposta": resposta}
+
+    except Exception:
         if conexao:
             conexao.rollback()
 
-        print(
-            "Erro ao processar solicitação:",
-            erro
-        )
+        import logging
+        logging.exception("Erro ao processar cadastro")
 
         return {
             "status_code": 500,
             "resposta": {
-                "mensagem": (
-                    "Erro interno ao processar "
-                    "a solicitação."
-                )
-            }
+                "mensagem": "Não foi possível concluir o cadastro."
+            },
         }
 
     finally:
-        if cursor:
-            cursor.close()
-
         if conexao:
             conexao.close()

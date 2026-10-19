@@ -13,8 +13,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Catamaran:wght@100..900&display=swap" rel="stylesheet">
-
-    <script src="./js/selecaoCartao.js" defer></script>
 </head>
 <body>
         <header>
@@ -51,12 +49,47 @@
             </ul>
         </nav>
 
-        <a
-            href="status.html"
-            class="btn-header"
+<div class="area-conta" id="areaConta">
+
+    <!-- Visitante não logado -->
+    <a href="login.html" class="btn-header" id="btnAcessarConta">
+        Acessar Conta
+    </a>
+
+    <!-- Cliente logado -->
+    <div class="menu-usuario" id="menuUsuario" hidden>
+        <button
+            type="button"
+            class="btn-usuario"
+            id="btnUsuario"
+            aria-label="Abrir menu do usuário"
+            aria-expanded="false"
+            aria-controls="opcoesUsuario"
         >
-            Acessar Status
-        </a>
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="25"
+                height="25"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+            >
+                <circle cx="12" cy="8" r="4"></circle>
+                <path d="M5 21v-2a7 7 0 0 1 14 0v2"></path>
+            </svg>
+        </button>
+
+        <div class="opcoes-usuario" id="opcoesUsuario" hidden>
+            <a href="status.html">Minha conta</a>
+            <button type="button" id="btnSair">Sair</button>
+        </div>
+    </div>
+
+</div>
 
     </header>
 
@@ -127,6 +160,9 @@
         </div>
 
     </footer>
+
+     <script src="./js/selecaoCartao.js" defer></script>
+    <script src="./js/header_auth.js"></script>
 </body>
 </html>
 </body>

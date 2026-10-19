@@ -1,6 +1,6 @@
 const form = document.getElementById("form-cadastro");
 const mensagemStatus = document.getElementById("mensagem-status");
-
+const API_BASE = "http://localhost:5000";
 
 function limparErros() {
     document.querySelectorAll(".erro-campo").forEach((elemento) => {
@@ -8,30 +8,25 @@ function limparErros() {
     });
 }
 
-
 function mostrarErro(campo, mensagem) {
-    const elemento = document.querySelector(
-        `[data-erro-de="${campo}"]`
-    );
-
-    if (elemento) {
-        elemento.textContent = mensagem;
-    }
+    const elemento = document.querySelector(`[data-erro-de="${campo}"]`);
+    if (elemento) elemento.textContent = mensagem;
 }
 
+function mostrarMensagem(mensagem, tipo = "erro") {
+    mensagemStatus.textContent = mensagem;
+    mensagemStatus.className = `mensagem-status ${tipo}`;
+    mensagemStatus.style.display = "block";
+}
 
 function apenasNumeros(valor) {
     return (valor || "").replace(/\D/g, "");
 }
 
-
 function cpfValido(cpf) {
     cpf = apenasNumeros(cpf);
 
-    if (
-        cpf.length !== 11 ||
-        /^(\d)\1{10}$/.test(cpf)
-    ) {
+    if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) {
         return false;
     }
 
@@ -42,14 +37,8 @@ function cpfValido(cpf) {
     }
 
     let digito1 = (soma * 10) % 11;
-
-    if (digito1 === 10) {
-        digito1 = 0;
-    }
-
-    if (digito1 !== Number(cpf[9])) {
-        return false;
-    }
+    if (digito1 === 10) digito1 = 0;
+    if (digito1 !== Number(cpf[9])) return false;
 
     soma = 0;
 
@@ -58,29 +47,16 @@ function cpfValido(cpf) {
     }
 
     let digito2 = (soma * 10) % 11;
-
-    if (digito2 === 10) {
-        digito2 = 0;
-    }
+    if (digito2 === 10) digito2 = 0;
 
     return digito2 === Number(cpf[10]);
 }
 
-
 function idadeValida(data) {
-    if (!/^\d{2}\/\d{2}\/\d{4}$/.test(data)) {
-        return false;
-    }
+    if (!/^\d{2}\/\d{2}\/\d{4}$/.test(data)) return false;
 
-    const [dia, mes, ano] = data
-        .split("/")
-        .map(Number);
-
-    const nascimento = new Date(
-        ano,
-        mes - 1,
-        dia
-    );
+    const [dia, mes, ano] = data.split("/").map(Number);
+    const nascimento = new Date(ano, mes - 1, dia);
 
     if (
         nascimento.getFullYear() !== ano ||
@@ -91,16 +67,11 @@ function idadeValida(data) {
     }
 
     const hoje = new Date();
-
-    let idade =
-        hoje.getFullYear() - ano;
+    let idade = hoje.getFullYear() - ano;
 
     if (
         hoje.getMonth() < mes - 1 ||
-        (
-            hoje.getMonth() === mes - 1 &&
-            hoje.getDate() < dia
-        )
+        (hoje.getMonth() === mes - 1 && hoje.getDate() < dia)
     ) {
         idade--;
     }
@@ -108,346 +79,168 @@ function idadeValida(data) {
     return idade >= 18;
 }
 
-
-function validarFormulario(dados) {
+function validarFormulario(dados, temCartao) {
     let valido = true;
 
-    const nome = (
-        dados.get("nome") || ""
-    ).trim();
-
-    if (
-        nome.length < 3 ||
-        nome.length > 50
-    ) {
-        mostrarErro(
-            "nome",
-            "Informe seu nome completo."
-        );
-
+    const nome = (dados.get("nome") || "").trim();
+    if (nome.length < 3 || nome.length > 50) {
+        mostrarErro("nome", "Informe seu nome completo.");
         valido = false;
     }
 
-    const cpf = dados.get("cpf") || "";
-
-    if (!cpfValido(cpf)) {
-        mostrarErro(
-            "cpf",
-            "Informe um CPF válido."
-        );
-
+    if (!cpfValido(dados.get("cpf"))) {
+        mostrarErro("cpf", "Informe um CPF válido.");
         valido = false;
     }
 
-    const nascimento =
-        dados.get("data_nascimento") || "";
-
-    if (!idadeValida(nascimento)) {
+    if (!idadeValida(dados.get("data_nascimento"))) {
         mostrarErro(
             "data_nascimento",
-            "É necessário informar uma data válida e ter pelo menos 18 anos."
+            "Informe uma data válida e tenha pelo menos 18 anos."
         );
-
         valido = false;
     }
 
-    const telefone =
-        apenasNumeros(
-            dados.get("telefone")
-        );
+    const telefone = apenasNumeros(dados.get("telefone"));
+    if (![10, 11].includes(telefone.length)) {
+        mostrarErro("telefone", "Informe um telefone válido com DDD.");
+        valido = false;
+    }
 
+    const email = (dados.get("email") || "").trim();
     if (
-        ![10, 11].includes(
-            telefone.length
-        )
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||
+        email.length > 100
     ) {
-        mostrarErro(
-            "telefone",
-            "Informe um telefone válido com DDD."
-        );
-
+        mostrarErro("email", "Informe um e-mail válido.");
         valido = false;
     }
 
-    const email =
-        dados.get("email") || "";
-
-    if (
-        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
-            email
-        )
-    ) {
-        mostrarErro(
-            "email",
-            "Informe um email válido."
-        );
-
+    if (!["MASCULINO", "FEMININO", "OUTRO"].includes(dados.get("genero"))) {
+        mostrarErro("genero", "Selecione um gênero.");
         valido = false;
     }
 
-    if (!dados.get("genero")) {
-        mostrarErro(
-            "genero",
-            "Selecione um gênero."
-        );
+    const senha = dados.get("senha") || "";
+    const confirmarSenha = dados.get("confirmar_senha") || "";
 
+    if (senha.length < 8) {
+        mostrarErro("senha", "A senha deve ter pelo menos 8 caracteres.");
         valido = false;
     }
 
-    const idCartao =
-        dados.get("id_cartao");
-
-    if (!idCartao) {
-        mostrarErro(
-            "id_cartao",
-            "Nenhum cartão foi selecionado."
-        );
-
+    if (senha !== confirmarSenha) {
+        mostrarErro("confirmar_senha", "As senhas não coincidem.");
         valido = false;
     }
 
-    const documento =
-        dados.get("documento");
+    if (temCartao) {
+        const documento = dados.get("documento");
 
-    if (
-        !documento ||
-        !documento.name
-    ) {
-        mostrarErro(
-            "documento",
-            "RG ou CNH é obrigatório."
-        );
+        if (!documento || !documento.name) {
+            mostrarErro("documento", "RG ou CNH é obrigatório para solicitar um cartão.");
+            valido = false;
+        } else {
+            const extensao = documento.name.split(".").pop().toLowerCase();
 
-        valido = false;
+            if (!["pdf", "jpg", "jpeg", "png"].includes(extensao)) {
+                mostrarErro("documento", "Use PDF, JPG, JPEG ou PNG.");
+                valido = false;
+            }
+        }
     }
 
     if (!dados.get("politica")) {
-        mostrarErro(
-            "politica",
-            "É necessário aceitar a política de privacidade."
-        );
-
+        mostrarErro("politica", "É necessário aceitar a política de privacidade.");
         valido = false;
     }
 
     return valido;
 }
+document.getElementById("nascimento")?.addEventListener("input", (evento) => {
+    let valor = apenasNumeros(evento.target.value).slice(0, 8);
 
+    if (valor.length > 4) {
+        valor = `${valor.slice(0, 2)}/${valor.slice(2, 4)}/${valor.slice(4)}`;
+    } else if (valor.length > 2) {
+        valor = `${valor.slice(0, 2)}/${valor.slice(2)}`;
+    }
 
-document
-    .getElementById("nascimento")
-    .addEventListener("input", (e) => {
-
-        let valor = apenasNumeros(
-            e.target.value
-        ).slice(0, 8);
-
-        if (valor.length > 4) {
-            valor =
-                `${valor.slice(0, 2)}/` +
-                `${valor.slice(2, 4)}/` +
-                `${valor.slice(4)}`;
-
-        } else if (valor.length > 2) {
-            valor =
-                `${valor.slice(0, 2)}/` +
-                `${valor.slice(2)}`;
-        }
-
-        e.target.value = valor;
-    });
-
-
-// =========================
-// MÁSCARA CPF E TELEFONE
-// =========================
-
-["cpf", "telefone"].forEach((id) => {
-
-    document
-        .getElementById(id)
-        .addEventListener("input", (e) => {
-
-            e.target.value =
-                apenasNumeros(
-                    e.target.value
-                ).slice(0, 11);
-        });
+    evento.target.value = valor;
 });
 
+["cpf", "telefone"].forEach((id) => {
+    document.getElementById(id)?.addEventListener("input", (evento) => {
+        evento.target.value = apenasNumeros(evento.target.value).slice(0, 11);
+    });
+});
 
-// =========================
-// CARTÃO SELECIONADO
-// =========================
-
-const idCartao =
-    localStorage.getItem("idCartao");
-
-const inputCartao =
-    document.createElement("input");
-
+const inputCartao = document.createElement("input");
 inputCartao.type = "hidden";
-inputCartao.name = "id_cartao";
-inputCartao.value = idCartao || "";
-
+inputCartao.name = "id_produto";
+inputCartao.value = localStorage.getItem("idCartao") || "";
 form.appendChild(inputCartao);
 
+form.addEventListener("submit", async (evento) => {
+    evento.preventDefault();
+    limparErros();
+    mensagemStatus.style.display = "none";
 
-// =========================
-// ENVIO DO FORMULÁRIO
-// =========================
+    const dados = new FormData(form);
+    const idCartao = (dados.get("id_produto") || "").trim();
+    const temCartao = idCartao !== "";
 
-form.addEventListener(
-    "submit",
-    async (e) => {
+    if (!validarFormulario(dados, temCartao)) return;
 
-        e.preventDefault();
+    const botao = form.querySelector(".btn-enviar");
+    botao.disabled = true;
+    botao.textContent = "Criando conta...";
 
-        limparErros();
+    try {
+        const resposta = await fetch(`${API_BASE}/api/cadastro`, {
+            method: "POST",
+            credentials: "include",
+            body: dados
+        });
 
-        mensagemStatus.style.display =
-            "none";
+        const resultado = await resposta.json();
 
-        const dados =
-            new FormData(form);
+        if (!resposta.ok) {
+            if (resultado.erros) {
+                Object.entries(resultado.erros).forEach(([campo, mensagem]) => {
+                    mostrarErro(campo, mensagem);
+                });
+            }
 
-        if (!validarFormulario(dados)) {
+            mostrarMensagem(
+                resultado.mensagem || "Não foi possível concluir o cadastro."
+            );
             return;
         }
 
-        const botao =
-            form.querySelector(".btn-enviar");
+        localStorage.removeItem("idCartao");
+        localStorage.removeItem("cartoesDisponiveis");
 
-        botao.disabled = true;
-        botao.textContent = "Enviando...";
-
-        try {
-
-        const resposta =
-            await fetch("http://localhost:5000/api/cadastro", {
-                method: "POST",
-                body: dados
-            });
-
-            const resultado =
-                await resposta.json();
-
-
-            // =========================
-            // ERROS DE VALIDAÇÃO
-            // =========================
-
-            if (resultado.erros) {
-
-                Object.entries(
-                    resultado.erros
-                ).forEach(
-                    ([campo, mensagem]) => {
-
-                        mostrarErro(
-                            campo,
-                            mensagem
-                        );
-                    }
-                );
-
-                mensagemStatus.textContent =
-                    resultado.mensagem ||
-                    "Corrija os campos indicados.";
-
-                mensagemStatus.className =
-                    "mensagem-status erro";
-
-                mensagemStatus.style.display =
-                    "block";
-
-                return;
-            }
-
-
-            // =========================
-            // SOLICITAÇÃO CRIADA
-            // =========================
-
-            if (
-                resposta.ok &&
-                resultado.id_solicitacao
-            ) {
-
-                const idSolicitacao =
-                    resultado.id_solicitacao;
-
-                /*
-                 * A solicitação já foi criada
-                 * no banco. Agora enviamos o
-                 * usuário para a tela de status
-                 * usando o ID criado.
-                 */
-
-                window.location.href =
-                    `status.html?solicitacao=${idSolicitacao}`;
-
-                return;
-            }
-
-
-            // =========================
-            // RESPOSTA INESPERADA
-            // =========================
-
-            mensagemStatus.textContent =
-                resultado.mensagem ||
-                "Não foi possível concluir a solicitação.";
-
-            mensagemStatus.className =
-                "mensagem-status erro";
-
-            mensagemStatus.style.display =
-                "block";
-
-
-        } catch (erro) {
-
-            console.error(erro);
-
-            mensagemStatus.textContent =
-                "Não foi possível conectar ao servidor. Verifique se o Flask está rodando.";
-
-            mensagemStatus.className =
-                "mensagem-status erro";
-
-            mensagemStatus.style.display =
-                "block";
-
-        } finally {
-
-            botao.disabled = false;
-            botao.textContent = "Enviar dados";
-        }
+        mostrarMensagem("Conta criada com sucesso! Redirecionando...", "sucesso");
+        window.location.href = "status.html";
+    } catch (erro) {
+        console.error("Erro no cadastro:", erro);
+        mostrarMensagem(
+            "Não foi possível conectar ao servidor. Verifique se o Flask está em execução."
+        );
+    } finally {
+        botao.disabled = false;
+        botao.textContent = "Enviar dados";
     }
-);
+});
 
-const documento =
-    document.querySelector("#documento");
+const documento = document.querySelector("#documento");
+const arquivoSelecionado = document.querySelector("#arquivo-selecionado");
 
-const arquivoSelecionado =
-    document.querySelector(
-        "#arquivo-selecionado"
-    );
+documento?.addEventListener("change", () => {
+    if (!arquivoSelecionado) return;
 
-documento.addEventListener(
-    "change",
-    () => {
-
-        if (documento.files.length > 0) {
-
-            arquivoSelecionado.textContent =
-                `Arquivo selecionado: ${documento.files[0].name}`;
-
-        } else {
-
-            arquivoSelecionado.textContent =
-                "";
-        }
-    }
-);
+    arquivoSelecionado.textContent = documento.files.length
+        ? `Arquivo selecionado: ${documento.files[0].name}`
+        : "";
+});

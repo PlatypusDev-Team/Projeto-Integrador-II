@@ -5,7 +5,7 @@ create table tb_cliente (
 	id_cliente int auto_increment primary key,
     nome_cliente varchar(50) not null,
     cpf_cliente char(11) not null unique,
-    cep_cliente char(8) not null,
+    cep_cliente char(8) null,
     email_cliente varchar(100) not null unique,
     telefone_cliente varchar(11) not null unique,
     genero_cliente enum('MASCULINO', 'FEMININO', 'OUTRO') not null,
@@ -79,6 +79,7 @@ create table tb_atendimento (
 create table tb_filial (
 	id_filial int auto_increment primary key,
     cep_filial char(8) not null,
+    uf_filial char(2),
     id_loja int not null,
     foreign key (id_loja) references tb_loja(id_loja)
 );

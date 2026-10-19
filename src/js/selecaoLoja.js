@@ -233,7 +233,7 @@ function adicionarEventosBotoes() {
                     ) {
 
                         const idCartao =
-                            resultado.cartao.id_cartao;
+                            resultado.cartao.id_produto;
 
                         console.log(
                             "Cartão escolhido:",

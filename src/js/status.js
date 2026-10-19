@@ -198,69 +198,101 @@ function renderStatus(solicitacao) {
     creditNote.textContent = status === "analise" ? "A solicitação ainda não foi concluída. Uma especialista entrará em contato se necessário." : "Confira o resultado da análise no próximo cartão.";
     resultCard.setAttribute("aria-label", `Resultado: ${content.resultMessage.toLowerCase()}`);
 }
-async function carregarSolicitacao(id) {
-    activeRequestId = id;
-    ocultarSolicitacaoNaoEncontrada();
+
+const API_BASE = "http://127.0.0.1:5000";
+
+async function carregarConta() {
     try {
-        const response = await fetch(`http://localhost:5000/api/solicitacoes/${id}`);
-        const body = await response.json();
-        if (response.status === 404) {
-            mostrarSolicitacaoNaoEncontrada();
+        const resposta = await fetch(`${API_BASE}/api/conta`, {
+            method: "GET",
+            credentials: "include"
+        });
+
+        if (resposta.status === 401) {
+            window.location.href = "login.html";
             return;
         }
-        if (!response.ok)
-            throw new Error(body.erro);
-        renderStatus(body);
-    }
-    catch (error) {
-        console.error("Não foi possível carregar a solicitação:", error);
-        if (noticeTitle)
-            noticeTitle.textContent = "Não foi possível carregar a solicitação";
-        if (noticeMessage)
-            noticeMessage.textContent = "Verifique se o backend Flask está em execução e tente novamente.";
-    }
-}
-refreshStatusButton?.addEventListener("click", () => {
-    if (activeRequestId === null || !refreshStatusButton)
-        return;
-    refreshStatusButton.disabled = true;
-    refreshStatusButton.textContent = "Atualizando...";
-    void carregarSolicitacao(activeRequestId).finally(() => {
-        if (!refreshStatusButton)
+
+        const dados = await resposta.json();
+
+        if (!resposta.ok) {
+            throw new Error(dados.erro || "Não foi possível carregar a conta.");
+        }
+
+        const cliente = dados.cliente;
+        const solicitacao = dados.solicitacao;
+
+        // Dados do perfil, independentemente de haver solicitação.
+        if (userName) {
+            userName.textContent = cliente.nome_cliente;
+        }
+
+        if (userAvatar) {
+            userAvatar.textContent =
+                cliente.nome_cliente.trim().charAt(0).toUpperCase();
+        }
+
+        if (userCpf) {
+            userCpf.textContent = cliente.cpf;
+        }
+
+        if (!solicitacao) {
+            // Conta criada, mas nenhum cartão solicitado.
+            if (page) page.dataset.view = "empty";
+
+            if (requestType) {
+                requestType.textContent = "Nenhuma solicitação cadastrada";
+            }
+
+            if (notFoundState) {
+                notFoundState.querySelector("h1").textContent =
+                    "Você ainda não tem solicitações";
+
+                notFoundState.querySelector("p").textContent =
+                    "Sua conta está pronta! Conheça nossos cartões quando quiser fazer sua primeira solicitação.";
+
+                notFoundState.removeAttribute("hidden");
+                notFoundState.style.display = "";
+            }
+
+            if (document.querySelector("#pedido")) {
+                document.querySelector("#pedido").hidden = true;
+            }
+
+            if (refreshStatusButton) {
+                refreshStatusButton.hidden = true;
+            }
+
             return;
-        refreshStatusButton.disabled = false;
-        refreshStatusButton.textContent = "Atualizar Status";
-    });
-});
-function mostrarSolicitacaoAusente() {
-    ocultarSolicitacaoNaoEncontrada();
-    page?.setAttribute("data-status", "analise");
-    updateTimeline(0);
-    prequalificationCard?.classList.add("status-card--active");
-    prequalificationCard?.classList.remove("status-card--upcoming");
-    creditCard?.classList.remove("status-card--active");
-    creditCard?.classList.add("status-card--upcoming");
-    resultCard?.classList.remove("status-card--active");
-    resultCard?.classList.add("status-card--upcoming");
-    refreshStatusButton?.setAttribute("hidden", "");
-    if (noticeTitle)
-        noticeTitle.textContent = "Análise de Pré-Qualificação";
-    if (noticeMessage)
-        noticeMessage.textContent = "Estamos a rever as suas informações básicas. Assim que concluirmos esta triagem inicial, informaremos se o seu pedido avança para a análise de crédito detalhada.";
-}
-const requestId = getRequestId();
-if (requestId === null) {
-    mostrarSolicitacaoAusente();
-}
-else {
-    void carregarSolicitacao(requestId);
-}
-function mostrarSolicitacaoNaoEncontrada() {
-    page?.setAttribute("data-view", "not-found");
-    const requestId = getRequestId();
-    if (requestId === null) {
-        mostrarSolicitacaoAusente();
-        return;
+        }
+
+        // Há uma solicitação: mostra a tela de acompanhamento.
+        if (document.querySelector("#pedido")) {
+            document.querySelector("#pedido").hidden = false;
+        }
+
+        ocultarSolicitacaoNaoEncontrada();
+
+        if (page) page.dataset.view = "request";
+
+        renderStatus({
+            ...solicitacao,
+            nome: cliente.nome_cliente,
+            cpf: cliente.cpf
+        });
+
+    } catch (erro) {
+        console.error("Erro ao carregar a conta:", erro);
+
+        if (noticeTitle) {
+            noticeTitle.textContent = "Não foi possível carregar sua conta";
+        }
+
+        if (noticeMessage) {
+            noticeMessage.textContent =
+                "Verifique se o servidor está em execução e tente novamente.";
+        }
     }
-    notFoundState?.removeAttribute("hidden");
 }
+
+carregarConta();

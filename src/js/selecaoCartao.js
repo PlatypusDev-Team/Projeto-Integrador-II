@@ -65,7 +65,7 @@ function mostrarCartoes(cartoes) {
 
             <button
                 class="botao-selecionar-cartao"
-                data-cartao="${cartao.id_cartao}"
+                data-cartao="${cartao.id_produto}"
             >
                 SELECIONAR
             </button>
