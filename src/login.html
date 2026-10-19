@@ -1,0 +1,172 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DM | Login</title>
+
+    <link rel="icon" type="image/x-icon"
+          href="https://play-lh.googleusercontent.com/lzoSveaHXSO1BCWYEhKNGe4FFcyR73F9X3-5uPkH0ofuK0oXLhayqTXjYG6NxgjsoqS7BcqHV-mHKTRa25U2">
+
+    <link href="https://fonts.googleapis.com/css?family=Catamaran" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/cadastro-validacao.css">
+</head>
+
+<body>
+    <header>
+        <div class="logo">
+            <img
+                src="https://play-lh.googleusercontent.com/lzoSveaHXSO1BCWYEhKNGe4FFcyR73F9X3-5uPkH0ofuK0oXLhayqTXjYG6NxgjsoqS7BcqHV-mHKTRa25U2"
+                alt="Logo DM"
+                class="logo-img"
+            >
+        </div>
+
+        <nav>
+            <ul>
+                <li><a href="index.html#inicio">Início</a></li>
+                <li><a href="index.html#cartoes">Nossos cartões</a></li>
+                <li><a href="index.html#app">DM App</a></li>
+                <li><a href="index.html#sobre">Sobre nós</a></li>
+                <li><a href="index.html#duvidas">Dúvidas</a></li>
+            </ul>
+        </nav>
+
+        
+        <div class="area-conta" id="areaConta">
+
+    <!-- Visitante não logado -->
+        <a href="login.html" class="btn-header" id="btnAcessarConta">
+            Acessar Conta
+        </a>
+
+        <!-- Cliente logado -->
+        <div class="menu-usuario" id="menuUsuario" hidden>
+            <button
+                type="button"
+                class="btn-usuario"
+                id="btnUsuario"
+                aria-label="Abrir menu do usuário"
+                aria-expanded="false"
+                aria-controls="opcoesUsuario"
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="25"
+                    height="25"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                >
+                    <circle cx="12" cy="8" r="4"></circle>
+                    <path d="M5 21v-2a7 7 0 0 1 14 0v2"></path>
+                </svg>
+            </button>
+
+            <div class="opcoes-usuario" id="opcoesUsuario" hidden>
+                <a href="status.html">Minha conta</a>
+                <button type="button" id="btnSair">Sair</button>
+            </div>
+        </div>
+
+    </div>
+    </header>
+
+    <main>
+        <section class="cadastro-container">
+            <div class="cadastro-title">
+                <h1>Bem-vindo de volta!</h1>
+                <p>Entre com seu e-mail e sua senha para acessar sua conta.</p>
+            </div>
+
+            <div
+                id="mensagem-status"
+                class="mensagem-status"
+                style="display: none;"
+                role="status"
+                aria-live="polite"
+            ></div>
+
+            <div class="dados-container">
+                <form id="form-login" novalidate>
+                    <div class="dados">
+                        <label for="email" class="titulo-campo">E-mail</label>
+
+                        <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            maxlength="100"
+                            placeholder="Digite seu e-mail"
+                            autocomplete="email"
+                            required
+                        >
+
+                        <span class="erro-campo" data-erro-de="email"></span>
+                    </div>
+
+                    <div class="dados">
+                        <label for="senha" class="titulo-campo">Senha</label>
+
+                        <input
+                            type="password"
+                            id="senha"
+                            name="senha"
+                            maxlength="128"
+                            placeholder="Digite sua senha"
+                            autocomplete="current-password"
+                            required
+                        >
+
+                        <span class="erro-campo" data-erro-de="senha"></span>
+                    </div>
+
+                    <button type="submit" class="btn-enviar" id="btn-login">
+                        Entrar
+                    </button>
+                </form>
+            </div>
+
+            <p>
+                Ainda não tem uma conta?
+                <a href="cadastro.html">Cadastre-se</a>
+            </p>
+        </section>
+    </main>
+
+    <div class="linha-colorida"></div>
+
+    <footer class="footer" id="footer">
+        <div class="footer-top">
+            <div class="footer-products">
+                <h3 class="footer-title">Produtos</h3>
+                <ul class="nav-footer">
+                    <li><a href="index.html#app">DM App</a></li>
+                    <li><a href="index.html#cartoes">Cartão DM Visa</a></li>
+                    <li><a href="index.html#cartoes">Cartão de Loja</a></li>
+                    <li>
+                        <a href="https://www.vocedm.com.br/portal/seguros/"
+                           target="_blank"
+                           rel="noopener noreferrer">Seguros</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            © 2026 DM. Todos os direitos reservados.
+        </div>
+    </footer>
+
+    <script src="js/login.js"></script>
+    <script src="./js/header_auth.js"></script>
+</body>
+</html>

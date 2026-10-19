@@ -1,25 +1,25 @@
 from db import get_connection
 
 
-def buscar_cartao_por_id(id_cartao):
+def buscar_cartao_por_id(id_produto):
     conexao = get_connection()
 
     try:
         with conexao.cursor() as cursor:
-
             cursor.execute(
                 """
                 SELECT
-                    id_cartao,
+                    id_produto,
                     nome_cartao,
                     tipo_cartao,
                     descricao_cartao,
                     modalidade,
-                    bandeirado
+                    bandeirado,
+                    id_loja
                 FROM tb_cartao
-                WHERE id_cartao = %s
+                WHERE id_produto = %s
                 """,
-                (id_cartao,)
+                (id_produto,)
             )
 
             return cursor.fetchone()

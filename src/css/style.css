@@ -1508,3 +1508,75 @@ main {
     }
 
 }
+
+
+.area-conta {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.menu-usuario {
+    position: relative;
+}
+
+.btn-usuario {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+}
+
+.btn-usuario:hover {
+    background: rgba(125, 244, 237, 0.2);
+}
+
+.btn-usuario:focus-visible,
+.opcoes-usuario a:focus-visible,
+.opcoes-usuario button:focus-visible {
+    outline: 2px solid #7df4ed;
+    outline-offset: 3px;
+}
+
+.opcoes-usuario {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    z-index: 1000;
+    min-width: 160px;
+    padding: 8px;
+    background: #fff;
+    color: #212acf;
+    border: 1px solid #ddd;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+}
+
+.opcoes-usuario a,
+.opcoes-usuario button {
+    display: block;
+    width: 100%;
+    padding: 10px 12px;
+    border: none;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.opcoes-usuario a:hover,
+.opcoes-usuario button:hover {
+    background: #e9fbfa;
+}
+
+[hidden] {
+    display: none !important;
+}

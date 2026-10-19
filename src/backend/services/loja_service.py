@@ -1,3 +1,4 @@
+
 from db import get_connection
 
 
@@ -6,7 +7,8 @@ def buscar_lojas_por_uf(uf):
 
     try:
         with conexao.cursor() as cursor:
-            cursor.execute("""
+            cursor.execute(
+                """
                 SELECT
                     l.id_loja,
                     l.nome_loja,
@@ -56,16 +58,13 @@ def buscar_lojas_por_uf(uf):
                         END
                     ) AS cep_filial
 
-                FROM tb_loja l
+                FROM tb_loja AS l
 
-                LEFT JOIN tb_cartao_loja cl
-                    ON l.id_loja = cl.id_loja
+                LEFT JOIN tb_cartao AS c
+                    ON c.id_loja = l.id_loja
 
-                LEFT JOIN tb_cartao c
-                    ON cl.id_cartao = c.id_cartao
-
-                LEFT JOIN tb_filial f
-                    ON l.id_loja = f.id_loja
+                LEFT JOIN tb_filial AS f
+                    ON f.id_loja = l.id_loja
 
                 GROUP BY
                     l.id_loja,
@@ -74,9 +73,10 @@ def buscar_lojas_por_uf(uf):
 
                 HAVING
                     cartao_digital = 1
-                    OR cartao_fisico = 1;
-
-            """, (uf, uf, uf, uf))
+                    OR cartao_fisico = 1
+                """,
+                (uf, uf, uf, uf)
+            )
 
             return cursor.fetchall()
 
