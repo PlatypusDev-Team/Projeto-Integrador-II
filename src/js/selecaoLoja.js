@@ -1,3 +1,12 @@
+const filtroLojas =
+    document.querySelector("#filtroLojas");
+
+const filtrarLojas =
+    document.querySelector("#filtrarLojas");
+
+const listaLojas =
+    document.querySelector("#listaLojas");
+
 const resultadoBuscar =
     document.querySelector("#resultadoBuscar");
 
@@ -35,46 +44,47 @@ barraBuscar.addEventListener(
 );
 
 
+
 async function carregarLojas(cep) {
-
     try {
+        resultadoBuscar.hidden = false;
+        filtroLojas.hidden = true;
+        filtrarLojas.value = "";
 
-        resultadoBuscar.innerHTML = `
-            <p>Buscando lojas disponíveis...</p>
+        listaLojas.innerHTML = `
+            <p class="mensagemLojas">
+                Buscando lojas disponíveis...
+            </p>
         `;
 
-        const resposta =
-            await fetch(
-                `http://127.0.0.1:5000/api/lojas/${cep}`
-            );
+        const resposta = await fetch(
+            `http://127.0.0.1:5000/api/lojas/${encodeURIComponent(cep)}`
+        );
 
         if (!resposta.ok) {
-            throw new Error(
-                "Erro ao buscar lojas."
-            );
+            throw new Error("Erro ao buscar lojas.");
         }
 
-        const dados =
-            await resposta.json();
+        const dados = await resposta.json();
 
-        console.log(
-            "Resposta da API:",
-            dados
-        );
+        console.log("Resposta da API:", dados);
 
-        lojasDisponiveis =
-            dados.lojas || [];
+        lojasDisponiveis = dados.lojas || [];
 
-        mostrarLojas(
-            lojasDisponiveis
-        );
+        filtroLojas.hidden = lojasDisponiveis.length === 0;
+
+        mostrarLojas(lojasDisponiveis);
 
     } catch (erro) {
-
         console.error(erro);
 
-        resultadoBuscar.innerHTML = `
-            <p>
+        lojasDisponiveis = [];
+        filtroLojas.hidden = true;
+
+        resultadoBuscar.hidden = false;
+
+        listaLojas.innerHTML = `
+            <p class="mensagemLojas">
                 Não foi possível carregar as lojas.
             </p>
         `;
@@ -82,47 +92,58 @@ async function carregarLojas(cep) {
 }
 
 
-function mostrarLojas(lojas) {
+filtrarLojas.addEventListener("input", () => {
+    const termo = filtrarLojas.value
+        .trim()
+        .toLocaleLowerCase("pt-BR");
 
-    resultadoBuscar.innerHTML = "";
+    const lojasFiltradas = lojasDisponiveis.filter(loja => {
+        const nome = String(loja.nome_loja || "")
+            .toLocaleLowerCase("pt-BR");
+
+        const descricao = String(loja.descricao_loja || "")
+            .toLocaleLowerCase("pt-BR");
+
+        return nome.includes(termo) ||
+               descricao.includes(termo);
+    });
+
+    mostrarLojas(lojasFiltradas);
+});
+
+
+function mostrarLojas(lojas) {
+    listaLojas.innerHTML = "";
 
     if (lojas.length === 0) {
+        const mensagem = document.createElement("p");
 
-        resultadoBuscar.innerHTML = `
-            <p>
-                Nenhuma loja disponível para este CEP.
-            </p>
-        `;
+        mensagem.classList.add("mensagemLojas");
 
+        mensagem.textContent = lojasDisponiveis.length === 0
+            ? "Nenhuma loja disponível para este CEP."
+            : "Nenhuma loja encontrada com esse nome ou descrição.";
+
+        listaLojas.appendChild(mensagem);
         return;
     }
 
     lojas.forEach(loja => {
+        const card = document.createElement("div");
 
-        const card =
-            document.createElement("div");
-
-        card.classList.add(
-            "resultadoLoja"
-        );
+        card.classList.add("resultadoLoja");
 
         let badges = "";
 
         if (loja.cartao_fisico) {
-
             badges += `
-                <span class="badge-fisico">
-                    Físico
-                </span>
+                <span class="badge-fisico">Físico</span>
             `;
         }
 
         if (loja.cartao_digital) {
-
             badges += `
-                <span class="badge-digital">
-                    Digital
-                </span>
+                <span class="badge-digital">Digital</span>
             `;
         }
 
@@ -140,6 +161,7 @@ function mostrarLojas(lojas) {
             </p>
 
             <button
+                type="button"
                 class="botao-fazer-cartao"
                 data-loja="${loja.id_loja}"
                 data-filial="${loja.id_filial || ""}"
@@ -148,11 +170,12 @@ function mostrarLojas(lojas) {
             </button>
         `;
 
-        resultadoBuscar.appendChild(card);
+        listaLojas.appendChild(card);
     });
 
     adicionarEventosBotoes();
 }
+
 
 
 function adicionarEventosBotoes() {
@@ -223,9 +246,6 @@ function adicionarEventosBotoes() {
                     );
 
 
-                    // =========================
-                    // APENAS UM CARTÃO
-                    // =========================
 
                     if (
                         resultado.tipo ===

@@ -93,6 +93,7 @@
 </div>
 
     </header>
+    <main>
 
     <div id="titulo-lojas">
         <h1>CARTÃO LOJA</h1>
@@ -125,9 +126,26 @@
 
 </div>
 
-    <section class="resultadoBuscar" id="resultadoBuscar">
+    <section class="resultadoBuscar" id="resultadoBuscar" hidden>
+        <div class="filtroLojas" id="filtroLojas" hidden>
+            <label for="filtrarLojas">
+                Pesquise entre as lojas disponíveis:
+            </label>
+
+            <input
+                type="search"
+                id="filtrarLojas"
+                name="filtrarLojas"
+                placeholder="Digite o nome da loja..."
+                autocomplete="off"
+            >
+        </div>
+
+        <div class="listaLojas" id="listaLojas"></div>
+
     </section>
-    
+
+    </main>
     <div class="linha-colorida"></div>
     <footer
         class="footer"
@@ -188,6 +206,7 @@
     <script src="./js/selecaoLoja.js" defer></script>
     <script src="./js/header_auth.js"></script>
 </body>
+</html>
 </html>
     
 </body>
