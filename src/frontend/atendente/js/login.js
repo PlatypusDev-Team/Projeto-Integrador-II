@@ -110,7 +110,7 @@ form.addEventListener("submit", async (evento) => {
     try {
         const resposta = await fetch(API_LOGIN, {
             method: "POST",
-            credentials: "same-origin",
+            credentials: "include",
             headers: {
                 "Content-Type": "application/json"
             },
@@ -136,9 +136,7 @@ form.addEventListener("submit", async (evento) => {
             );
             return;
         }
-
-        // O destino definitivo será definido junto às rotas Flask.
-        window.location.assign("dashboard.html");
+        window.location.assign("index.html");
 
     } catch (erro) {
         console.error("Erro ao realizar login:", erro);

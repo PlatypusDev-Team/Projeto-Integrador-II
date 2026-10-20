@@ -73,18 +73,12 @@ a {
     text-decoration: none;
 }
 
-.brand-symbol {
+.brand-symbol img {
     display: grid;
     place-items: center;
     width: 48px;
     height: 42px;
     border-radius: 8px;
-    color: var(--blue);
-    background: var(--mint);
-    font-family: 'Catamaran', sans-serif;
-    font-size: 23px;
-    font-weight: 800;
-    letter-spacing: -2px;
 }
 
 .brand-name {

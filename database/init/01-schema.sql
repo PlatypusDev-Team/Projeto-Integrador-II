@@ -62,6 +62,8 @@ create table tb_solicitacao (
     status enum('EM ANALISE', 'ACEITO', 'NEGADO') not null,
     id_cliente int not null,
     id_produto int not null,
+    data_solicitacao timestamp null default null,
+    data_conclusao timestamp null default null,
     id_atendente_responsavel int null,
     foreign key (id_cliente) references tb_cliente(id_cliente),
     foreign key (id_produto) references tb_produto(id_produto),
