@@ -1,9 +1,12 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, session
 
+from routes.utils import ler_dados_requisicao
 from services.selecionar_cartao_service import (
     buscar_filial,
     verificar_modalidade,
-    selecionar_cartao
+)
+from services.solicitacao_service import (
+    processar_solicitacao_cliente,
 )
 
 
@@ -39,15 +42,26 @@ def consultar_cartoes_filial(id_filial):
 
 @selecao_cartao_bp.post("/solicitacoes")
 def criar_solicitacao():
+    """
+    Mantida por compatibilidade. Agora segue as mesmas regras de
+    /api/solicitar-cartao: usa o cliente da sessão (nunca o id enviado
+    no corpo da requisição) e aplica todas as regras de negócio.
+    """
+    id_cliente = session.get("id_cliente")
 
-    dados = request.get_json()
+    if not id_cliente:
+        return jsonify({
+            "codigo": "NAO_AUTENTICADO",
+            "mensagem": "Entre na sua conta para solicitar um cartão.",
+            "erro": "Entre na sua conta para solicitar um cartão.",
+        }), 401
 
-    id_cliente = dados["id_cliente"]
-    id_cartao = dados["id_cartao"]
-
-    resultado = selecionar_cartao(
-        id_cliente,
-        id_cartao
+    resultado = processar_solicitacao_cliente(
+        id_cliente=id_cliente,
+        dados=ler_dados_requisicao(),
     )
 
-    return jsonify(resultado), 201
+    return (
+        jsonify(resultado["resposta"]),
+        resultado["status_code"],
+    )

@@ -9,20 +9,29 @@ def buscar_cartao_por_id(id_produto):
             cursor.execute(
                 """
                 SELECT
-                    id_produto,
-                    nome_cartao,
-                    tipo_cartao,
-                    descricao_cartao,
-                    modalidade,
-                    bandeirado,
-                    id_loja
-                FROM tb_cartao
-                WHERE id_produto = %s
+                    c.id_produto,
+                    c.nome_cartao,
+                    c.tipo_cartao,
+                    c.descricao_cartao,
+                    c.modalidade,
+                    c.bandeirado,
+                    c.id_loja,
+                    l.nome_loja
+                FROM tb_cartao AS c
+                LEFT JOIN tb_loja AS l
+                    ON l.id_loja = c.id_loja
+                WHERE c.id_produto = %s
                 """,
                 (id_produto,)
             )
 
-            return cursor.fetchone()
+            cartao = cursor.fetchone()
+
+            if cartao:
+                # TINYINT(1) chega como 0/1; o front espera true/false.
+                cartao["bandeirado"] = bool(cartao["bandeirado"])
+
+            return cartao
 
     finally:
         conexao.close()

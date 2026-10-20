@@ -1,4 +1,3 @@
-
 from db import get_connection
 
 
@@ -71,65 +70,6 @@ def verificar_modalidade(id_loja):
         "cartoes": None
     }
 
-
-def criar_solicitacao(id_cliente, id_produto):
-    conexao = get_connection()
-
-    try:
-        with conexao.cursor() as cursor:
-            cursor.execute(
-                """
-                INSERT INTO tb_solicitacao
-                    (status, id_cliente, id_produto)
-                VALUES
-                    ('EM ANALISE', %s, %s)
-                """,
-                (id_cliente, id_produto)
-            )
-
-            id_solicitacao = cursor.lastrowid
-
-        conexao.commit()
-
-        return id_solicitacao
-
-    except Exception:
-        conexao.rollback()
-        raise
-
-    finally:
-        conexao.close()
-
-
-def processar_solicitacao(id_cliente, id_loja):
-    resultado = verificar_modalidade(id_loja)
-
-    if resultado["tipo"] == "automatico":
-        id_produto = resultado["cartao"]["id_produto"]
-
-        id_solicitacao = criar_solicitacao(
-            id_cliente,
-            id_produto
-        )
-
-        return {
-            "tipo": "automatico",
-            "mensagem": "Solicitação criada",
-            "id_solicitacao": id_solicitacao,
-            "id_produto": id_produto
-        }
-
-    return resultado
-
-
-def selecionar_cartao(id_cliente, id_produto):
-    id_solicitacao = criar_solicitacao(
-        id_cliente,
-        id_produto
-    )
-
-    return {
-        "mensagem": "Solicitação criada",
-        "id_solicitacao": id_solicitacao,
-        "id_produto": id_produto
-    }
+# A criação de solicitações agora vive somente em
+# services/solicitacao_service.py (processar_solicitacao_cliente),
+# onde ficam todas as regras de negócio.

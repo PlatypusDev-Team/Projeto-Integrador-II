@@ -85,7 +85,7 @@
             <div class="cadastro-title">
                 <h1>Preencha seus dados</h1>
                 <p>
-                    Informe seus dados para continuar com a solicitação.
+                    Informe seus dados para criar sua conta e continuar.
                 </p>
             </div>
 
@@ -107,7 +107,7 @@
                     novalidate
                 >
 
-                    <div class="dados">
+                    <div class="dados" data-cadastro-pessoal>
                         <label for="nome" class="titulo-campo">
                             Nome completo
                         </label>
@@ -125,7 +125,7 @@
                         <span class="erro-campo" data-erro-de="nome"></span>
                     </div>
 
-                    <div class="dados">
+                    <div class="dados" data-cadastro-pessoal>
                         <label for="cpf" class="titulo-campo">
                             CPF
                         </label>
@@ -144,7 +144,7 @@
                         <span class="erro-campo" data-erro-de="cpf"></span>
                     </div>
 
-                    <div class="dados">
+                    <div class="dados" data-cadastro-pessoal>
                         <label for="nascimento" class="titulo-campo">
                             Data de nascimento
                         </label>
@@ -163,7 +163,7 @@
                         <span class="erro-campo" data-erro-de="data_nascimento"></span>
                     </div>
 
-                    <div class="dados">
+                    <div class="dados" data-cadastro-pessoal>
                         <label for="telefone" class="titulo-campo">
                             Número de telefone
                         </label>
@@ -182,7 +182,7 @@
                         <span class="erro-campo" data-erro-de="telefone"></span>
                     </div>
 
-                    <div class="dados">
+                    <div class="dados" data-cadastro-pessoal>
                         <label for="email" class="titulo-campo">
                             Email
                         </label>
@@ -200,7 +200,7 @@
                         <span class="erro-campo" data-erro-de="email"></span>
                     </div>
 
-                    <div class="dados">
+                    <div class="dados" data-cadastro-pessoal>
                         <label for="genero" class="titulo-campo">
                             Gênero
                         </label>
@@ -219,7 +219,7 @@
                     </div>
 
                     <!-- SENHA E CONFIRMAÇÃO -->
-                    <div class="dados-senhas">
+                    <div class="dados-senhas" data-cadastro-pessoal>
 
                         <div class="dados">
                             <label for="senha" class="titulo-campo">
@@ -244,7 +244,7 @@
                             <span class="erro-campo" data-erro-de="senha"></span>
                         </div>
 
-                        <div class="dados">
+                        <div class="dados" data-cadastro-pessoal>
                             <label for="confirmar-senha" class="titulo-campo">
                                 Confirmar senha
                             </label>
@@ -269,7 +269,7 @@
                     </div>
 
                     <!-- DOCUMENTO -->
-                    <div class="dados dados-documento">
+                    <div class="dados dados-documento" data-cadastro-pessoal>
 
                         <label for="documento" class="titulo-campo">
                             Documento de identificação
@@ -307,7 +307,7 @@
                     </div>
 
                     <!-- POLÍTICA DE PRIVACIDADE -->
-                    <div class="dados dados-checkbox">
+                    <div class="dados dados-checkbox" data-cadastro-pessoal>
 
                         <input
                             type="checkbox"

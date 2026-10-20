@@ -11,6 +11,7 @@ from routes.solicitacao import solicitacao_bp
 from routes.cartao import cartao_bp
 from routes.auth import auth_bp
 from routes.conta import conta_bp
+from routes.solicitar_cartao import solicitar_cartao_bp
 
 
 load_dotenv()
@@ -38,6 +39,7 @@ def create_app():
     app.register_blueprint(cartao_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(conta_bp)
+    app.register_blueprint(solicitar_cartao_bp)
 
     return app
 
