@@ -187,16 +187,62 @@ function renderStatus(solicitacao) {
     else {
         noticeIcon.textContent = content.noticeIcon;
     }
+
     noticeTitle.textContent = prequalificationPending
         ? "Análise de Pré-Qualificação"
-        : content.noticeTitle.replace("{nome}", solicitacao.nome);
-    noticeMessage.textContent = prequalificationPending
-        ? "Estamos a rever as suas informações básicas. Assim que concluirmos esta triagem inicial, informaremos se o seu pedido avança para a análise de crédito detalhada."
+        : status === "analise"
+            ? "Sua solicitação está em análise"
+            : content.noticeTitle.replace("{nome}", solicitacao.nome);
+
+    noticeMessage.textContent = status === "analise"
+        ? "Você já possui uma solicitação em análise. Aguarde a conclusão antes de enviar uma nova solicitação de cartão. Você pode acompanhar o andamento por esta página."
         : content.noticeMessage;
-    refreshStatusButton?.toggleAttribute("hidden", !(status === "analise" && !prequalificationPending));
-    creditDescription.textContent = status === "analise" ? "Sua solicitação está em análise. Estamos revisando seus dados e documentos." : "A análise da sua solicitação foi concluída.";
-    creditNote.textContent = status === "analise" ? "A solicitação ainda não foi concluída. Uma especialista entrará em contato se necessário." : "Confira o resultado da análise no próximo cartão.";
-    resultCard.setAttribute("aria-label", `Resultado: ${content.resultMessage.toLowerCase()}`);
+
+}
+
+/**
+ * Mostra, no corpo da página da conta, o aviso guardado pelo cadastro.js
+ * quando o pedido foi barrado (já há pedido em análise, ou o cartão já
+ * foi solicitado). O aviso é lido uma única vez e removido.
+ *
+ * Posição: logo abaixo do título "Acompanhe seu Pedido", dentro da seção
+ * do pedido (e não antes do <header>, que é o primeiro filho do <main>).
+ */
+function mostrarAvisoSolicitacao() {
+    const mensagem = sessionStorage.getItem("avisoSolicitacao");
+
+    if (!mensagem) return;
+
+    sessionStorage.removeItem("avisoSolicitacao");
+
+    document.querySelector("#aviso-solicitacao")?.remove();
+
+    const aviso = document.createElement("div");
+    aviso.id = "aviso-solicitacao";
+    aviso.setAttribute("role", "alert");
+    aviso.textContent = mensagem;
+    aviso.style.cssText = [
+        "margin: 0 0 24px",
+        "padding: 14px 18px",
+        "border-radius: 8px",
+        "border: 1px solid #f5a623",
+        "background: #fff4e5",
+        "color: #5c3b00",
+        "font-weight: 600",
+        "line-height: 1.4",
+        "text-align: left",
+    ].join(";");
+
+    const titulo = document.querySelector("#order-title");
+    const secaoPedido = document.querySelector("#pedido");
+
+    if (titulo) {
+        titulo.after(aviso);
+    } else if (secaoPedido) {
+        secaoPedido.prepend(aviso);
+    } else if (page) {
+        page.append(aviso);
+    }
 }
 
 const API_BASE = "http://127.0.0.1:5000";
@@ -280,6 +326,9 @@ async function carregarConta() {
             nome: cliente.nome_cliente,
             cpf: cliente.cpf
         });
+
+        // Aviso de pedido barrado (vem do cadastro.js via sessionStorage).
+        mostrarAvisoSolicitacao();
 
     } catch (erro) {
         console.error("Erro ao carregar a conta:", erro);

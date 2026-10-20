@@ -1,8 +1,12 @@
-
 from flask import Blueprint, jsonify, session
 from db import get_connection
 
 conta_bp = Blueprint("conta", __name__, url_prefix="/api")
+
+MOTIVO_EM_ANALISE = (
+    "Você já possui uma solicitação em análise. "
+    "Aguarde a conclusão antes de solicitar outro cartão."
+)
 
 
 def mascarar_cpf(cpf):
@@ -27,7 +31,7 @@ def consultar_conta():
         with conexao.cursor() as cursor:
             cursor.execute(
                 """
-                SELECT id_cliente, nome_cliente, cpf_cliente
+                SELECT id_cliente, nome_cliente, cpf_cliente, tipo_cliente
                 FROM tb_cliente
                 WHERE id_cliente = %s
                 """,
@@ -56,14 +60,29 @@ def consultar_conta():
             )
             solicitacao = cursor.fetchone()
 
+            cursor.execute(
+                """
+                SELECT COUNT(*) AS total
+                FROM tb_solicitacao
+                WHERE id_cliente = %s
+                  AND status = 'EM ANALISE'
+                """,
+                (id_cliente,),
+            )
+            em_analise = cursor.fetchone()["total"]
+
         cliente["cpf"] = mascarar_cpf(cliente.pop("cpf_cliente"))
 
         if solicitacao:
             solicitacao["pre_qualificacao"] = "CONCLUIDA"
 
+        pode_solicitar = em_analise == 0
+
         return jsonify({
             "cliente": cliente,
             "solicitacao": solicitacao,
+            "pode_solicitar": pode_solicitar,
+            "motivo_bloqueio": None if pode_solicitar else MOTIVO_EM_ANALISE,
         }), 200
 
     finally:

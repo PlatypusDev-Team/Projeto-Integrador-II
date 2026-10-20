@@ -4,6 +4,18 @@ from db import get_connection
 STATUS_PRE_QUALIFICACAO = "CONCLUIDA"
 
 
+def mascarar_cpf(cpf: str) -> str:
+    digitos = "".join(
+        caractere for caractere in cpf
+        if caractere.isdigit()
+    )
+
+    if len(digitos) != 11:
+        return "***.***.***-**"
+
+    return f"***.***.{digitos[6:9]}-{digitos[9:]}"
+
+
 def buscar_solicitacao(id_solicitacao: int):
     conexao = get_connection()
 
@@ -21,7 +33,7 @@ def buscar_solicitacao(id_solicitacao: int):
                 INNER JOIN tb_cliente AS c
                     ON c.id_cliente = s.id_cliente
                 INNER JOIN tb_cartao AS ca
-                    ON ca.id_cartao = s.id_cartao
+                    ON ca.id_produto = s.id_produto
                 WHERE s.id_solicitacao = %s
                 """,
                 (id_solicitacao,),
@@ -38,19 +50,6 @@ def buscar_solicitacao(id_solicitacao: int):
     registro["cpf"] = mascarar_cpf(
         registro.pop("cpf_completo")
     )
-
     registro["pre_qualificacao"] = STATUS_PRE_QUALIFICACAO
 
     return registro
-
-
-def mascarar_cpf(cpf: str) -> str:
-    digitos = "".join(
-        caractere for caractere in cpf
-        if caractere.isdigit()
-    )
-
-    if len(digitos) != 11:
-        return "***.***.***-**"
-
-    return f"***.***.{digitos[6:9]}-{digitos[9:]}"

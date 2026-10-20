@@ -1,4 +1,3 @@
-
 (() => {
     const API_BASE = "http://127.0.0.1:5000";
 
@@ -14,6 +13,7 @@
     function fecharMenu() {
         opcoesUsuario.hidden = true;
         btnUsuario.setAttribute("aria-expanded", "false");
+        limparErroSair();
     }
 
     function mostrarUsuario(logado) {
@@ -21,6 +21,37 @@
         menuUsuario.hidden = !logado;
 
         if (!logado) fecharMenu();
+    }
+
+    /**
+     * Mensagem de erro dentro do menu do usuário (no lugar de alert()).
+     */
+    function mostrarErroSair(mensagem) {
+        let erro = document.getElementById("erroSair");
+
+        if (!erro) {
+            erro = document.createElement("p");
+            erro.id = "erroSair";
+            erro.setAttribute("role", "alert");
+            erro.style.cssText = [
+                "margin: 8px 12px",
+                "font-size: 0.85rem",
+                "line-height: 1.3",
+                "color: #b00020",
+            ].join(";");
+
+            opcoesUsuario.appendChild(erro);
+        }
+
+        erro.textContent = mensagem;
+
+        // Mantém o menu aberto para a pessoa ver o motivo.
+        opcoesUsuario.hidden = false;
+        btnUsuario.setAttribute("aria-expanded", "true");
+    }
+
+    function limparErroSair() {
+        document.getElementById("erroSair")?.remove();
     }
 
     async function verificarSessao() {
@@ -42,6 +73,8 @@
 
         opcoesUsuario.hidden = !vaiAbrir;
         btnUsuario.setAttribute("aria-expanded", String(vaiAbrir));
+
+        if (!vaiAbrir) limparErroSair();
     });
 
     document.addEventListener("click", (evento) => {
@@ -56,6 +89,7 @@
 
     btnSair.addEventListener("click", async () => {
         btnSair.disabled = true;
+        limparErroSair();
 
         try {
             const resposta = await fetch(`${API_BASE}/api/logout`, {
@@ -71,7 +105,7 @@
             window.location.href = "index.html";
         } catch (erro) {
             console.error("Erro ao sair:", erro);
-            alert("Não foi possível sair. Tente novamente.");
+            mostrarErroSair("Não foi possível sair. Tente novamente.");
         } finally {
             btnSair.disabled = false;
         }

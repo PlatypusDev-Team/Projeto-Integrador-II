@@ -13,17 +13,109 @@ const buscarLoja =
 let lojasDisponiveis = [];
 
 
+const ESTILO_AVISO = [
+    "margin: 12px 0",
+    "padding: 10px 14px",
+    "border-radius: 8px",
+    "border: 1px solid #e0a3a3",
+    "background: #fdecec",
+    "color: #8a1f1f",
+    "font-weight: 600",
+    "line-height: 1.4",
+].join(";");
+
+
+/**
+ * Aviso logo abaixo da barra de busca (no lugar de alert()).
+ */
+function mostrarAvisoBusca(mensagem) {
+
+    let aviso =
+        document.querySelector("#avisoBusca");
+
+    if (!aviso) {
+
+        aviso = document.createElement("p");
+        aviso.id = "avisoBusca";
+        aviso.setAttribute("role", "alert");
+        aviso.style.cssText = ESTILO_AVISO;
+
+        barraBuscar.after(aviso);
+    }
+
+    aviso.textContent = mensagem;
+    aviso.hidden = false;
+}
+
+
+function limparAvisoBusca() {
+
+    const aviso =
+        document.querySelector("#avisoBusca");
+
+    if (aviso) {
+        aviso.textContent = "";
+        aviso.hidden = true;
+    }
+}
+
+
+/**
+ * Aviso dentro do card da loja clicada (no lugar de alert()).
+ */
+function mostrarAvisoCard(botao, mensagem) {
+
+    const card =
+        botao.closest(".resultadoLoja") ||
+        botao.parentElement;
+
+    const aviso = document.createElement("p");
+
+    aviso.className = "aviso-card";
+    aviso.setAttribute("role", "alert");
+    aviso.style.cssText = ESTILO_AVISO;
+    aviso.textContent = mensagem;
+
+    card.appendChild(aviso);
+}
+
+
+function limparAvisosCard() {
+
+    document
+        .querySelectorAll(".aviso-card")
+        .forEach((aviso) => aviso.remove());
+}
+
+
+/**
+ * Segue para a tela de solicitação.
+ *
+ * Esta função NÃO existia neste arquivo (ela só estava definida em
+ * selecaoCartao.js). Lojas com um único cartão chamavam uma função
+ * inexistente -> ReferenceError -> alert "Não foi possível continuar".
+ *
+ * O cadastro.html se adapta sozinho: logado vê só "Solicitar cartão";
+ * não logado vê o formulário completo.
+ */
+function continuarAposSelecao() {
+    window.location.href = "cadastro.html";
+}
+
+
 barraBuscar.addEventListener(
     "submit",
     async (evento) => {
 
         evento.preventDefault();
 
+        limparAvisoBusca();
+
         const cep =
             buscarLoja.value.trim();
 
         if (!cep) {
-            alert("Digite um CEP.");
+            mostrarAvisoBusca("Digite um CEP.");
             return;
         }
 
@@ -48,14 +140,22 @@ async function carregarLojas(cep) {
                 `http://127.0.0.1:5000/api/lojas/${cep}`
             );
 
-        if (!resposta.ok) {
-            throw new Error(
-                "Erro ao buscar lojas."
-            );
-        }
-
         const dados =
-            await resposta.json();
+            await resposta.json().catch(() => ({}));
+
+        if (!resposta.ok) {
+
+            // Mostra o motivo que o servidor informou
+            // (ex.: "CEP não encontrado") quando existir.
+            resultadoBuscar.innerHTML = "";
+
+            mostrarAvisoBusca(
+                dados.erro ||
+                "Não foi possível carregar as lojas."
+            );
+
+            return;
+        }
 
         console.log(
             "Resposta da API:",
@@ -173,6 +273,8 @@ function adicionarEventosBotoes() {
             "click",
             async () => {
 
+                limparAvisosCard();
+
                 const idLoja =
                     botao.dataset.loja;
 
@@ -258,8 +360,12 @@ function adicionarEventosBotoes() {
                             );
                         }
 
-                        window.location.href =
-                            "cadastro.html";
+                        // Descarta uma lista antiga de uma busca anterior.
+                        localStorage.removeItem(
+                            "cartoesDisponiveis"
+                        );
+
+                        continuarAposSelecao();
 
                         return;
                     }
@@ -315,7 +421,8 @@ function adicionarEventosBotoes() {
                         "indisponivel"
                     ) {
 
-                        alert(
+                        mostrarAvisoCard(
+                            botao,
                             "Nenhum cartão disponível para esta loja."
                         );
                     }
@@ -324,8 +431,9 @@ function adicionarEventosBotoes() {
 
                     console.error(erro);
 
-                    alert(
-                        "Não foi possível continuar com a solicitação."
+                    mostrarAvisoCard(
+                        botao,
+                        "Não foi possível continuar com a solicitação. Tente novamente."
                     );
                 }
             }
