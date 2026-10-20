@@ -216,6 +216,15 @@ filtrarLojas.addEventListener("input", () => {
 
 
 function mostrarLojas(lojas) {
+
+    lojas.forEach(loja => {
+    console.log("Dados da loja:", {
+        nome: loja.nome_loja,
+        fisico: loja.cartao_fisico,
+        digital: loja.cartao_digital
+    });
+    });
+
     listaLojas.innerHTML = "";
 
     if (lojas.length === 0) {
@@ -277,6 +286,8 @@ function mostrarLojas(lojas) {
     });
 
     adicionarEventosBotoes();
+
+    
 }
 
 

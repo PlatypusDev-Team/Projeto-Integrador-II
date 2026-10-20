@@ -69,7 +69,3 @@ def verificar_modalidade(id_loja):
         "tipo": "indisponivel",
         "cartoes": None
     }
-
-# A criação de solicitações agora vive somente em
-# services/solicitacao_service.py (processar_solicitacao_cliente),
-# onde ficam todas as regras de negócio.

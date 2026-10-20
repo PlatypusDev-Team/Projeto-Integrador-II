@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#212acf">
+
+    <link rel="icon" type="image/x-icon" href="https://play-lh.googleusercontent.com/lzoSveaHXSO1BCWYEhKNGe4FFcyR73F9X3-5uPkH0ofuK0oXLhayqTXjYG6NxgjsoqS7BcqHV-mHKTRa25U2">
+
+    <title>Central de atendimento | DM</title>
+
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+    <script src="js/script.js" defer></script>
+</head>
+<body>
+    <div class="app-layout">
+        <aside class="sidebar">
+            <a class="brand-logo" href="index.html">
+                <span class="brand-symbol">
+                    <img
+                        src="https://play-lh.googleusercontent.com/lzoSveaHXSO1BCWYEhKNGe4FFcyR73F9X3-5uPkH0ofuK0oXLhayqTXjYG6NxgjsoqS7BcqHV-mHKTRa25U2"
+                        alt="Logo DM"
+                        class="logo-img"
+                    >
+                </span>
+                <span class="brand-name">atendimento</span>
+            </a>
+
+            <p class="nav-label">MENU PRINCIPAL</p>
+
+            <nav class="navigation" aria-label="Navegação principal">
+                <button class="nav-item active" data-view="pendentes">
+                    <span>▤</span> Solicitações pendentes
+                    <span class="nav-count" id="pending-count">0</span>
+                </button>
+
+                <button class="nav-item" data-view="meus">
+                    <span>▣</span> Meus atendimentos
+                </button>
+
+                <button class="nav-item" data-view="relatorios">
+                    <span>▥</span> Relatórios
+                </button>
+            </nav>
+
+            <div class="sidebar-bottom">
+                <div class="profile-avatar" id="profile-avatar">A</div>
+                <div class="profile-info">
+                    <strong id="profile-name">Atendente</strong>
+                    <span>Equipe de atendimento</span>
+                </div>
+                <button id="logout-button" class="logout-button"
+                    type="button" title="Sair" aria-label="Sair">
+                    ↪
+                </button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <div>
+                    <h1 id="page-title">Solicitações pendentes</h1>
+                </div>
+
+                <button class="refresh-button" id="refresh-button"
+                    type="button">↻ Atualizar</button>
+            </header>
+
+            <div id="page-message" class="page-message" hidden
+                role="status"></div>
+
+            <section class="summary-grid" aria-label="Resumo">
+                <article class="summary-card">
+                    <span class="summary-icon">▤</span>
+                    <p>Disponíveis para atendimento</p>
+                    <strong id="summary-pending">—</strong>
+                </article>
+
+                <article class="summary-card">
+                    <span class="summary-icon mint">▣</span>
+                    <p>Meus atendimentos</p>
+                    <strong id="summary-mine">—</strong>
+                </article>
+
+                <article class="summary-card">
+                    <span class="summary-icon yellow">✓</span>
+                    <p>Concluídos por mim</p>
+                    <strong id="summary-completed">—</strong>
+                </article>
+            </section>
+
+            <section id="list-view" class="content-panel">
+                <div class="panel-heading">
+                    <div>
+                        <h2 id="list-heading">Fila de solicitações</h2>
+                        <p id="list-description">
+                            Selecione uma solicitação para consultar os detalhes.
+                        </p>
+                    </div>
+                    <span class="result-count" id="result-count">0 registros</span>
+                </div>
+
+                <div class="search-row">
+                    <input type="search" id="search-input"
+                        placeholder="Buscar por cliente, produto ou número..."
+                        aria-label="Buscar solicitações">
+                    <select id="status-filter" aria-label="Filtrar por status">
+                        <option value="TODOS">Todos os status</option>
+                        <option value="EM ANALISE">Em análise</option>
+                        <option value="ACEITO">Aceitos</option>
+                        <option value="NEGADO">Recusados</option>
+                    </select>
+                </div>
+
+                <div id="request-list" class="request-list">
+                    <p class="empty-state">Carregando solicitações...</p>
+                </div>
+            </section>
+
+            <section id="detail-view" class="content-panel detail-panel"
+                hidden>
+                <button id="back-button" class="back-button" type="button">
+                    ← Voltar para a lista
+                </button>
+
+                <div id="request-detail">
+                    <p class="empty-state">Selecione uma solicitação.</p>
+                </div>
+            </section>
+
+            <section id="reports-view" class="content-panel" hidden>
+                <!-- Catálogo de relatórios -->
+                <div id="report-catalog">
+                    <div class="panel-heading">
+                        <div>
+                            <h2>Central de relatórios</h2>
+                            <p>Explore indicadores e exporte os resultados.</p>
+                        </div>
+                    </div>
+
+                    <div class="report-grid">
+                        <article class="report-card">
+                            <span class="report-icon" aria-hidden="true">▤</span>
+                            <h3>Solicitações por status</h3>
+
+                            <p>
+                                Consulte o total de solicitações, a distribuição por status
+                                e a evolução mensal dos registros cadastrados no sistema.
+                            </p>
+
+                            <div class="report-formats">
+                                <span>Gráficos</span>
+                                <span>PDF</span>
+                                <span>Excel</span>
+                            </div>
+
+                            <button class="primary-button" id="open-status-report" type="button">
+                                Abrir relatório
+                            </button>
+                        </article>
+
+                        <article class="report-card">
+                            <span class="report-icon" aria-hidden="true">▦</span>
+                            <h3>Produtos mais solicitados</h3>
+
+                            <p>
+                                Identifique os cartões e serviços com maior volume de solicitações.
+                            </p>
+
+                            <div class="report-formats">
+                                <span>Produtos</span>
+                            </div>
+
+                            <button class="primary-button" id="open-products-report" type="button">
+                                Abrir relatório
+                            </button>
+                        </article>
+
+                        <article class="report-card">
+                            <span class="report-icon" aria-hidden="true">▥</span>
+                            <h3>Desempenho do atendimento</h3>
+
+                            <p>
+                                Acompanhe o volume de atendimentos e os tempos de resolução.
+                            </p>
+
+                            <div class="report-formats">
+                                <span>Desempenho</span>
+                            </div>
+
+                            <button class="primary-button" id="open-performance-report" type="button">
+                                Abrir relatório
+                            </button>
+                        </article>
+                    </div>
+                </div>
+                <!-- Visualização do relatório selecionado -->
+                <div id="report-viewer" hidden>
+                    <button id="back-reports" class="back-button" type="button">
+                        ← Voltar aos relatórios
+                    </button>
+
+                    <div class="panel-heading">
+                        <div>
+                            <h2 id="report-title">Solicitações por status</h2>
+                            <p id="report-description">
+                                Acompanhe a distribuição e a evolução das solicitações.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="report-filters">
+                        <label for="report-start">
+                            Data inicial
+                            <input id="report-start" type="date">
+                        </label>
+
+                        <label for="report-end">
+                            Data final
+                            <input id="report-end" type="date">
+                        </label>
+
+                        <button id="apply-report-filters"
+                            class="primary-button" type="button">
+                            Aplicar filtros
+                        </button>
+
+                        <button id="clear-report-filters"
+                            class="small-button" type="button">
+                            Limpar
+                        </button>
+                    </div>
+
+                    <div class="report-toolbar">
+                        <button id="export-pdf" class="small-button" type="button">
+                            ↓ Baixar PDF
+                        </button>
+
+                        <button id="export-excel"
+                            class="primary-button" type="button">
+                            ↓ Baixar Excel
+                        </button>
+                    </div>
+
+                    <div id="report-message" class="page-message"
+                        role="status" hidden></div>
+
+                    <div id="report-results">
+                        <div class="report-metrics">
+                            <article class="summary-card">
+                                <p>Total de solicitações</p>
+                                <strong id="report-total">—</strong>
+                            </article>
+                        </div>
+
+                        <div class="report-chart-grid">
+                            <article class="report-chart-card">
+                                <h3>Distribuição por status</h3>
+                                <div class="chart-container">
+                                    <canvas id="status-chart"></canvas>
+                                </div>
+                            </article>
+
+                            <article class="report-chart-card">
+                                <h3>Solicitações por mês</h3>
+                                <div class="chart-container">
+                                    <canvas id="month-chart"></canvas>
+                                </div>
+                            </article>
+                        </div>
+
+                        <article class="report-chart-card">
+                            <h3>Registros incluídos no relatório</h3>
+
+                            <div class="report-table-wrapper">
+                                <table class="report-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Solicitação</th>
+                                            <th>Status</th>
+                                            <th>Data de referência</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="report-table-body">
+                                        <tr>
+                                            <td colspan="3">
+                                                Aplique os filtros para carregar os dados.
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+            </section>
+
+
+            <footer class="page-footer">
+                DM Atendimento · Portal interno
+            </footer>
+        </main>
+    </div>
+<!-- Modal de confirmação da decisão -->
+<div id="decision-modal" class="decision-modal" hidden>
+    <div
+        class="decision-modal-overlay"
+        data-close-modal="true"
+    ></div>
+
+    <section
+        class="decision-modal-content"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="decision-modal-title"
+        aria-describedby="decision-modal-description"
+    >
+        <div id="decision-modal-icon" class="decision-modal-icon">
+            ✓
+        </div>
+
+        <h2 id="decision-modal-title">Confirmar decisão</h2>
+
+        <p id="decision-modal-description">
+            Deseja realmente concluir esta solicitação?
+        </p>
+
+        <div class="decision-modal-actions">
+            <button
+                id="decision-modal-cancel"
+                class="decision-modal-cancel"
+                type="button"
+            >
+                Voltar
+            </button>
+
+            <button
+                id="decision-modal-confirm"
+                class="decision-modal-confirm"
+                type="button"
+            >
+                Confirmar
+            </button>
+        </div>
+    </section>
+</div>
+</body>
+</html>
