@@ -38,13 +38,13 @@
 | 3 | US03 | Como cliente, quero visualizar o status da minha solicitação após a pré-qualificação, para entender se posso prosseguir ou se minha solicitação permanecerá em análise. | Média | 2 | 1 | ✅ |
 | 4 | US04 | Como cliente pré-qualificado, quero ser encaminhado automaticamente para a etapa de seleção de loja e tipo de cartão, para dar continuidade ao meu processo de contratação. | Baixa | 5 | 1 | ✅ |
 | 5 | US05 | Como cliente, quero visualizar apenas as lojas parceiras disponíveis no meu estado, para selecionar uma loja compatível com meu CEP. | Alta | 3 | 1 | ✅ |
-| 6 | US06 | Como cliente, quero visualizar os cartões disponíveis para a loja selecionada, para escolher uma opção compatível com o estabelecimento. | Média | 3 | 1 | |
+| 6 | US06 | Como cliente, quero visualizar os cartões disponíveis para a loja selecionada, para escolher uma opção compatível com o estabelecimento. | Média | 3 | 1 | ✅ |
 | 7 | US08 | Como atendente DM, quero visualizar o status e as informações da solicitação do cliente, para orientá-lo em caso de dúvidas sobre seu processo. | Média | 5 | 2 | ✅ |
 | 8 | US10 | Como equipe DM, quero visualizar indicadores das solicitações de cartões, para acompanhar os resultados da captação de clientes. | Alta | 5 | 2 | ✅ |
 | 9 | US12 | Como atendente DM, quero realizar login na área administrativa, para acessar com segurança as solicitações e informações necessárias ao atendimento dos clientes. | Alta | 3 | 2 | ✅ |
 | 10 | US11 | Como cliente DM, quero criar uma conta e realizar login na plataforma, para acessar minhas solicitações sem precisar informar novamente meus dados pessoais a cada atendimento. | Alta | 3 | 2 | ✅ |
 | 11 | US07 | Como cliente que não foi aprovado para um cartão, quero visualizar outros produtos disponíveis, para conhecer alternativas que possam atender às minhas necessidades. | Baixa | 5 | 3 | |
-| 12 | US09 | Como atendente DM, quero enviar mensagens ao cliente pela plataforma, para orientá-lo sem depender dos canais externos de atendimento. | Média | 8 | 2 | |
+| 12 | US09 | Como atendente DM, quero enviar mensagens ao cliente pela plataforma, para orientá-lo sem depender dos canais externos de atendimento. | Média | 8 | 3 | |
 
 ## **🟢 DoR - Definition of Ready**
 
