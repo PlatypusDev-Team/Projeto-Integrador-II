@@ -11,7 +11,7 @@
 
 > **Status:** 🟨 Em andamento
 > 
-> **Etapa:** Sprint 1
+> **Etapa:** Sprint 2
 
 <br>
 
@@ -33,16 +33,18 @@
 
 | Rank | ID | User story | Prioridade | Estimativa | Sprint | Status |
 | ---- | -- | ---------- | ---------- | -----------| ------ | ------ |
-| 1 | US01 | Como visitante, quero acessar uma landing page simples e intuitiva para solicitar meu cartão, para iniciar o processo de contratação sem dificuldades. | Alta | 5 | 1 | |
-| 2 | US02 | Como cliente, quero preencher meus dados na landing page, para que minha solicitação possa ser pré-qualificada. | Alta | 8 | 1 |
-| 3 | US03 | Como cliente, quero visualizar o status da minha solicitação após a pré-qualificação, para entender se posso prosseguir ou se minha solicitação permanecerá em análise. | Média | 2 | 1 | |
-| 4 | US04 | Como cliente pré-qualificado, quero ser encaminhado automaticamente para a etapa de seleção de loja e tipo de cartão, para dar continuidade ao meu processo de contratação. | Baixa | 5 | 1 | |
-| 5 | US05 | Como cliente, quero visualizar apenas as lojas parceiras disponíveis no meu estado, para selecionar uma loja compatível com meu CEP. | Alta | 3 | 1 | |
+| 1 | US01 | Como visitante, quero acessar uma landing page simples e intuitiva para solicitar meu cartão, para iniciar o processo de contratação sem dificuldades. | Alta | 5 | 1 | ✅ |
+| 2 | US02 | Como cliente, quero preencher meus dados na landing page, para que minha solicitação possa ser pré-qualificada. | Alta | 8 | 1 | ✅ |
+| 3 | US03 | Como cliente, quero visualizar o status da minha solicitação após a pré-qualificação, para entender se posso prosseguir ou se minha solicitação permanecerá em análise. | Média | 2 | 1 | ✅ |
+| 4 | US04 | Como cliente pré-qualificado, quero ser encaminhado automaticamente para a etapa de seleção de loja e tipo de cartão, para dar continuidade ao meu processo de contratação. | Baixa | 5 | 1 | ✅ |
+| 5 | US05 | Como cliente, quero visualizar apenas as lojas parceiras disponíveis no meu estado, para selecionar uma loja compatível com meu CEP. | Alta | 3 | 1 | ✅ |
 | 6 | US06 | Como cliente, quero visualizar os cartões disponíveis para a loja selecionada, para escolher uma opção compatível com o estabelecimento. | Média | 3 | 1 | |
-| 7 | US08 | Como atendente DM, quero visualizar o status e as informações da solicitação do cliente, para orientá-lo em caso de dúvidas sobre seu processo. | Média | 5 | 2 | |
-| 8 | US09 | Como atendente DM, quero enviar mensagens ao cliente pela plataforma, para orientá-lo sem depender dos canais externos de atendimento. | Média | 8 | 2 | |
-| 9 | US10 | Como equipe DM, quero visualizar indicadores das solicitações de cartões, para acompanhar os resultados da captação de clientes. | Alta | 5 | 2 | |
-| 10 | US07 | Como cliente que não foi aprovado para um cartão, quero visualizar outros produtos disponíveis, para conhecer alternativas que possam atender às minhas necessidades. | Baixa | 5 | 3 | |
+| 7 | US08 | Como atendente DM, quero visualizar o status e as informações da solicitação do cliente, para orientá-lo em caso de dúvidas sobre seu processo. | Média | 5 | 2 | ✅ |
+| 8 | US10 | Como equipe DM, quero visualizar indicadores das solicitações de cartões, para acompanhar os resultados da captação de clientes. | Alta | 5 | 2 | ✅ |
+| 9 | US12 | Como atendente DM, quero realizar login na área administrativa, para acessar com segurança as solicitações e informações necessárias ao atendimento dos clientes. | Alta | 3 | 2 | ✅ |
+| 10 | US11 | Como cliente DM, quero criar uma conta e realizar login na plataforma, para acessar minhas solicitações sem precisar informar novamente meus dados pessoais a cada atendimento. | Alta | 3 | 2 | ✅ |
+| 11 | US07 | Como cliente que não foi aprovado para um cartão, quero visualizar outros produtos disponíveis, para conhecer alternativas que possam atender às minhas necessidades. | Baixa | 5 | 3 | |
+| 12 | US09 | Como atendente DM, quero enviar mensagens ao cliente pela plataforma, para orientá-lo sem depender dos canais externos de atendimento. | Média | 8 | 2 | |
 
 ## **🟢 DoR - Definition of Ready**
 
@@ -119,13 +121,19 @@ DM-LandingPage/
 │   │   ├── routes/
 │   │   ├── services/
 │   │   └── tests/
-│   │   
-│   ├── css/
-│   ├── imagens/
-│   ├── img/
-│   ├── js/
-│   └── ts/
-│
+│   │
+│   ├── atendente/   
+│   │   ├── css/
+│   │   ├── img/
+│   │   └── js/
+│   │
+│   └── landingpage/   
+│       ├── css/
+│       ├── imagens/
+│       ├── img/
+│       ├── js/
+│       └── ts/
+│ 
 ├── .gitignore
 ├── README.md
 ├── requirements.txt
@@ -137,92 +145,208 @@ DM-LandingPage/
 
 ---
 
-## **📖 Manual do Usuário**
+# 📖 Manual do Usuário
 
-O sistema permite que clientes interessados nos cartões da **DM Financeira** realizem uma solicitação de pré-qualificação de forma simples e intuitiva por meio da Landing Page.
+O sistema da **DM Financeira** permite que clientes interessados nos produtos disponibilizados pela empresa realizem solicitações de pré-qualificação e acompanhem seu andamento. A aplicação também conta com uma área exclusiva para atendentes, destinada ao gerenciamento das solicitações e à consulta de relatórios.
 
-### **1. 🏠 Acessar a Landing Page**
+## **1. 🏠 Acessar a Landing Page**
 
 Ao acessar a aplicação, o usuário encontra a **Landing Page da DM Financeira**, com informações sobre os cartões disponíveis e as opções para iniciar uma solicitação.
 
-A partir dessa tela, o usuário pode escolher o cartão de seu interesse e iniciar o processo de solicitação.
+A partir dessa tela, o usuário pode escolher um cartão, acessar sua conta ou iniciar o processo de pré-qualificação.
 
-### **2. 💳 Escolher um cartão**
+## **2. 💳 Escolher um cartão**
 
 O usuário pode selecionar o cartão que melhor corresponde ao seu interesse.
 
-Dependendo do cartão escolhido, o sistema direcionará o usuário para diferentes etapas do processo:
+Dependendo do produto escolhido, o sistema direcionará o usuário para diferentes etapas do processo:
 
-- **Cartão DM:** o usuário é direcionado para o formulário de pré-qualificação.
-- **Cartão Loja:** o usuário deverá selecionar primeiro a loja em que deseja realizar a solicitação.
+- **Cartão DM:** o usuário é direcionado para o fluxo de cadastro ou para o formulário de pré-qualificação, conforme sua situação de acesso.
+- **Cartão Loja:** o usuário deverá localizar e selecionar uma loja antes de prosseguir, quando necessário.
 
-#### **2.1. 🏪 Seleção de loja**
+### **2.1. 🏪 Seleção de loja**
 
-Caso o usuário escolha um **cartão Loja**, será apresentada uma tela para localizar estabelecimentos disponíveis.
+Caso o usuário escolha um **Cartão Loja**, será apresentada uma tela para localizar estabelecimentos disponíveis.
 
-Para realizar a busca, o usuário deverá informar seu **CEP**.
+Para realizar a busca, o usuário deverá informar seu **CEP**. A partir dessa informação, o sistema consulta os estabelecimentos disponíveis na região e apresenta as opções encontradas.
 
-A partir do CEP informado, o sistema identifica as lojas disponíveis para aquela região e apresenta as opções para seleção.
-
-Após escolher uma loja, o fluxo poderá seguir por dois caminhos, de acordo com as opções disponibilizadas pelo estabelecimento:
+Após escolher uma loja, o fluxo poderá seguir de acordo com os cartões disponibilizados pelo estabelecimento:
 
 1. O usuário será direcionado para a **seleção do tipo de cartão** disponível naquela loja e, posteriormente, para o formulário; ou
-2. O usuário será direcionado **diretamente para o formulário de pré-qualificação**.
+2. O usuário será direcionado **diretamente para o formulário de pré-qualificação**, quando não houver necessidade de uma nova seleção.
 
-### **3. 📝 Preencher o formulário**
+## **3. 👤 Criar uma conta ou acessar uma conta existente**
 
-Após selecionar o cartão e, quando necessário, a loja, o usuário será direcionado para o **formulário de pré-qualificação**.
+Para utilizar as funcionalidades vinculadas à conta do cliente, o usuário poderá realizar seu cadastro ou entrar com suas credenciais.
 
-Nesse formulário, deverão ser preenchidos os dados solicitados pelo sistema, incluindo informações pessoais necessárias para realizar a análise da solicitação.
+### **3.1. 📝 Cadastro de cliente**
 
-Após conferir os dados informados, o usuário poderá enviar o formulário para iniciar a pré-qualificação.
+No cadastro, o usuário deverá preencher os dados solicitados pelo sistema, incluindo suas informações pessoais e credenciais de acesso.
 
-> 💡 **Dica:** confira os dados antes de enviar a solicitação. Informações incorretas podem interferir no processamento da solicitação.
+O cadastro pode ocorrer em dois contextos:
 
-### **4. 🔎 Aguardar a pré-qualificação**
+- **Cadastro com interesse em um cartão:** quando o usuário inicia o fluxo de solicitação a partir de um produto, o sistema poderá associar o cadastro à solicitação correspondente.
+- **Cadastro sem solicitação de cartão:** o usuário poderá criar sua conta sem iniciar uma solicitação naquele momento.
 
-Após o envio do formulário, o sistema realiza as verificações necessárias de acordo com as **regras de negócio definidas para o projeto**.
+### **3.2. 🔐 Login do cliente**
 
-Durante esse processo, a solicitação poderá apresentar diferentes estados:
+Para acessar uma conta existente, o usuário deverá informar suas credenciais de acesso.
+
+Após a autenticação, o sistema permitirá acessar as funcionalidades destinadas ao cliente, incluindo a página de acompanhamento de suas solicitações.
+
+Quando o usuário já estiver autenticado, poderá navegar pela aplicação sem precisar preencher novamente os dados de acesso a cada etapa.
+
+A opção **Sair** permite encerrar a sessão e retornar ao estado de usuário não autenticado.
+
+> 💡 **Dica:** utilize suas próprias credenciais e encerre a sessão ao terminar de utilizar a conta em um dispositivo compartilhado.
+
+## **4. 📝 Preencher o formulário de pré-qualificação**
+
+Após selecionar o cartão e, quando necessário, a loja, o usuário será direcionado para o formulário de pré-qualificação.
+
+Nesse formulário, deverão ser preenchidos os dados solicitados pelo sistema, incluindo as informações necessárias para a análise da solicitação.
+
+Após conferir os dados informados, o usuário poderá enviar o formulário para iniciar o processo de pré-qualificação.
+
+> 💡 **Dica:** confira todas as informações antes de enviar a solicitação. Dados incorretos podem prejudicar o processamento e a análise.
+
+## **5. 🔎 Acompanhar o status da solicitação**
+
+Após o envio do formulário, a solicitação será registrada no sistema e poderá ser acompanhada pela área da conta do cliente.
+
+O status apresentado corresponde à situação atual da solicitação, conforme o processamento e as ações realizadas no sistema.
 
 | Status | Significado |
 | :---: | --- |
-| 🟡 **Em análise** | A solicitação ainda está sendo processada pelo sistema. |
-| 🟢 **Aprovada** | O cliente foi pré-qualificado e poderá prosseguir para as próximas etapas disponíveis. |
-| ⭕ **Negada** | A solicitação não atende aos critérios definidos para a pré-qualificação. |
+| 🟡 **Em análise** | A solicitação aguarda análise ou conclusão do atendimento. |
+| 🟢 **Aceita** | A solicitação foi aceita após a análise realizada. |
+| ⭕ **Negada** | A solicitação foi negada após a análise realizada. |
+
+### **5.1. 📊 Consultar minhas solicitações**
+
+Na área **Minha conta**, o cliente poderá consultar as solicitações vinculadas ao seu cadastro e verificar seus respectivos status.
+
+Caso ainda não possua solicitações registradas, o sistema apresentará uma indicação de que não existem solicitações para consultar.
+
+A consulta permite acompanhar o andamento do processo sem precisar preencher novamente o formulário para verificar uma solicitação já enviada.
+
+**Importante:** a pré-qualificação não representa, por si só, a conclusão de todas as etapas de contratação do produto.
+
+## **6. 🧑‍💼 Acessar a área do atendente**
+
+A aplicação possui uma área administrativa exclusiva para atendentes, separada da área destinada aos clientes.
+
+Para acessá-la, o atendente deverá utilizar o **login específico de atendente**, com suas credenciais de acesso.
+
+Após a autenticação, será disponibilizada a área de gerenciamento das solicitações, conforme as permissões associadas à conta autenticada.
+
+### **6.1. 📋 Consultar solicitações pendentes**
+
+Na área de atendimento, o atendente poderá consultar as solicitações que aguardam atendimento.
+
+A tela permite localizar solicitações e utilizar os recursos de pesquisa e filtragem disponíveis para facilitar a consulta.
+
+Ao selecionar uma solicitação, o atendente poderá acessar seus detalhes e consultar o histórico de atendimento associado ao processo.
+
+### **6.2. 🗂️ Assumir uma solicitação**
+
+O atendente poderá assumir uma solicitação disponível na fila de atendimento.
+
+Após assumir a solicitação, ela passará a integrar a área de **Meus atendimentos**, permitindo que o profissional acompanhe os processos sob sua responsabilidade.
+
+O sistema controla a atribuição das solicitações para impedir que uma mesma solicitação disponível seja assumida simultaneamente por atendentes diferentes.
+
+### **6.3. 🔍 Consultar meus atendimentos**
+
+Na seção **Meus atendimentos**, o atendente poderá consultar as solicitações que estão sob sua responsabilidade.
+
+A área disponibiliza recursos para:
+
+- Pesquisar solicitações;
+- Filtrar os registros por status;
+- Consultar os detalhes de uma solicitação;
+- Visualizar o histórico de atendimento;
+- Acompanhar as solicitações atribuídas ao atendente.
+
+Esses recursos permitem organizar a fila de trabalho e acompanhar o andamento dos processos em atendimento.
+
+### **6.4. ⚖️ Concluir a análise de uma solicitação**
+
+Ao analisar uma solicitação, o atendente poderá registrar uma decisão de acordo com as opções disponibilizadas pelo sistema.
+
+As decisões disponíveis são:
+
+- **Aceitar:** registra o resultado positivo da análise;
+- **Negar:** registra o resultado negativo da análise.
+
+Quando solicitado pela interface, o atendente poderá incluir uma observação relacionada à decisão.
+
+Após o registro, o sistema atualiza o status da solicitação, registra as informações correspondentes no histórico de atendimento e atualiza sua situação na área de gerenciamento.
+
+## **7. 📈 Consultar relatórios de solicitações**
+
+A área administrativa disponibiliza um relatório para acompanhar a distribuição das solicitações conforme seus status.
+
+### **7.1. 📊 Relatório de solicitações por status**
+
+O relatório apresenta informações consolidadas sobre as solicitações registradas no sistema, permitindo visualizar:
+
+- Quantidade total de solicitações;
+- Distribuição das solicitações por status;
+- Evolução mensal das solicitações;
+- Tabela com os dados apresentados no relatório.
+
+O usuário poderá utilizar os filtros de **data inicial** e **data final** para delimitar o período consultado.
+
+A consulta considera a data do primeiro atendimento registrado para a solicitação.
+
+### **7.2. 📄 Exportar relatório**
+
+O relatório permite exportar os dados para os seguintes formatos:
+
+- **PDF:** para consulta e compartilhamento do relatório em documento;
+- **XLSX:** para análise dos dados em uma planilha eletrônica.
+
+A exportação facilita o armazenamento e a utilização das informações em atividades de acompanhamento e análise.
+
+> 💡 **Observação:** nesta versão, o relatório funcional disponibilizado é o de solicitações por status. Outros modelos de relatório previstos no catálogo não devem ser considerados funcionalidades concluídas desta versão.
+
+## **8. 🔒 Segurança e acesso às funcionalidades**
+
+O sistema diferencia as funcionalidades destinadas aos clientes daquelas destinadas aos atendentes.
+
+- **Clientes:** podem realizar cadastro, acessar sua conta e acompanhar as solicitações vinculadas ao próprio cadastro.
+- **Atendentes:** podem acessar a área de atendimento para consultar, assumir e analisar solicitações, além de consultar os relatórios disponibilizados.
+
+As operações protegidas exigem autenticação e respeitam as permissões correspondentes ao perfil de acesso.
+
+## **9. ℹ️ Sobre o escopo do sistema**
+
+O escopo atual do projeto está concentrado na **captação de clientes, pré-qualificação de solicitações e gerenciamento do atendimento**.
+
+A aplicação permite registrar solicitações, acompanhar seus status, organizar o trabalho dos atendentes e consultar informações consolidadas por meio do relatório implementado.
+
+Processos posteriores à pré-qualificação, como emissão, envio e entrega física do cartão, bem como as demais etapas da contratação, não fazem parte do escopo desta versão.
 
 ---
 
-### **5. 📊 Consultar o status da solicitação**
-
-Após o envio da solicitação, o usuário poderá acessar a **página de acompanhamento** para consultar seu status.
-
-Essa página permite acompanhar o andamento da solicitação e identificar em qual etapa do processo ela se encontra.
-
-O status apresentado será atualizado de acordo com o resultado do processamento da solicitação.
-
-### **Sobre o escopo do sistema**
-
-O escopo atual do projeto está concentrado nas etapas de **captação e pré-qualificação de clientes**.
-
-Portanto, processos posteriores à pré-qualificação, como **envio do cartão, entrega e demais etapas da contratação**, não fazem parte desta versão da aplicação.
-
 ---
 
-## **🛠️ Manual de Instalação**
+# 🛠️ Manual de Instalação
 
-Este manual apresenta o passo a passo para configurar e executar o projeto **DM - Landing Page de Captação e Pré-Qualificação de Clientes** localmente.
+Este manual apresenta o passo a passo para configurar e executar localmente o projeto **DM - Landing Page de Captação e Pré-Qualificação de Clientes**, incluindo o frontend, o backend Flask e o banco de dados MySQL.
 
-### **📌 Pré-requisitos**
+## **📌 Pré-requisitos**
 
 Antes de iniciar a instalação, certifique-se de que as seguintes ferramentas estão instaladas:
 
-- **Git** para clonar e versionar o projeto.
-- **Python 3** para executar o backend da aplicação.
-- **Docker Desktop** para executar o banco de dados MySQL em um container.
-- **MySQL Workbench** (opcional) para visualizar e gerenciar o banco de dados.
+- **Git:** para clonar e versionar o projeto.
+- **Python 3:** para executar o backend da aplicação.
+- **Docker Desktop:** para executar o banco de dados MySQL em um container.
+- **MySQL Workbench (opcional):** para visualizar e gerenciar o banco de dados.
+- **Visual Studio Code (opcional):** para editar o código e executar o frontend com uma extensão como Live Server.
 
-### **1. 📥 Clonar o projeto**
+## **1. 📥 Clonar o projeto**
 
 Abra o terminal ou PowerShell e execute:
 
@@ -236,7 +360,9 @@ Depois, entre na pasta do projeto:
 cd DM-LandingPage
 ```
 
-### **2. 🐍 Verificar a instalação do Python**
+Substitua `<URL_DO_REPOSITORIO>` pelo endereço real do repositório Git.
+
+## **2. 🐍 Verificar a instalação do Python**
 
 No terminal, execute:
 
@@ -252,13 +378,13 @@ Exemplo:
 Python 3.12.6
 ```
 
-Caso o comando não seja reconhecido, é necessário instalar o Python antes de continuar.
+Caso o comando não seja reconhecido, instale o Python antes de continuar.
 
-### **3. 🌱 Criar o ambiente virtual**
+## **3. 🌱 Criar o ambiente virtual**
 
 O projeto utiliza um ambiente virtual Python para manter suas dependências isoladas das demais aplicações instaladas no computador.
 
-Dentro da pasta do projeto, execute:
+Na pasta raiz do projeto, execute:
 
 ```bash
 python -m venv .venv
@@ -272,30 +398,33 @@ A estrutura ficará semelhante a:
 DM-LandingPage/
 ├── .venv/
 ├── src/
+│   ├── backend/
+│   └── frontend/
 ├── database/
 ├── docs/
+├── requirements.txt
 └── ...
 ```
 
 > **Importante:** a pasta `.venv` é criada localmente e não deve ser enviada para o GitHub. Ela deve estar incluída no `.gitignore`.
 
-### **4. ▶️ Ativar o ambiente virtual**
+## **4. ▶️ Ativar o ambiente virtual**
 
 Depois de criar o ambiente virtual, é necessário ativá-lo.
 
-#### **Windows - PowerShell**
+### Windows: PowerShell
 
 ```powershell
 .venv\Scripts\Activate.ps1
 ```
 
-#### **Windows - Prompt de Comando (CMD)**
+### Windows: Prompt de Comando (CMD)
 
 ```cmd
 .venv\Scripts\activate
 ```
 
-#### **Linux/macOS**
+### Linux/macOS
 
 ```bash
 source .venv/bin/activate
@@ -309,79 +438,49 @@ Quando o ambiente estiver ativado, normalmente aparecerá `(.venv)` no início d
 
 Isso indica que os comandos Python e `pip` estão sendo executados dentro do ambiente virtual do projeto.
 
-### **5. 📦 Instalar as dependências do projeto**
+## **5. 📦 Instalar as dependências do projeto**
 
-O projeto possui um arquivo chamado `requirements.txt`.
+O arquivo `requirements.txt` contém as bibliotecas Python necessárias para executar o backend.
 
-Esse arquivo contém a lista das bibliotecas Python necessárias para executar o backend.
-
-Com o ambiente virtual **ativado**, execute:
+Com o ambiente virtual ativado e na raiz do projeto, execute:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-O `pip` irá ler o arquivo `requirements.txt` e instalar automaticamente todas as dependências listadas nele.
+O `pip` instalará automaticamente todas as dependências listadas no arquivo.
 
-Por exemplo, se o arquivo possuir:
+### 🔎 Verificar a instalação
 
-```text
-Flask
-mysql-connector-python
-requests
-```
-
-o comando:
-
-```bash
-pip install -r requirements.txt
-```
-
-instalará todas essas bibliotecas de uma vez.
-
-#### **🔎 Verificar se as dependências foram instaladas**
-
-Após a instalação, execute:
+Para conferir as bibliotecas instaladas, execute:
 
 ```bash
 pip list
 ```
 
-O terminal exibirá as bibliotecas instaladas no ambiente virtual.
-
-Também é possível verificar uma biblioteca específica:
+Para consultar uma biblioteca específica:
 
 ```bash
 pip show Flask
 ```
 
-Se a biblioteca estiver instalada, serão exibidas informações sobre ela.
+> **💡 Importante:** não é necessário instalar cada biblioteca manualmente. O `requirements.txt` centraliza as dependências necessárias para a configuração do ambiente.
 
-> **💡 Importante:** não é necessário instalar cada biblioteca manualmente. O objetivo do `requirements.txt` é justamente permitir que todas as dependências do projeto sejam instaladas com um único comando.
+## **6. 🔐 Configurar o arquivo `.env`**
 
-### **6. 🔐 Configurar o arquivo `.env`**
+O projeto utiliza variáveis de ambiente para armazenar configurações da aplicação e do banco de dados, evitando que informações sensíveis precisem ficar diretamente no código-fonte.
 
-O projeto utiliza variáveis de ambiente para configurar informações relacionadas à aplicação e ao banco de dados.
+O repositório disponibiliza o arquivo `.env.example`, que funciona como modelo para a configuração local.
 
-O repositório possui um arquivo:
+### **6.1. Criar o arquivo `.env`**
 
-```text
-.env.example
-```
-
-Esse arquivo funciona como modelo para a configuração do ambiente.
-
-#### **Criar o `.env`**
-
-Faça uma cópia do `.env.example` e renomeie o arquivo para:
+Na raiz do projeto, copie o arquivo `.env.example` e renomeie a cópia para:
 
 ```text
 .env
 ```
 
-No Windows, isso também pode ser feito manualmente pelo explorador de arquivos.
-
-A estrutura ficará:
+A estrutura ficará semelhante a:
 
 ```text
 DM-LandingPage/
@@ -391,14 +490,16 @@ DM-LandingPage/
 └── ...
 ```
 
-#### **Preencher as variáveis**
+O arquivo `.env` deverá permanecer local, enquanto o `.env.example` será mantido no repositório para orientar os demais integrantes da equipe.
 
-Abra o arquivo `.env` e informe os valores necessários para o ambiente local.
+### **6.2. Configurar o banco de dados**
 
-Exemplo:
+Abra o arquivo `.env` e preencha as variáveis de conexão conforme a configuração do `docker-compose.yml` e do backend.
+
+Exemplo para executar o backend diretamente no computador, conectando-se à porta do MySQL publicada pelo Docker:
 
 ```env
-MYSQL_HOST=mysql
+MYSQL_HOST=127.0.0.1
 MYSQL_PORT=3306
 MYSQL_DATABASE=projeto_dm
 MYSQL_USER=seu_usuario
@@ -406,39 +507,117 @@ MYSQL_PASSWORD=sua_senha
 MYSQL_ROOT_PASSWORD=sua_senha_root
 ```
 
-Os valores devem corresponder à configuração utilizada no `docker-compose.yml`.
+Os nomes das variáveis devem corresponder aos utilizados pelo código e pelo arquivo de configuração do Docker. Se o backend for executado dentro de um container, o endereço do banco normalmente será o nome do serviço MySQL definido no Compose, em vez de `127.0.0.1`.
 
-> **⚠️ Atenção:** o arquivo `.env` não deve ser enviado para o GitHub, pois pode conter informações privadas, como senhas. O `.env.example` deve permanecer no repositório para servir como modelo para outros integrantes da equipe.
+### **6.3. Configurar a chave secreta do Flask**
 
-### **7. 🐳 Iniciar o Docker Desktop**
+Além das credenciais do banco de dados, o backend utiliza uma chave secreta para proteger as sessões da aplicação.
 
-Abra o **Docker Desktop** e aguarde até que ele esteja funcionando corretamente.
+Essa configuração é especialmente importante porque o sistema possui funcionalidades de autenticação para clientes e atendentes.
 
-Dentro da pasta do projeto, execute:
+No arquivo `.env`, configure a variável correspondente à chave secreta utilizada pelo backend. Neste exemplo, será utilizado o nome `SECRET_KEY`:
 
-```bash
-docker compose up -
-````
-
-### **8. 🚀 Iniciar a aplicação**
-
-Após concluir a configuração do ambiente, do banco de dados e das dependências, é necessário iniciar o backend da aplicação.
-
-#### **8.1. Iniciar o backend**
-
-Com o ambiente virtual ativado, execute:
-
-```bash
-python src/backend/app.py
+```env
+SECRET_KEY=sua_chave_secreta_aqui
 ```
 
-Caso o projeto utilize o arquivo `status_app.py` separadamente para a página de acompanhamento, execute também:
+**O nome da variável precisa corresponder exatamente ao que o código Flask lê.** Se a implementação utilizar `FLASK_SECRET_KEY` em vez de `SECRET_KEY`, por exemplo, o arquivo `.env` deverá utilizar esse mesmo nome.
+
+#### 🔑 O que é a chave secreta do Flask?
+
+A chave secreta é utilizada pelo Flask para assinar dados de sessão e outros componentes de segurança que dependem dessa configuração. Isso ajuda a impedir que os dados assinados sejam alterados sem que a alteração seja detectada.
+
+Ela não deve ser confundida com:
+
+- **Senha do banco de dados:** utilizada para autenticar a conexão com o MySQL.
+- **Senha do usuário:** utilizada para autenticar clientes ou atendentes.
+- **Chave secreta do Flask:** utilizada internamente pela aplicação para funções de segurança, incluindo a proteção das sessões.
+
+#### 🛡️ Como gerar uma chave segura?
+
+Não utilize uma senha simples, uma palavra conhecida ou um valor fixo compartilhado publicamente. Gere uma chave aleatória para o seu ambiente.
+
+Com o Python instalado, execute na raiz do projeto:
 
 ```bash
-python src/backend/status_app.py
+python -c "import secrets; print(secrets.token_hex(32))"
 ```
 
-O terminal deverá informar o endereço em que o servidor foi iniciado. Por exemplo:
+O terminal exibirá uma sequência aleatória de caracteres. Copie o resultado e utilize-o como valor da variável no arquivo `.env`.
+
+Exemplo ilustrativo:
+
+```env
+SECRET_KEY=COLE_AQUI_A_CHAVE_GERADA
+```
+
+Substitua o texto ilustrativo pela chave realmente gerada. Não utilize esse exemplo como chave definitiva.
+
+> **⚠️ Atenção:** nunca publique sua chave secreta no GitHub, em capturas de tela públicas ou em arquivos de documentação compartilhados. O arquivo `.env` deve estar incluído no `.gitignore`. O `.env.example` pode conter a variável sem revelar o segredo real, por exemplo, `SECRET_KEY=`.
+
+**Importante:** todos os integrantes podem gerar suas próprias chaves para os respectivos ambientes locais. Se a chave mudar entre inicializações, as sessões existentes poderão deixar de ser válidas, exigindo que os usuários façam login novamente.
+
+## **7. 🐳 Iniciar o banco de dados com Docker**
+
+Abra o Docker Desktop e aguarde até que o serviço esteja funcionando corretamente.
+
+Em seguida, abra um terminal na raiz do projeto, onde está localizado o arquivo `docker-compose.yml` ou `compose.yaml`, e execute:
+
+```bash
+docker compose up -d
+```
+
+O parâmetro `-d` permite que os containers sejam iniciados em segundo plano.
+
+Para verificar o estado dos containers, execute:
+
+```bash
+docker compose ps
+```
+
+Para acompanhar os registros de execução:
+
+```bash
+docker compose logs -f
+```
+
+Para encerrar os containers quando necessário:
+
+```bash
+docker compose down
+```
+
+> **💡 Importante:** o comando `docker compose down` encerra os containers, mas não deve ser confundido com a exclusão dos dados persistidos em volumes. Evite utilizar comandos que removam volumes se não desejar apagar os dados do banco.
+
+### **7.1. 🗄️ Preparar a estrutura do banco de dados**
+
+Caso o projeto não inicialize automaticamente o esquema do banco, será necessário executar o script SQL disponibilizado no repositório.
+
+Se houver um script de criação do banco e das tabelas na pasta `database/`, utilize o MySQL Workbench ou o cliente MySQL para executá-lo na instância configurada.
+
+Antes de continuar, verifique se:
+
+- O container MySQL está em execução;
+- O banco `projeto_dm` foi criado;
+- As tabelas necessárias foram criadas;
+- O usuário e a senha configurados no `.env` permitem a conexão.
+
+A estrutura do banco deve corresponder à versão do projeto que está sendo instalada.
+
+## **8. 🚀 Iniciar o backend Flask**
+
+Com o ambiente virtual ativado, as dependências instaladas e o banco de dados disponível, inicie o backend.
+
+No PowerShell, a partir da raiz do projeto, execute:
+
+```powershell
+cd src/backend
+python app.py
+```
+
+A execução a partir da pasta `src/backend` permite que os módulos e pacotes internos do backend sejam encontrados conforme a estrutura de importações do projeto.
+
+O terminal deverá informar o endereço em que o servidor foi iniciado. Exemplo:
 
 ```text
 Running on http://127.0.0.1:5000
@@ -446,67 +625,113 @@ Running on http://127.0.0.1:5000
 
 Mantenha o terminal aberto enquanto estiver utilizando a aplicação.
 
-#### **8.2. Acessar a Landing Page**
+### **8.1. 🔎 Verificar o backend**
 
-Com o servidor Flask em execução, abra o navegador e acesse:
+Com o Flask em execução, confirme se o servidor iniciou sem erros e se consegue estabelecer conexão com o banco de dados.
+
+Se houver falhas de conexão, verifique as variáveis do `.env`, o estado do container MySQL e a porta publicada pelo Docker.
+
+Se houver erros relacionados à chave secreta, confira se a variável foi configurada corretamente e se o nome utilizado no `.env` corresponde ao nome lido pelo código.
+
+## **9. 🖥️ Iniciar o frontend**
+
+O frontend contém as páginas e os recursos visuais utilizados pelos clientes e atendentes. Quando estiver configurado para execução separada do backend, ele deverá ser disponibilizado por um servidor HTTP local.
+
+### **9.1. Executar com Live Server**
+
+Abra a pasta do projeto no Visual Studio Code e instale a extensão Live Server, caso ainda não esteja disponível.
+
+Em seguida, abra o arquivo HTML inicial correspondente à interface que deseja testar e selecione **Open with Live Server**.
+
+O frontend será disponibilizado em um endereço semelhante a:
 
 ```text
-http://127.0.0.1:5000
+http://127.0.0.1:5500
 ```
 
-A Landing Page será carregada pelo servidor e poderá ser utilizada normalmente.
+O endereço exato poderá variar conforme a configuração do servidor local.
 
-> 💡 **Importante:** não é necessário abrir o arquivo `index.html` diretamente pelo explorador de arquivos. A aplicação deve ser acessada pelo endereço fornecido pelo servidor Flask, pois o frontend utiliza as rotas e funcionalidades disponibilizadas pelo backend.
+### **9.2. Executar com o servidor HTTP do Python**
 
-### **8.3. Acessar o frontend separadamente**
-
-Caso o frontend esteja configurado para ser executado de forma independente, entre na pasta correspondente:
+Como alternativa, abra outro terminal e acesse a pasta do frontend:
 
 ```bash
 cd src/frontend
-```
-
-Em seguida, utilize um servidor HTTP local para disponibilizar os arquivos HTML.
-
-Por exemplo, utilizando o Python:
-
-```bash
 python -m http.server 5500
 ```
 
 Depois, abra no navegador:
 
 ```text
-http://localhost:5500
+http://127.0.0.1:5500
 ```
 
-> **Observação:** essa forma de execução deve ser utilizada apenas quando o frontend estiver configurado para funcionar separadamente do Flask. Para o fluxo integrado da aplicação, recomenda-se utilizar a URL fornecida pelo servidor Flask.
+> **Observação:** o servidor HTTP do Python disponibiliza arquivos estáticos, mas não executa o backend Flask. As requisições da interface precisam apontar para o endereço correto da API.
 
-#### **8.4. Fluxo completo de inicialização**
+### **9.3. 🔗 Comunicação entre frontend e backend**
 
-Após a primeira configuração do projeto, o fluxo básico para iniciar a aplicação será:
+Quando o frontend e o backend são executados separadamente, cada um possui seu próprio endereço local.
+
+Exemplo:
+
+| Componente | Endereço |
+|---|---|
+| Frontend | `http://127.0.0.1:5500` |
+| Backend Flask | `http://127.0.0.1:5000` |
+
+O frontend deverá utilizar as URLs corretas para acessar as rotas da API. Se houver configuração de CORS no backend, ela deverá permitir a origem utilizada pelo frontend.
+
+Como o projeto utiliza autenticação por sessão, as requisições que dependem da sessão também devem estar configuradas para enviar e receber os cookies necessários. A configuração de CORS e dos cookies deve ser compatível com os endereços utilizados no ambiente local.
+
+## **10. ✅ Fluxo completo de inicialização**
+
+Após concluir a configuração inicial, o procedimento para iniciar a aplicação será o seguinte.
+
+### **Terminal 1: banco de dados**
+
+Na raiz do projeto:
 
 ```bash
-# 1. Entrar na pasta do projeto
-cd DM-LandingPage
-
-# 2. Ativar o ambiente virtual
-.venv\Scripts\Activate.ps1
-
-# 3. Iniciar os containers do Docker
 docker compose up -d
-
-# 4. Iniciar o backend
-python src/backend/app.py
 ```
 
-Com o Flask em execução, acesse no navegador:
+### **Terminal 2: backend**
 
-```text
-http://127.0.0.1:5000
+Na raiz do projeto, com o ambiente virtual ativado:
+
+```powershell
+cd src/backend
+python app.py
 ```
 
-A aplicação estará pronta para utilização.
+### **Terminal 3: frontend**
+
+Se o frontend for executado separadamente, inicie o Live Server pelo Visual Studio Code ou utilize:
+
+```bash
+cd src/frontend
+python -m http.server 5500
+```
+
+Com os serviços em execução, abra no navegador o endereço disponibilizado pelo servidor do frontend.
+
+O backend deverá permanecer ativo para que as operações de autenticação, consulta, cadastro e gerenciamento de solicitações funcionem corretamente.
+
+## **11. 🧰 Solução de problemas comuns**
+
+| Problema | Possível solução |
+|---|---|
+| Python não reconhecido | Verifique a instalação e a configuração do Python no PATH. |
+| Ambiente virtual não ativa | Confira o comando correspondente ao terminal utilizado. |
+| Erro ao instalar dependências | Confirme que o ambiente virtual está ativo e que o `requirements.txt` está presente. |
+| Erro de conexão com o MySQL | Verifique o container, a porta, as credenciais e as variáveis do `.env`. |
+| Erro de chave secreta | Confira se a variável está preenchida e se seu nome corresponde ao esperado pelo backend. |
+| Erro de importação no Flask | Execute o backend a partir da pasta `src/backend`, conforme indicado neste manual. |
+| Erro de CORS no navegador | Confira a origem do frontend e as permissões configuradas no backend. |
+| Login não persiste entre requisições | Verifique o envio de cookies, a configuração de sessão e as credenciais utilizadas. |
+| Página abre, mas não carrega os dados | Confirme se o backend está ativo e se as URLs da API estão corretas. |
+
+---
   
 ---
 
