@@ -2,16 +2,13 @@
 
 const cardsCartoes = document.querySelector("#cardsCartoes");
 
-/**
- * Carrega os cartões disponíveis para seleção.
- */
 function carregarCartoes() {
     if (!cardsCartoes) {
         console.error("Elemento #cardsCartoes não encontrado.");
         return;
     }
 
-    const cartoesSalvos = localStorage.getItem("cartoesDisponiveis");
+    const cartoesSalvos = sessionStorage.getItem("cartoesDisponiveis");
 
     if (!cartoesSalvos) {
         exibirMensagem("Nenhum cartão disponível para seleção.");
@@ -33,18 +30,12 @@ function carregarCartoes() {
     }
 }
 
-/**
- * Exibe uma mensagem na área de cartões.
- */
 function exibirMensagem(mensagem) {
     if (cardsCartoes) {
         cardsCartoes.innerHTML = `<p>${mensagem}</p>`;
     }
 }
 
-/**
- * Mostra um aviso acima dos cartões (no lugar de alert()).
- */
 function mostrarAvisoCartao(mensagem) {
     let aviso = document.querySelector("#avisoCartao");
 
@@ -69,21 +60,10 @@ function mostrarAvisoCartao(mensagem) {
     aviso.textContent = mensagem;
 }
 
-/**
- * Segue para a tela de solicitação.
- *
- * O cadastro.html se adapta sozinho: quem já está logado vê só o botão
- * "Solicitar cartão" (sem documento); quem não está logado vê o
- * formulário completo. O idCartao fica guardado no localStorage.
- * Não é preciso consultar /api/conta aqui.
- */
 function continuarAposSelecao() {
     window.location.href = "cadastro.html";
 }
 
-/**
- * Monta os cartões na página.
- */
 function mostrarCartoes(cartoes) {
     cardsCartoes.innerHTML = "";
 
@@ -100,15 +80,14 @@ function mostrarCartoes(cartoes) {
         }
 
         const titulo = document.createElement("h2");
-        // A API devolve 'nome_cartao' (não existe 'nome_produto').
-        titulo.textContent =
-            cartao.nome_cartao || cartao.nome_produto || "Cartão DM";
+
+        titulo.textContent = "?"
 
         const subtitulo = document.createElement("h1");
         subtitulo.textContent = modalidade;
 
         const imagem = document.createElement("img");
-        imagem.src = "/src/img/cartao_loja_mockup_DM (1).png";
+        imagem.src = "img/cartao_loja_mockup_DM (1).png";
         imagem.alt = "Mockup do cartão";
 
         const botao = document.createElement("button");
@@ -139,7 +118,7 @@ function selecionarCartao(botao) {
         return;
     }
 
-    localStorage.setItem("idCartao", idCartao);
+    sessionStorage.setItem("idCartao", idCartao);
 
     console.log("Cartão selecionado:", idCartao);
 

@@ -42,11 +42,6 @@ def consultar_cartoes_filial(id_filial):
 
 @selecao_cartao_bp.post("/solicitacoes")
 def criar_solicitacao():
-    """
-    Mantida por compatibilidade. Agora segue as mesmas regras de
-    /api/solicitar-cartao: usa o cliente da sessão (nunca o id enviado
-    no corpo da requisição) e aplica todas as regras de negócio.
-    """
     id_cliente = session.get("id_cliente")
 
     if not id_cliente:

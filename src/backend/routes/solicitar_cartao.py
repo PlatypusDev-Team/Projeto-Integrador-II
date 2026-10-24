@@ -23,7 +23,6 @@ def solicitar_cartao():
             "erro": "Entre na sua conta para solicitar um cartão.",
         }), 401
 
-    # Documento não é exigido aqui: só no primeiro cadastro.
     resultado = processar_solicitacao_cliente(
         id_cliente=id_cliente,
         dados=ler_dados_requisicao(),
