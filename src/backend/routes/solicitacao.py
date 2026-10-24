@@ -1,4 +1,3 @@
-
 from flask import Blueprint, jsonify, request, session
 from services.solicitacao_service import processar_solicitacao
 

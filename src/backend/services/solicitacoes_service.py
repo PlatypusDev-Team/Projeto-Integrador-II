@@ -1,6 +1,5 @@
 from db import get_connection
 
-
 STATUS_PRE_QUALIFICACAO = "CONCLUIDA"
 
 
