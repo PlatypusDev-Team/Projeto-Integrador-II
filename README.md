@@ -122,17 +122,18 @@ DM-LandingPage/
 │   │   ├── services/
 │   │   └── tests/
 │   │
-│   ├── atendente/   
-│   │   ├── css/
-│   │   ├── img/
-│   │   └── js/
-│   │
-│   └── landingpage/   
-│       ├── css/
-│       ├── imagens/
-│       ├── img/
-│       ├── js/
-│       └── ts/
+│   ├── frontend/   
+│       ├── atendente/   
+│       │   ├── css/
+│       │   ├── img/
+│       │   └── js/
+│       │
+│       └── landingpage/   
+│           ├── css/
+│           ├── imagens/
+│           ├── img/
+│           ├── js/
+│           └── ts/
 │ 
 ├── .gitignore
 ├── README.md
