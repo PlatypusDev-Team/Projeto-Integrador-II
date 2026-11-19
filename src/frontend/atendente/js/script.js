@@ -90,7 +90,46 @@ async function api(path, options = {}) {
     return data;
 }
 
+async function mensagemAPI(idSolicitacao, options = {}) {
+    const baseURL = API.replace("/api/atendente", "");
 
+    let response;
+
+    try {
+        response = await fetch(
+            `${baseURL}/api/mensagens/${idSolicitacao}`,
+            {
+                ...options,
+                credentials: "include",
+                headers: {
+                    ...(options.body ? {
+                        "Content-Type": "application/json"
+                    } : {}),
+                    ...options.headers
+                }
+            }
+        );
+    } catch {
+        throw new Error("Não foi possível conectar ao servidor.");
+    }
+
+    if (response.status === 401) {
+        window.location.replace("login.html");
+        throw new Error("Sua sessão expirou. Entre novamente.");
+    }
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(
+            data.mensagem ||
+            data.erro ||
+            "Não foi possível realizar a operação no chat."
+        );
+    }
+
+    return data;
+}
 
 // =====================================================
 // UTILITÁRIOS
@@ -396,6 +435,37 @@ function renderDetails(data) {
 
     const isConcluded = request.status !== "EM ANALISE";
 
+    const canSendMessage = assignedToMe && !isConcluded;
+
+    const chatHTML = `
+        <section class="chat-section">
+
+            <div class="chat-header">
+                <div>
+                    <h3>Conversa da solicitação</h3>
+                    <p>
+                        Comunicação entre cliente e atendente
+                        sobre esta solicitação.
+                    </p>
+                </div>
+            </div>
+
+            <div id="chat-messages" class="chat-messages">
+                <p class="chat-empty">
+                    Carregando mensagens...
+                </p>
+            </div>
+
+            ${!canSendMessage ? `
+                <p class="chat-notice">
+                    ${isConcluded
+                        ? "Solicitação concluída. O histórico está disponível para consulta."
+                        : "Assuma esta solicitação para poder responder às mensagens."}
+                </p>
+            ` : ""}
+        </section>
+    `;
+
     let actionHTML = "";
 
     if (isConcluded) {
@@ -548,6 +618,8 @@ function renderDetails(data) {
             <div class="history-list">${historyHTML}</div>
         </section>
 
+        ${chatHTML}
+
         ${actionHTML}
     `;
 
@@ -571,6 +643,74 @@ function renderDetails(data) {
         rejectButton.addEventListener("click", () => {
             decideRequest("RECUSAR");
         });
+    }
+
+    loadChatMessages(Number(request.id_solicitacao));
+}
+
+function renderChatMessages(mensagens) {
+    const container = $("chat-messages");
+
+    if (!container) return;
+
+    if (!mensagens.length) {
+        container.innerHTML = `
+            <p class="chat-empty">
+                Nenhuma mensagem enviada ainda.
+            </p>
+        `;
+        return;
+    }
+
+    container.innerHTML = mensagens.map((mensagem) => {
+        const isAttendant = mensagem.remetente === "ATENDENTE";
+
+        return `
+            <article class="chat-message ${
+                isAttendant ? "attendant" : "client"
+            }">
+
+                <span class="chat-message-author">
+                    ${isAttendant ? "Você" : "Cliente"}
+                </span>
+
+                <p class="chat-message-content">
+                    ${escapeHTML(mensagem.conteudo_mensagem)}
+                </p>
+
+                <time>
+                    ${escapeHTML(formatDate(mensagem.data_envio))}
+                </time>
+
+            </article>
+        `;
+    }).join("");
+
+    container.scrollTop = container.scrollHeight;
+}
+
+
+async function loadChatMessages(idSolicitacao) {
+    const container = $("chat-messages");
+
+    if (!container) return;
+
+    try {
+        const data = await mensagemAPI(idSolicitacao);
+
+        // Evita atualizar o chat de uma solicitação diferente.
+        if (state.selectedId !== idSolicitacao) return;
+
+        renderChatMessages(data.mensagens || []);
+
+    } catch (error) {
+        if (state.selectedId !== idSolicitacao) return;
+
+        container.innerHTML = `
+            <p class="chat-empty">
+                ${escapeHTML(error.message)}
+            </p>
+        `;
     }
 }
 
