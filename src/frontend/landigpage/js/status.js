@@ -268,6 +268,10 @@ async function carregarConta() {
         const cliente = dados.cliente;
         const solicitacao = dados.solicitacao;
 
+        activeRequestId = solicitacao
+            ? Number(solicitacao.id_solicitacao)
+            : null;
+
         // Dados do perfil, independentemente de haver solicitação.
         if (userName) {
             userName.textContent = cliente.nome_cliente;
@@ -310,6 +314,12 @@ async function carregarConta() {
             }
 
             return;
+        }
+
+        const clientChat = document.querySelector("#client-chat");
+
+        if (clientChat) {
+            clientChat.hidden = false;
         }
 
         // Há uma solicitação: mostra a tela de acompanhamento.
