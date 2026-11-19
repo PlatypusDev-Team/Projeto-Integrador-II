@@ -12,6 +12,7 @@ from routes.cartao import cartao_bp
 from routes.auth import auth_bp
 from routes.conta import conta_bp
 from routes.solicitar_cartao import solicitar_cartao_bp
+from routes.mensagens import mensagens_bp
 
 #atendente
 from routes.atendente import atendente_bp
@@ -49,6 +50,9 @@ def create_app():
         atendente_bp,
         url_prefix="/api/atendente"
     )
+
+    #sistema de mensagem
+    app.register_blueprint(mensagens_bp)
 
     return app
 
