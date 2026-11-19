@@ -41,6 +41,7 @@ def login():
             }), 401
         
         session.clear()
+        session["tipo_usuario"] = "CLIENTE"
         session["id_cliente"] = cliente["id_cliente"]
 
         return jsonify({

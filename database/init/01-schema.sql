@@ -1,4 +1,4 @@
--- create database projeto_dm;
+create database projeto_dm;
 use projeto_dm;
 
 create table tb_cliente (
@@ -77,7 +77,7 @@ create table tb_solicitacao (
     status enum('EM ANALISE', 'ACEITO', 'NEGADO') not null,
     id_cliente int not null,
     id_produto int not null,
-    data_solicitacao timestamp null default null,
+    data_solicitacao timestamp not null default current_timestamp,
     data_conclusao timestamp null default null,
     id_atendente_responsavel int null,
     foreign key (id_cliente) references tb_cliente(id_cliente),
@@ -134,3 +134,6 @@ create table tb_mensagem (
             and id_cliente is null)
     )
 );
+
+create index idx_mensagem_chat
+on tb_mensagem(id_chat, id_mensagem);

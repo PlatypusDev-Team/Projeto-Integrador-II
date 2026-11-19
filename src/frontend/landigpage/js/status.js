@@ -51,6 +51,11 @@ const userAvatar = document.querySelector("#user-avatar");
 const refreshStatusButton = document.querySelector("#refresh-status");
 const notFoundState = document.querySelector("#not-found-state");
 let activeRequestId = null;
+
+let pollingMensagens = null;
+let carregandoMensagens = false;
+let ultimaMensagemId = null;
+
 function ocultarSolicitacaoNaoEncontrada() {
     if (!notFoundState)
         return;
@@ -200,14 +205,6 @@ function renderStatus(solicitacao) {
 
 }
 
-/**
- * Mostra, no corpo da página da conta, o aviso guardado pelo cadastro.js
- * quando o pedido foi barrado (já há pedido em análise, ou o cartão já
- * foi solicitado). O aviso é lido uma única vez e removido.
- *
- * Posição: logo abaixo do título "Acompanhe seu Pedido", dentro da seção
- * do pedido (e não antes do <header>, que é o primeiro filho do <main>).
- */
 function mostrarAvisoSolicitacao() {
     const mensagem = sessionStorage.getItem("avisoSolicitacao");
 
@@ -246,6 +243,188 @@ function mostrarAvisoSolicitacao() {
 }
 
 const API_BASE = "http://127.0.0.1:5000";
+function escapeHTML(texto) {
+    return String(texto).replace(/[&<>"']/g, caractere => {
+        const entidades = {
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#039;"
+        };
+
+        return entidades[caractere];
+    });
+}
+
+function renderizarMensagens(mensagens) {
+    const chatMessages = document.querySelector("#chat-messages");
+
+    if (!chatMessages) return;
+
+    if (!mensagens.length) {
+        chatMessages.innerHTML = `
+            <p class="chat-empty">
+                Ainda não há mensagens nesta conversa.
+                Envie uma mensagem para iniciar o atendimento.
+            </p>
+        `;
+        return;
+    }
+
+    if (mensagens.length) {
+        ultimaMensagemId = Number(
+            mensagens[mensagens.length - 1].id_mensagem
+        );
+    } else {
+        ultimaMensagemId = 0;
+    }
+
+    chatMessages.innerHTML = mensagens.map(mensagem => {
+        const isClient = mensagem.remetente === "CLIENTE";
+
+        const autor = isClient ? "Você" : "Atendente";
+        const classe = isClient ? "client" : "attendant";
+
+        const conteudo = escapeHTML(mensagem.conteudo_mensagem);
+
+        const data = new Date(mensagem.data_envio);
+
+        const dataFormatada = data.toLocaleString("pt-BR", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit"
+        });
+
+        return `
+            <article class="chat-message ${classe}">
+                <span class="chat-message-author">${autor}</span>
+
+                <p class="chat-message-content">${conteudo}</p>
+
+                <time>${dataFormatada}</time>
+            </article>
+        `;
+    }).join("");
+
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+async function carregarMensagens() {
+    if (!activeRequestId || carregandoMensagens) return;
+
+    const chatMessages = document.querySelector("#chat-messages");
+
+    try {
+        carregandoMensagens = true;
+
+        const resposta = await fetch(
+            `${API_BASE}/api/mensagens/${activeRequestId}`,
+            {
+                method: "GET",
+                credentials: "include"
+            }
+        );
+
+        const dados = await resposta.json();
+
+        if (!resposta.ok) {
+            throw new Error(
+                dados.erro || "Não foi possível carregar as mensagens."
+            );
+        }
+
+        const mensagens = dados.mensagens || [];
+
+        const ultimaMensagemAtual = mensagens.length
+            ? Number(mensagens[mensagens.length - 1].id_mensagem)
+            : 0;
+
+        if (ultimaMensagemAtual !== ultimaMensagemId) {
+            renderizarMensagens(mensagens);
+        }
+
+    } catch (erro) {
+        console.error("Erro ao carregar mensagens:", erro);
+
+        if (chatMessages && ultimaMensagemId === null) {
+            chatMessages.innerHTML = `
+                <p class="chat-empty">
+                    Não foi possível carregar as mensagens.
+                    Tente novamente mais tarde.
+                </p>
+            `;
+        }
+
+    } finally {
+        carregandoMensagens = false;
+    }
+}
+
+function iniciarPollingMensagens() {
+    if (pollingMensagens) {
+        clearInterval(pollingMensagens);
+    }
+
+    pollingMensagens = setInterval(() => {
+        if (document.visibilityState === "visible") {
+            carregarMensagens();
+        }
+    }, 3000);
+}
+
+async function enviarMensagem(evento) {
+    evento.preventDefault();
+
+    const chatInput = document.querySelector("#chat-input");
+    const chatSendButton = document.querySelector("#chat-send-button");
+
+    const conteudo = chatInput.value.trim();
+
+    if (!conteudo) {
+        chatInput.focus();
+        return;
+    }
+
+    try {
+        chatSendButton.disabled = true;
+
+        const resposta = await fetch(
+            `${API_BASE}/api/mensagens/${activeRequestId}`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                credentials: "include",
+                body: JSON.stringify({
+                    conteudo: conteudo
+                })
+            }
+        );
+
+        const dados = await resposta.json();
+
+        if (!resposta.ok) {
+            throw new Error(
+                dados.erro || "Não foi possível enviar a mensagem."
+            );
+        }
+
+        chatInput.value = "";
+
+        await carregarMensagens();
+
+    } catch (erro) {
+        console.error("Erro ao enviar mensagem:", erro);
+        alert(erro.message);
+
+    } finally {
+        chatSendButton.disabled = false;
+    }
+}
 
 async function carregarConta() {
     try {
@@ -267,6 +446,10 @@ async function carregarConta() {
 
         const cliente = dados.cliente;
         const solicitacao = dados.solicitacao;
+
+        activeRequestId = solicitacao
+            ? Number(solicitacao.id)
+            : null;
 
         // Dados do perfil, independentemente de haver solicitação.
         if (userName) {
@@ -312,6 +495,31 @@ async function carregarConta() {
             return;
         }
 
+        const clientChat = document.querySelector("#client-chat");
+
+        if (clientChat) {
+            clientChat.hidden = false;
+        }
+
+        const chatForm = document.querySelector("#chat-form");
+        const chatNotice = document.querySelector("#chat-notice");
+
+        const solicitacaoEmAnalise = solicitacao.status === "EM ANALISE";
+
+        if (chatForm) {
+            chatForm.hidden = !solicitacaoEmAnalise;
+        }
+
+        if (chatNotice) {
+            chatNotice.hidden = solicitacaoEmAnalise;
+        }
+
+        await carregarMensagens();
+
+        if (solicitacaoEmAnalise) {
+            iniciarPollingMensagens();
+        }
+
         // Há uma solicitação: mostra a tela de acompanhamento.
         if (document.querySelector("#pedido")) {
             document.querySelector("#pedido").hidden = false;
@@ -341,6 +549,12 @@ async function carregarConta() {
             noticeMessage.textContent =
                 "Verifique se o servidor está em execução e tente novamente.";
         }
+    }
+
+    const chatForm = document.querySelector("#chat-form");
+
+    if (chatForm) {
+        chatForm.addEventListener("submit", enviarMensagem);
     }
 }
 

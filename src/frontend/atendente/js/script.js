@@ -1,4 +1,3 @@
-
 const API = "http://127.0.0.1:5000/api/atendente";
 
 const state = {
@@ -14,6 +13,9 @@ const $ = (id) => document.getElementById(id);
 
 let statusChart = null;
 let monthChart = null;
+
+let chatPolling = null;
+let chatLoadingId = null;
 
 const reportResultsTemplate = $("report-results").innerHTML;
 
@@ -90,7 +92,98 @@ async function api(path, options = {}) {
     return data;
 }
 
+async function mensagemAPI(idSolicitacao, options = {}) {
+    const baseURL = API.replace("/api/atendente", "");
 
+    let response;
+
+    try {
+        response = await fetch(
+            `${baseURL}/api/mensagens/${idSolicitacao}`,
+            {
+                ...options,
+                credentials: "include",
+                headers: {
+                    ...(options.body ? {
+                        "Content-Type": "application/json"
+                    } : {}),
+                    ...options.headers
+                }
+            }
+        );
+    } catch {
+        throw new Error("Não foi possível conectar ao servidor.");
+    }
+
+    if (response.status === 401) {
+        window.location.replace("login.html");
+        throw new Error("Sua sessão expirou. Entre novamente.");
+    }
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(
+            data.mensagem ||
+            data.erro ||
+            "Não foi possível realizar a operação no chat."
+        );
+    }
+
+    return data;
+}
+
+async function sendChatMessage(event) {
+    event.preventDefault();
+
+    const form = event.target;
+    const input = $("chat-input");
+    const button = $("chat-send-button");
+
+    const conteudo = input.value.trim();
+    const idSolicitacao = Number(state.selectedId);
+
+    if (!conteudo) {
+        input.focus();
+        return;
+    }
+
+    if (!idSolicitacao) {
+        alert("Nenhuma solicitação selecionada.");
+        return;
+    }
+
+    button.disabled = true;
+    button.textContent = "Enviando...";
+
+    try {
+        await mensagemAPI(idSolicitacao, {
+            method: "POST",
+            body: JSON.stringify({
+                conteudo: conteudo
+            })
+        });
+
+        form.reset();
+
+        await loadChatMessages(idSolicitacao);
+
+    } catch (error) {
+        alert(error.message);
+
+    } finally {
+        if (button.isConnected) {
+            button.disabled = false;
+            button.textContent = "Enviar";
+        }
+    }
+}
+
+document.addEventListener("submit", function (event) {
+    if (event.target.id === "chat-form") {
+        sendChatMessage(event);
+    }
+});
 
 // =====================================================
 // UTILITÁRIOS
@@ -173,6 +266,8 @@ function setButtonsDisabled(buttons, disabled) {
 // =====================================================
 
 function showView(view) {
+    pararPollingChat();
+
     state.view = view;
     state.selectedId = null;
     state.detail = null;
@@ -247,8 +342,7 @@ function renderList() {
     });
 
     $("result-count").textContent =
-        `${filtered.length} ${
-            filtered.length === 1 ? "registro" : "registros"
+        `${filtered.length} ${filtered.length === 1 ? "registro" : "registros"
         }`;
 
     $("list-heading").textContent =
@@ -392,9 +486,58 @@ function renderDetails(data) {
     const assignedToMe =
         Number(request.id_atendente_responsavel) > 0 &&
         Number(request.id_atendente_responsavel) ===
-            Number(state.idAtendente);
+        Number(state.idAtendente);
 
     const isConcluded = request.status !== "EM ANALISE";
+
+    const canSendMessage = assignedToMe && !isConcluded;
+
+    const chatHTML = `
+        <section class="chat-section">
+
+            <div class="chat-header">
+                <div>
+                    <h3>Conversa da solicitação</h3>
+                    <p>
+                        Comunicação entre cliente e atendente
+                        sobre esta solicitação.
+                    </p>
+                </div>
+            </div>
+
+            <div id="chat-messages" class="chat-messages">
+                <p class="chat-empty">
+                    Carregando mensagens...
+                </p>
+            </div>
+
+            ${canSendMessage ? `
+                <form id="chat-form" class="chat-form">
+
+                    <textarea
+                        id="chat-input"
+                        name="conteudo"
+                        placeholder="Digite sua mensagem..."
+                        maxlength="2000"
+                        required
+                    ></textarea>
+
+                    <button type="submit" id="chat-send-button">
+                        Enviar
+                    </button>
+
+                </form>
+            ` : ""}
+
+            ${!canSendMessage ? `
+                <p class="chat-notice">
+                    ${isConcluded
+                ? "Solicitação concluída. O histórico está disponível para consulta."
+                : "Assuma esta solicitação para poder responder às mensagens."}
+                </p>
+            ` : ""}
+        </section>
+    `;
 
     let actionHTML = "";
 
@@ -535,10 +678,10 @@ function renderDetails(data) {
                 <div class="info-item">
                     <span>Descrição</span>
                     <strong>${escapeHTML(
-                        request.descricao_cartao ||
-                        request.descricao_servico ||
-                        "Sem descrição disponível."
-                    )}</strong>
+        request.descricao_cartao ||
+        request.descricao_servico ||
+        "Sem descrição disponível."
+    )}</strong>
                 </div>
             </div>
         </section>
@@ -547,6 +690,8 @@ function renderDetails(data) {
             <h3>Histórico de atendimento</h3>
             <div class="history-list">${historyHTML}</div>
         </section>
+
+        ${chatHTML}
 
         ${actionHTML}
     `;
@@ -571,6 +716,121 @@ function renderDetails(data) {
         rejectButton.addEventListener("click", () => {
             decideRequest("RECUSAR");
         });
+    }
+
+    const idSolicitacao = Number(request.id_solicitacao);
+
+    loadChatMessages(idSolicitacao);
+
+    if (request.status === "EM ANALISE") {
+        iniciarPollingChat(idSolicitacao);
+    } else {
+        pararPollingChat();
+    }
+}
+
+function renderChatMessages(mensagens) {
+    const container = $("chat-messages");
+
+    if (!container) return;
+
+    if (!mensagens.length) {
+        container.innerHTML = `
+            <p class="chat-empty">
+                Nenhuma mensagem enviada ainda.
+            </p>
+        `;
+        return;
+    }
+
+    container.innerHTML = mensagens.map((mensagem) => {
+        const isAttendant = mensagem.remetente === "ATENDENTE";
+
+        return `
+            <article class="chat-message ${isAttendant ? "attendant" : "client"
+            }">
+
+                <span class="chat-message-author">
+                    ${isAttendant ? "Você" : "Cliente"}
+                </span>
+
+                <p class="chat-message-content">
+                    ${escapeHTML(mensagem.conteudo_mensagem)}
+                </p>
+
+                <time>
+                    ${escapeHTML(formatDate(mensagem.data_envio))}
+                </time>
+
+            </article>
+        `;
+    }).join("");
+
+    container.scrollTop = container.scrollHeight;
+}
+
+async function loadChatMessages(idSolicitacao) {
+    const container = $("chat-messages");
+
+    if (!container || chatLoadingId === idSolicitacao) return;
+
+    chatLoadingId = idSolicitacao;
+
+    try {
+        console.log("Consultando mensagens da solicitação:", idSolicitacao);
+
+        const data = await mensagemAPI(idSolicitacao);
+
+        // Não atualiza uma solicitação que não está mais aberta.
+        if (Number(state.selectedId) !== Number(idSolicitacao)) return;
+
+        console.log("Mensagens recebidas:", data.mensagens);
+
+        renderChatMessages(data.mensagens || []);
+
+    } catch (error) {
+        if (Number(state.selectedId) !== Number(idSolicitacao)) return;
+
+        console.error("Erro ao carregar mensagens:", error);
+
+        container.innerHTML = `
+            <p class="chat-empty">
+                ${escapeHTML(error.message)}
+            </p>
+        `;
+    } finally {
+        if (chatLoadingId === idSolicitacao) {
+            chatLoadingId = null;
+        }
+    }
+}
+
+function iniciarPollingChat(idSolicitacao) {
+    pararPollingChat();
+
+    console.log("Polling iniciado para:", idSolicitacao);
+
+    chatPolling = setInterval(() => {
+
+        if (document.visibilityState !== "visible") return;
+
+        if (Number(state.selectedId) !== Number(idSolicitacao)) {
+            pararPollingChat();
+            return;
+        }
+
+        console.log("Polling: buscando novas mensagens...");
+
+        loadChatMessages(idSolicitacao);
+
+    }, 3000);
+}
+
+
+function pararPollingChat() {
+    if (chatPolling) {
+        clearInterval(chatPolling);
+        chatPolling = null;
     }
 }
 
@@ -1093,17 +1353,17 @@ function renderGenericReport(data) {
                             ${rows.map(row => `
                                 <tr>
                                     ${columns.map(column => {
-                                        const value = row[column];
+            const value = row[column];
 
-                                        const displayValue =
-                                            value === null || value === undefined
-                                                ? "Não informado"
-                                                : typeof value === "object"
-                                                    ? JSON.stringify(value)
-                                                    : value;
+            const displayValue =
+                value === null || value === undefined
+                    ? "Não informado"
+                    : typeof value === "object"
+                        ? JSON.stringify(value)
+                        : value;
 
-                                        return `<td>${escapeHTML(displayValue)}</td>`;
-                                    }).join("")}
+            return `<td>${escapeHTML(displayValue)}</td>`;
+        }).join("")}
                                 </tr>
                             `).join("")}
                         </tbody>
@@ -1197,6 +1457,9 @@ $("refresh-button").addEventListener("click", async () => {
 });
 
 $("back-button").addEventListener("click", () => {
+
+    pararPollingChat();
+
     $("detail-view").hidden = true;
     $("reports-view").hidden = true;
     $("list-view").hidden = false;

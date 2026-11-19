@@ -100,12 +100,12 @@ def login():
     except Exception:
         logging.exception("Erro ao autenticar atendente")
 
+        session["nome_atendente"] = atendente["nome_atendente"]
+
         return jsonify({
             "success": False,
             "mensagem": "Não foi possível realizar o login."
         }), 500
-
-    session["nome_atendente"] = atendente["nome_atendente"]
 
 @atendente_bp.route("/sessao", methods=["GET"])
 @atendente_required
