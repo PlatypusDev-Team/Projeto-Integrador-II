@@ -13,6 +13,7 @@ from routes.auth import auth_bp
 from routes.conta import conta_bp
 from routes.solicitar_cartao import solicitar_cartao_bp
 from routes.mensagens import mensagens_bp
+from routes.outros_produtos import outros_produtos_bp
 
 #atendente
 from routes.atendente import atendente_bp
@@ -44,6 +45,7 @@ def create_app():
     app.register_blueprint(auth_bp)
     app.register_blueprint(conta_bp)
     app.register_blueprint(solicitar_cartao_bp)
+    app.register_blueprint(outros_produtos_bp)
 
     #atendente
     app.register_blueprint(
