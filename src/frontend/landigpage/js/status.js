@@ -73,8 +73,10 @@ const userAvatar = document.querySelector("#user-avatar");
 const refreshStatusButton = document.querySelector("#refresh-status");
 const notFoundState = document.querySelector("#not-found-state");
 
-const outrosProdutos = document.getElementById("#outros-produtos");
-
+const outrosProdutos = document.getElementById("outros-produtos");
+const produtos = document.getElementById("produtos");
+const left = document.getElementById("left");
+const right = document.getElementById("right");
 
 // =====================================================
 // VARIÁVEIS DE CONTROLE
@@ -241,32 +243,6 @@ document.querySelectorAll("[data-landing-placeholder]").forEach((link) => {
 // RENDERIZAÇÃO DO STATUS
 // =====================================================
 
-function renderOutrosProdutos(listaProdutos) {
-    
-    outrosProdutos.innerHTML = "";
-
-    const article = document.createElement("article");
-
-    article.innerHTML = `
-            <h1>
-                ${servico.nome_servico}
-            </h1>
-
-            <p>
-                ${
-                    servico.descricao_servico ||
-                    "Produto oferecido pela DM"
-                }
-            </p>
-        `;
-
-        listaLojas.appendChild(card);
-}
-
-// =====================================================
-// RENDERIZAÇÃO DO STATUS
-// =====================================================
-
 function renderStatus(solicitacao) {
     const status = mapStatus(solicitacao.status);
     const content = contentByStatus[status];
@@ -301,6 +277,8 @@ function renderStatus(solicitacao) {
     }
 
     ocultarSolicitacaoNaoEncontrada();
+
+    outrosProdutos.hidden = status !== "rejeitada";
 
     page.dataset.status = status;
 
@@ -401,6 +379,8 @@ function renderStatus(solicitacao) {
     if (status === "rejeitada") {
         resultIcon.className = "status-card__icon rejection-icon";
         resultIcon.textContent = "";
+        
+        carregarOutrosProdutos();
 
     } else if (status === "analise") {
         resultIcon.className = "status-card__icon result-pending-icon";
@@ -623,6 +603,54 @@ async function carregarMensagens() {
     }
 }
 
+async function carregarOutrosProdutos() {
+    try {
+        const resposta = await fetch(
+            `${API_BASE}/api/outros_produtos/`
+        );
+
+        const resultado = await resposta.json();
+
+        if (!resposta.ok) {
+            throw new Error(resultado.erro);
+        }
+
+        produtos.innerHTML = "";
+
+        if (resultado.length === 0) {
+            produtos.textContent = "";
+            return;
+        }
+
+        resultado.forEach(function(produto) {
+
+            const card = document.createElement("article");
+            card.classList.add("card-produto");
+
+            const nome = document.createElement("p");
+            nome.classList.add("nome-produto");
+            nome.textContent = produto.nome_servico;
+
+            const descricao = document.createElement("p");
+            descricao.classList.add("descricao-produto")
+            descricao.textContent =
+                produto.descricao_servico || "Produto oferecido pela DM";
+
+            card.appendChild(nome);
+            card.appendChild(descricao);
+
+            produtos.appendChild(card);
+        });
+
+        produtos.hidden = false;
+
+    } catch (erro) {
+        console.error("Erro ao carregar outros serviços:", erro);
+        produtos.textContent = "";
+        produtos.textContent = "Não foi possível carregar os produtos.";
+        outrosProdutos.hidden = false;
+    }
+}
 
 // =====================================================
 // CHAT: POLLING
@@ -839,6 +867,20 @@ async function carregarConta() {
         chatForm.addEventListener("submit", enviarMensagem);
     }
 }
+
+right.addEventListener("click", function() {
+    produtos.scrollBy({
+        left: 300,
+        behavior: "smooth"
+    });
+});
+
+left.addEventListener("click", function() {
+    produtos.scrollBy({
+        left: -300,
+        behavior: "smooth"
+    });
+});
 
 
 // =====================================================

@@ -1,10 +1,10 @@
 from db import get_connection
 
-def buscar_outros_produtos(id_produto):
+def buscar_outros_produtos():
     conexao = get_connection()
 
     try:
-        with conexao.cursor() as cursor:
+       with conexao.cursor() as cursor:
             cursor.execute(
                 """
                 SELECT
@@ -13,12 +13,13 @@ def buscar_outros_produtos(id_produto):
                     descricao_servico
                 FROM tb_servico
                 WHERE ativo_servico = 1
-                ORDER BY id_produto
-                """,
-                (id_produto,)
+                ORDER BY id_produto;
+                """
             )
 
-            return cursor.fetchall()
+            produtos = cursor.fetchall()
+
+            return produtos
 
     finally:
         conexao.close()
