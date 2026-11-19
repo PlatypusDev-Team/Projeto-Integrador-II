@@ -24,7 +24,8 @@ create table tb_atendente (
 );
 
 create table tb_produto (
-	id_produto int auto_increment primary key
+	id_produto int auto_increment primary key,
+    tipo_produto enum('CARTAO', 'SERVICO') not null
 );
 
 create table tb_servico (
@@ -35,10 +36,24 @@ create table tb_servico (
     foreign key (id_produto) references tb_produto(id_produto)
 );
 
+create table tb_categoria (
+    id_categoria int auto_increment primary key,
+    nome_categoria varchar(20) unique not null
+);
+
 create table tb_loja (
 	id_loja int auto_increment primary key,
     nome_loja varchar(30) not null,
-    descricao_loja longtext not null
+    descricao_loja longtext not null,
+    logo_loja mediumblob null
+);
+
+create table tb_categoria_loja (
+    id_categoria int not null,
+    id_loja int not null,
+    primary key (id_categoria, id_loja),
+    foreign key (id_categoria) references tb_categoria(id_categoria),
+    foreign key (id_loja) references tb_loja(id_loja)
 );
 
 create table tb_cartao (
@@ -86,4 +101,36 @@ create table tb_filial (
     uf_filial char(2),
     id_loja int not null,
     foreign key (id_loja) references tb_loja(id_loja)
+);
+
+-- parte do sistema de mensagem
+
+create table tb_chat (
+    id_chat int auto_increment primary key,
+    id_solicitacao int not null unique,
+    data_criacao timestamp default current_timestamp,
+    foreign key (id_solicitacao) references tb_solicitacao(id_solicitacao)
+);
+
+create table tb_mensagem (
+    id_mensagem int auto_increment primary key,
+    conteudo_mensagem longtext not null,
+    data_envio timestamp default current_timestamp,
+    remetente enum('CLIENTE', 'ATENDENTE') not null,
+    id_chat int not null,
+    id_cliente int null,
+    id_atendente int null,
+    foreign key (id_chat) references tb_chat(id_chat),
+    foreign key (id_cliente) references tb_cliente(id_cliente),
+    foreign key (id_atendente) references tb_atendente(id_atendente),
+
+    constraint chk_remetente check (
+        (remetente = 'CLIENTE'
+            and id_cliente is not null
+            and id_atendente is null)
+        or
+        (remetente = 'ATENDENTE'
+            and id_atendente is not null
+            and id_cliente is null)
+    )
 );
