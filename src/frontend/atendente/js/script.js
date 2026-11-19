@@ -131,6 +131,58 @@ async function mensagemAPI(idSolicitacao, options = {}) {
     return data;
 }
 
+async function sendChatMessage(event) {
+    event.preventDefault();
+
+    const form = event.target;
+    const input = $("chat-input");
+    const button = $("chat-send-button");
+
+    const conteudo = input.value.trim();
+    const idSolicitacao = Number(state.selectedId);
+
+    if (!conteudo) {
+        input.focus();
+        return;
+    }
+
+    if (!idSolicitacao) {
+        alert("Nenhuma solicitação selecionada.");
+        return;
+    }
+
+    button.disabled = true;
+    button.textContent = "Enviando...";
+
+    try {
+        await mensagemAPI(idSolicitacao, {
+            method: "POST",
+            body: JSON.stringify({
+                conteudo: conteudo
+            })
+        });
+
+        form.reset();
+
+        await loadChatMessages(idSolicitacao);
+
+    } catch (error) {
+        alert(error.message);
+
+    } finally {
+        if (button.isConnected) {
+            button.disabled = false;
+            button.textContent = "Enviar";
+        }
+    }
+}
+
+document.addEventListener("submit", function(event) {
+    if (event.target.id === "chat-form") {
+        sendChatMessage(event);
+    }
+});
+
 // =====================================================
 // UTILITÁRIOS
 // =====================================================
@@ -455,6 +507,24 @@ function renderDetails(data) {
                     Carregando mensagens...
                 </p>
             </div>
+
+            ${canSendMessage ? `
+                <form id="chat-form" class="chat-form">
+
+                    <textarea
+                        id="chat-input"
+                        name="conteudo"
+                        placeholder="Digite sua mensagem..."
+                        maxlength="2000"
+                        required
+                    ></textarea>
+
+                    <button type="submit" id="chat-send-button">
+                        Enviar
+                    </button>
+
+                </form>
+            ` : ""}
 
             ${!canSendMessage ? `
                 <p class="chat-notice">
