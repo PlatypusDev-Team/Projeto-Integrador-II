@@ -1,4 +1,3 @@
-
 const API = "http://127.0.0.1:5000/api/atendente";
 
 const state = {
@@ -14,6 +13,9 @@ const $ = (id) => document.getElementById(id);
 
 let statusChart = null;
 let monthChart = null;
+
+let chatPolling = null;
+let chatLoadingId = null;
 
 const reportResultsTemplate = $("report-results").innerHTML;
 
@@ -177,7 +179,7 @@ async function sendChatMessage(event) {
     }
 }
 
-document.addEventListener("submit", function(event) {
+document.addEventListener("submit", function (event) {
     if (event.target.id === "chat-form") {
         sendChatMessage(event);
     }
@@ -264,6 +266,8 @@ function setButtonsDisabled(buttons, disabled) {
 // =====================================================
 
 function showView(view) {
+    pararPollingChat();
+
     state.view = view;
     state.selectedId = null;
     state.detail = null;
@@ -338,8 +342,7 @@ function renderList() {
     });
 
     $("result-count").textContent =
-        `${filtered.length} ${
-            filtered.length === 1 ? "registro" : "registros"
+        `${filtered.length} ${filtered.length === 1 ? "registro" : "registros"
         }`;
 
     $("list-heading").textContent =
@@ -483,7 +486,7 @@ function renderDetails(data) {
     const assignedToMe =
         Number(request.id_atendente_responsavel) > 0 &&
         Number(request.id_atendente_responsavel) ===
-            Number(state.idAtendente);
+        Number(state.idAtendente);
 
     const isConcluded = request.status !== "EM ANALISE";
 
@@ -529,8 +532,8 @@ function renderDetails(data) {
             ${!canSendMessage ? `
                 <p class="chat-notice">
                     ${isConcluded
-                        ? "Solicitação concluída. O histórico está disponível para consulta."
-                        : "Assuma esta solicitação para poder responder às mensagens."}
+                ? "Solicitação concluída. O histórico está disponível para consulta."
+                : "Assuma esta solicitação para poder responder às mensagens."}
                 </p>
             ` : ""}
         </section>
@@ -675,10 +678,10 @@ function renderDetails(data) {
                 <div class="info-item">
                     <span>Descrição</span>
                     <strong>${escapeHTML(
-                        request.descricao_cartao ||
-                        request.descricao_servico ||
-                        "Sem descrição disponível."
-                    )}</strong>
+        request.descricao_cartao ||
+        request.descricao_servico ||
+        "Sem descrição disponível."
+    )}</strong>
                 </div>
             </div>
         </section>
@@ -715,7 +718,15 @@ function renderDetails(data) {
         });
     }
 
-    loadChatMessages(Number(request.id_solicitacao));
+    const idSolicitacao = Number(request.id_solicitacao);
+
+    loadChatMessages(idSolicitacao);
+
+    if (request.status === "EM ANALISE") {
+        iniciarPollingChat(idSolicitacao);
+    } else {
+        pararPollingChat();
+    }
 }
 
 function renderChatMessages(mensagens) {
@@ -736,8 +747,7 @@ function renderChatMessages(mensagens) {
         const isAttendant = mensagem.remetente === "ATENDENTE";
 
         return `
-            <article class="chat-message ${
-                isAttendant ? "attendant" : "client"
+            <article class="chat-message ${isAttendant ? "attendant" : "client"
             }">
 
                 <span class="chat-message-author">
@@ -759,28 +769,68 @@ function renderChatMessages(mensagens) {
     container.scrollTop = container.scrollHeight;
 }
 
-
 async function loadChatMessages(idSolicitacao) {
     const container = $("chat-messages");
 
-    if (!container) return;
+    if (!container || chatLoadingId === idSolicitacao) return;
+
+    chatLoadingId = idSolicitacao;
 
     try {
+        console.log("Consultando mensagens da solicitação:", idSolicitacao);
+
         const data = await mensagemAPI(idSolicitacao);
 
-        // Evita atualizar o chat de uma solicitação diferente.
-        if (state.selectedId !== idSolicitacao) return;
+        // Não atualiza uma solicitação que não está mais aberta.
+        if (Number(state.selectedId) !== Number(idSolicitacao)) return;
+
+        console.log("Mensagens recebidas:", data.mensagens);
 
         renderChatMessages(data.mensagens || []);
 
     } catch (error) {
-        if (state.selectedId !== idSolicitacao) return;
+        if (Number(state.selectedId) !== Number(idSolicitacao)) return;
+
+        console.error("Erro ao carregar mensagens:", error);
 
         container.innerHTML = `
             <p class="chat-empty">
                 ${escapeHTML(error.message)}
             </p>
         `;
+    } finally {
+        if (chatLoadingId === idSolicitacao) {
+            chatLoadingId = null;
+        }
+    }
+}
+
+function iniciarPollingChat(idSolicitacao) {
+    pararPollingChat();
+
+    console.log("Polling iniciado para:", idSolicitacao);
+
+    chatPolling = setInterval(() => {
+
+        if (document.visibilityState !== "visible") return;
+
+        if (Number(state.selectedId) !== Number(idSolicitacao)) {
+            pararPollingChat();
+            return;
+        }
+
+        console.log("Polling: buscando novas mensagens...");
+
+        loadChatMessages(idSolicitacao);
+
+    }, 3000);
+}
+
+
+function pararPollingChat() {
+    if (chatPolling) {
+        clearInterval(chatPolling);
+        chatPolling = null;
     }
 }
 
@@ -1303,17 +1353,17 @@ function renderGenericReport(data) {
                             ${rows.map(row => `
                                 <tr>
                                     ${columns.map(column => {
-                                        const value = row[column];
+            const value = row[column];
 
-                                        const displayValue =
-                                            value === null || value === undefined
-                                                ? "Não informado"
-                                                : typeof value === "object"
-                                                    ? JSON.stringify(value)
-                                                    : value;
+            const displayValue =
+                value === null || value === undefined
+                    ? "Não informado"
+                    : typeof value === "object"
+                        ? JSON.stringify(value)
+                        : value;
 
-                                        return `<td>${escapeHTML(displayValue)}</td>`;
-                                    }).join("")}
+            return `<td>${escapeHTML(displayValue)}</td>`;
+        }).join("")}
                                 </tr>
                             `).join("")}
                         </tbody>
@@ -1407,6 +1457,9 @@ $("refresh-button").addEventListener("click", async () => {
 });
 
 $("back-button").addEventListener("click", () => {
+
+    pararPollingChat();
+
     $("detail-view").hidden = true;
     $("reports-view").hidden = true;
     $("list-view").hidden = false;
