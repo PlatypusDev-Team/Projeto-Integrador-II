@@ -80,6 +80,12 @@ def montar_dashboard():
                 FROM tb_solicitacao AS s
                 INNER JOIN tb_cartao AS ca
                     ON ca.id_produto = s.id_produto
+                WHERE
+                s.data_solicitacao >= DATE_FORMAT(CURRENT_DATE(), '%Y-%m-01')
+                AND s.data_solicitacao < DATE_ADD(
+                    DATE_FORMAT(CURRENT_DATE(), '%Y-%m-01'),
+                    INTERVAL 1 MONTH
+                )
                 GROUP BY categoria
                 ORDER BY total DESC, categoria ASC
                 """

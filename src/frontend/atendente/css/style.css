@@ -1080,182 +1080,90 @@ button:focus-visible, input:focus-visible, select:focus-visible {
     }
 }
 
-/* sistema de menssagem */
-
-
-/* Chat da solicitação */
-
-.chat-section {
-    padding: 24px 0;
-    border-bottom: 1px solid var(--border);
-}
-
-.chat-header {
-    display: flex;
+/* =====================================================
+   DASHBOARD GERAL
+===================================================== */
+.dashboard-heading {
     align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 18px;
+    gap: 18px;
 }
-
-.chat-header p {
-    margin-top: 5px;
-    color: var(--muted);
+.dashboard-eyebrow {
+    margin-bottom: 6px;
+    color: var(--blue);
     font-size: 11px;
-    line-height: 1.5;
+    font-weight: 800;
+    letter-spacing: .12em;
 }
-
-.chat-status {
-    padding: 6px 9px;
-    border-radius: 5px;
-    color: #795c00;
-    background: #fff4c4;
-    font-size: 10px;
+.dashboard-live-label, .dashboard-period-tag {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 7px 11px;
+    border-radius: 20px;
+    background: #eef0ff;
+    color: #212acf;
+    font-size: 11px;
     font-weight: 700;
     white-space: nowrap;
 }
-
-.chat-messages {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    max-height: 380px;
-    min-height: 180px;
-    padding: 18px;
-    overflow-y: auto;
-    background: var(--background);
+.dashboard-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+    margin: 22px 0;
+}
+.dashboard-kpi-card {
+    position: relative;
+    min-width: 0;
+    padding: 22px 24px;
+    background: #fff;
     border: 1px solid #e5e7ef;
+    border-radius: 14px;
 }
-
-.chat-message {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    max-width: 78%;
-}
-
-.chat-message.client {
-    align-self: flex-start;
-}
-
-.chat-message.attendant {
-    align-self: flex-end;
-}
-
-.chat-message-author {
-    color: var(--muted);
-    font-size: 10px;
-    font-weight: 700;
-}
-
-.chat-message-content {
-    padding: 11px 13px;
-    border-radius: 10px;
-    font-size: 12px;
-    line-height: 1.6;
-    overflow-wrap: anywhere;
-    white-space: pre-wrap;
-}
-
-.chat-message.client .chat-message-content {
-    color: var(--text);
-    background: white;
-    border: 1px solid #e5e7ef;
-    border-bottom-left-radius: 3px;
-}
-
-.chat-message.attendant .chat-message-content {
-    color: white;
-    background: var(--blue);
-    border-bottom-right-radius: 3px;
-}
-
-.chat-message time {
-    color: var(--muted);
-    font-size: 9px;
-}
-
-.chat-empty {
+.dashboard-kpi-icon {
     display: grid;
     place-items: center;
-    flex: 1;
-    color: var(--muted);
-    font-size: 11px;
-    text-align: center;
-    line-height: 1.6;
+    width: 38px;
+    height: 38px;
+    margin-bottom: 15px;
+    border-radius: 10px;
+    background: #eef0ff;
+    color: #212acf;
+    font-size: 21px;
+    font-weight: 800;
 }
-
-.chat-form {
-    display: flex;
-    align-items: flex-end;
-    gap: 10px;
-    margin-top: 12px;
+.dashboard-kpi-icon.accepted { background: #e8fbf0; color: #20965a; }
+.dashboard-kpi-icon.denied { background: #fff0f1; color: #c73748; }
+.dashboard-kpi-card p { color: #777b8e; font-size: 13px; font-weight: 600; }
+.dashboard-kpi-card strong { display: block; margin: 5px 0; color: #20243a; font-family: Catamaran, sans-serif; font-size: clamp(27px, 3vw, 36px); line-height: 1.15; }
+.dashboard-kpi-card small { color: #8a8da0; font-size: 11px; }
+.dashboard-chart-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
 }
-
-.chat-form textarea {
-    flex: 1;
-    min-width: 0;
-    min-height: 44px;
-    max-height: 120px;
-    padding: 12px;
-    resize: vertical;
-    border: 1px solid #e5e7ef;
-    border-radius: 8px;
-    color: var(--text);
-    background: white;
-    font: inherit;
-    font-size: 12px;
+.dashboard-chart-card { min-width: 0; }
+.dashboard-card-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.dashboard-card-heading h3 { margin-bottom: 5px; font-size: 16px; }
+.dashboard-card-heading p { color: #8a8da0; font-size: 12px; line-height: 1.5; }
+.dashboard-wide-card { grid-column: 1 / -1; }
+.dashboard-doughnut-container { height: 270px; }
+.dashboard-monthly-container { height: 340px; }
+.dashboard-ranking-container { height: 280px; }
+.dashboard-reports-heading { margin: 34px 0 0; padding-top: 25px; border-top: 1px solid #e5e7ef; }
+.dashboard-reports-heading h2 { color: #20243a; font-size: 19px; }
+.dashboard-reports-heading p { margin-top: 5px; color: #777b8e; font-size: 13px; }
+@media (max-width: 900px) {
+    .dashboard-kpi-grid { grid-template-columns: 1fr 1fr; }
+    .dashboard-kpi-card:first-child { grid-column: 1 / -1; }
 }
-
-.chat-form textarea:focus {
-    outline: 2px solid var(--mint);
-    border-color: var(--blue);
-}
-
-.chat-form button {
-    min-height: 44px;
-    padding: 0 16px;
-    border: 0;
-    border-radius: 8px;
-    color: white;
-    background: var(--blue);
-    font-size: 11px;
-    font-weight: 700;
-}
-
-.chat-form button:hover {
-    background: var(--blue-dark);
-}
-
-.chat-form button:disabled {
-    cursor: not-allowed;
-    opacity: .5;
-}
-
-.chat-notice {
-    margin-top: 12px;
-    padding: 11px 13px;
-    color: var(--muted);
-    background: var(--background);
-    font-size: 11px;
-    line-height: 1.6;
-}
-
-@media (max-width: 480px) {
-    .chat-message {
-        max-width: 90%;
-    }
-
-    .chat-messages {
-        padding: 12px;
-    }
-
-    .chat-form {
-        align-items: stretch;
-        flex-direction: column;
-    }
-
-    .chat-form button {
-        align-self: flex-end;
-    }
+@media (max-width: 760px) {
+    .dashboard-chart-grid { grid-template-columns: 1fr; }
+    .dashboard-wide-card { grid-column: auto; }
+    .dashboard-heading { align-items: flex-start; flex-direction: column; }
+    .dashboard-kpi-grid { grid-template-columns: 1fr; }
+    .dashboard-kpi-card:first-child { grid-column: auto; }
+    .dashboard-kpi-card { padding: 18px; }
+    .dashboard-doughnut-container { height: 250px; }
+    .dashboard-monthly-container { height: 300px; }
 }

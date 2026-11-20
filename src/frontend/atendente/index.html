@@ -70,7 +70,7 @@
             <div id="page-message" class="page-message" hidden
                 role="status"></div>
 
-            <section class="summary-grid" aria-label="Resumo">
+            <section id="summary-grid" class="summary-grid" aria-label="Resumo">
                 <article class="summary-card">
                     <span class="summary-icon">▤</span>
                     <p>Disponíveis para atendimento</p>
@@ -130,12 +130,106 @@
             </section>
 
             <section id="reports-view" class="content-panel" hidden>
-                <!-- Catálogo de relatórios -->
+                <!-- Dashboard geral: permanece exclusivamente na aba Relatórios -->
                 <div id="report-catalog">
-                    <div class="panel-heading">
+                    <div class="dashboard-heading panel-heading">
                         <div>
-                            <h2>Central de relatórios</h2>
-                            <p>Explore indicadores e exporte os resultados.</p>
+                            <p class="dashboard-eyebrow">VISÃO GERAL</p>
+                            <h2>Desempenho das solicitações</h2>
+                            <p id="dashboard-period-label">Acompanhe os resultados do mês e do ano.</p>
+                        </div>
+                        <span class="dashboard-live-label">Dados atualizados</span>
+                    </div>
+
+                    <div class="dashboard-kpi-grid">
+                        <article class="dashboard-kpi-card">
+                            <span class="dashboard-kpi-icon">▤</span>
+                            <p>Solicitações no mês</p>
+                            <strong id="dashboard-total-month">—</strong>
+                            <small>Volume recebido no mês atual</small>
+                        </article>
+                        <article class="dashboard-kpi-card">
+                            <span class="dashboard-kpi-icon accepted">✓</span>
+                            <p>Taxa de aprovação</p>
+                            <strong id="dashboard-approval-rate">—</strong>
+                            <small>Solicitações aceitas ÷ total do mês</small>
+                        </article>
+                        <article class="dashboard-kpi-card">
+                            <span class="dashboard-kpi-icon denied">×</span>
+                            <p>Taxa de rejeição</p>
+                            <strong id="dashboard-rejection-rate">—</strong>
+                            <small>Solicitações negadas ÷ total do mês</small>
+                        </article>
+                    </div>
+
+                    <div class="dashboard-chart-grid">
+                        <article class="report-chart-card dashboard-chart-card">
+                            <div class="dashboard-card-heading">
+                                <div>
+                                    <h3>Solicitações do mês</h3>
+                                    <p>Distribuição por status atual</p>
+                                </div>
+                                <span class="dashboard-period-tag" id="dashboard-month-tag">MÊS ATUAL</span>
+                            </div>
+                            <div class="chart-container dashboard-doughnut-container">
+                                <canvas id="dashboard-month-chart"></canvas>
+                            </div>
+                        </article>
+
+                        <article class="report-chart-card dashboard-chart-card">
+                            <div class="dashboard-card-heading">
+                                <div>
+                                    <h3>Distribuição anual</h3>
+                                    <p>Participação de cada status no ano</p>
+                                </div>
+                                <span class="dashboard-period-tag" id="dashboard-year-tag">ANO</span>
+                            </div>
+                            <div class="chart-container dashboard-doughnut-container">
+                                <canvas id="dashboard-year-chart"></canvas>
+                            </div>
+                        </article>
+
+                        <article class="report-chart-card dashboard-chart-card dashboard-wide-card">
+                            <div class="dashboard-card-heading">
+                                <div>
+                                    <h3>Evolução mensal</h3>
+                                    <p>Solicitações recebidas por mês, separadas pelo status atual</p>
+                                </div>
+                            </div>
+                            <div class="chart-container dashboard-monthly-container">
+                                <canvas id="dashboard-monthly-chart"></canvas>
+                            </div>
+                        </article>
+
+                        <article class="report-chart-card dashboard-chart-card">
+                            <div class="dashboard-card-heading">
+                                <div>
+                                    <h3>Lojas em destaque</h3>
+                                    <p>As três lojas que mais receberam solicitações neste mês</p>
+                                </div>
+                            </div>
+                            <div class="chart-container dashboard-ranking-container">
+                                <canvas id="dashboard-stores-chart"></canvas>
+                            </div>
+                        </article>
+
+                        <article class="report-chart-card dashboard-chart-card">
+                            <div class="dashboard-card-heading">
+                                <div>
+                                    <h3>Solicitações por cartão</h3>
+                                    <p>Comparativo geral de solicitações por categoria</p>
+                                </div>
+                            </div>
+                            <div class="chart-container dashboard-ranking-container">
+                                <canvas id="dashboard-products-chart"></canvas>
+                            </div>
+                        </article>
+                    </div>
+
+                    <div class="dashboard-reports-heading">
+                        <div>
+                            <h2>Relatórios detalhados</h2>
+                            <p>Consulte análises específicas e exportações.</p>
                         </div>
                     </div>
 
@@ -143,55 +237,23 @@
                         <article class="report-card">
                             <span class="report-icon" aria-hidden="true">▤</span>
                             <h3>Solicitações por status</h3>
-
-                            <p>
-                                Consulte o total de solicitações, a distribuição por status
-                                e a evolução mensal dos registros cadastrados no sistema.
-                            </p>
-
-                            <div class="report-formats">
-                                <span>Gráficos</span>
-                                <span>PDF</span>
-                                <span>Excel</span>
-                            </div>
-
-                            <button class="primary-button" id="open-status-report" type="button">
-                                Abrir relatório
-                            </button>
+                            <p>Consulte os registros e a distribuição por status em um período escolhido.</p>
+                            <div class="report-formats"><span>Gráficos</span><span>PDF</span><span>Excel</span></div>
+                            <button class="primary-button" id="open-status-report" type="button">Abrir relatório</button>
                         </article>
-
                         <article class="report-card">
                             <span class="report-icon" aria-hidden="true">▦</span>
                             <h3>Produtos mais solicitados</h3>
-
-                            <p>
-                                Identifique os cartões e serviços com maior volume de solicitações.
-                            </p>
-
-                            <div class="report-formats">
-                                <span>Produtos</span>
-                            </div>
-
-                            <button class="primary-button" id="open-products-report" type="button">
-                                Abrir relatório
-                            </button>
+                            <p>Identifique os cartões e serviços com maior volume de solicitações.</p>
+                            <div class="report-formats"><span>Produtos</span></div>
+                            <button class="primary-button" id="open-products-report" type="button">Abrir relatório</button>
                         </article>
-
                         <article class="report-card">
                             <span class="report-icon" aria-hidden="true">▥</span>
                             <h3>Desempenho do atendimento</h3>
-
-                            <p>
-                                Acompanhe o volume de atendimentos e os tempos de resolução.
-                            </p>
-
-                            <div class="report-formats">
-                                <span>Desempenho</span>
-                            </div>
-
-                            <button class="primary-button" id="open-performance-report" type="button">
-                                Abrir relatório
-                            </button>
+                            <p>Acompanhe o volume de atendimentos e os tempos de resolução.</p>
+                            <div class="report-formats"><span>Desempenho</span></div>
+                            <button class="primary-button" id="open-performance-report" type="button">Abrir relatório</button>
                         </article>
                     </div>
                 </div>
@@ -279,7 +341,7 @@
                                         <tr>
                                             <th>Solicitação</th>
                                             <th>Status</th>
-                                            <th>Data de referência</th>
+                                            <th>Data da solicitação</th>
                                         </tr>
                                     </thead>
                                     <tbody id="report-table-body">
