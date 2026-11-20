@@ -13,6 +13,7 @@ const $ = (id) => document.getElementById(id);
 
 let statusChart = null;
 let monthChart = null;
+const dashboardCharts = {};
 
 let chatPolling = null;
 let chatLoadingId = null;
@@ -273,6 +274,7 @@ function showView(view) {
     state.detail = null;
 
     $("list-view").hidden = view === "relatorios";
+    $("summary-grid").hidden = view === "relatorios";
     $("detail-view").hidden = true;
     $("reports-view").hidden = view !== "relatorios";
 
@@ -303,6 +305,7 @@ function showView(view) {
 
     if (view === "relatorios") {
         closeReport();
+        loadDashboard();
     }
 }
 
@@ -995,6 +998,133 @@ async function decideRequest(decision) {
 // RELATÓRIOS
 // =====================================================
 
+const DASHBOARD_STATUS = [
+    { key: "ACEITO", label: "Aceitas", color: "#68e69a" },
+    { key: "EM ANALISE", label: "Em análise", color: "#212acf" },
+    { key: "NEGADO", label: "Recusadas", color: "#ff9a98" }
+];
+
+function destroyDashboardCharts() {
+    Object.values(dashboardCharts).forEach((chart) => chart?.destroy());
+    Object.keys(dashboardCharts).forEach((key) => delete dashboardCharts[key]);
+}
+
+function createDashboardChart(id, config) {
+    const canvas = $(id);
+    if (!canvas || typeof Chart === "undefined") return null;
+    return new Chart(canvas, config);
+}
+
+function dashboardDoughnutOptions() {
+    return {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: "58%",
+        plugins: {
+            legend: { position: "bottom", labels: { usePointStyle: true, padding: 18 } },
+            tooltip: { callbacks: { label: (context) => `${context.label}: ${context.parsed}` } }
+        }
+    };
+}
+
+function renderDashboard(data) {
+    destroyDashboardCharts();
+
+    const total = Number(data.indicadores?.total_mes || 0);
+    const aprovadas = Number(data.indicadores?.aceitas_mes || 0);
+    const negadas = Number(data.indicadores?.negadas_mes || 0);
+    const taxa = (valor) => total ? `${((valor / total) * 100).toFixed(1).replace(".", ",")}%` : "0,0%";
+
+    $("dashboard-total-month").textContent = total.toLocaleString("pt-BR");
+    $("dashboard-approval-rate").textContent = taxa(aprovadas);
+    $("dashboard-rejection-rate").textContent = taxa(negadas);
+
+    const mesNome = new Intl.DateTimeFormat("pt-BR", { month: "long" }).format(
+        new Date(Number(data.ano), Number(data.mes) - 1, 1)
+    );
+    $("dashboard-period-label").textContent = `Indicadores de ${mesNome} de ${data.ano}. O destaque está no mês atual, com comparação anual.`;
+    $("dashboard-month-tag").textContent = mesNome.toLocaleUpperCase("pt-BR");
+    $("dashboard-year-tag").textContent = String(data.ano);
+
+    const monthRows = data.mes_atual || [];
+    const yearRows = data.ano_atual || [];
+    const statusValues = (rows) => DASHBOARD_STATUS.map((status) => {
+        const found = rows.find((item) => item.status === status.key);
+        return Number(found?.total || 0);
+    });
+    const colors = DASHBOARD_STATUS.map((item) => item.color);
+    const labels = DASHBOARD_STATUS.map((item) => item.label);
+
+    dashboardCharts.month = createDashboardChart("dashboard-month-chart", {
+        type: "doughnut",
+        data: { labels, datasets: [{ data: statusValues(monthRows), backgroundColor: colors, borderWidth: 0, hoverOffset: 5 }] },
+        options: dashboardDoughnutOptions()
+    });
+
+    dashboardCharts.year = createDashboardChart("dashboard-year-chart", {
+        type: "doughnut",
+        data: { labels, datasets: [{ data: statusValues(yearRows), backgroundColor: colors, borderWidth: 0, hoverOffset: 5 }] },
+        options: dashboardDoughnutOptions()
+    });
+
+    const months = data.por_mes || [];
+    dashboardCharts.monthly = createDashboardChart("dashboard-monthly-chart", {
+        type: "bar",
+        data: {
+            labels: months.map((item) => item.nome_mes),
+            datasets: [
+                { label: "Aceitas", data: months.map((item) => Number(item.aceitas)), backgroundColor: "#68e69a", borderRadius: 4, stack: "solicitacoes" },
+                { label: "Em análise", data: months.map((item) => Number(item.em_analise)), backgroundColor: "#212acf", borderRadius: 4, stack: "solicitacoes" },
+                { label: "Recusadas", data: months.map((item) => Number(item.negadas)), backgroundColor: "#ff9a98", borderRadius: 4, stack: "solicitacoes" }
+            ]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            interaction: { mode: "index", intersect: false },
+            plugins: { legend: { position: "bottom", labels: { usePointStyle: true, padding: 18 } } },
+            scales: {
+                x: { stacked: true, grid: { display: false } },
+                y: { stacked: true, beginAtZero: true, ticks: { precision: 0 } }
+            }
+        }
+    });
+
+    const stores = data.top_lojas || [];
+    dashboardCharts.stores = createDashboardChart("dashboard-stores-chart", {
+        type: "bar",
+        data: { labels: stores.map((item) => item.nome_loja), datasets: [{ label: "Solicitações", data: stores.map((item) => Number(item.total)), backgroundColor: ["#212acf", "#68e69a", "#7df4ed"], borderRadius: 6 }] },
+        options: {
+            indexAxis: "y", responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { x: { beginAtZero: true, ticks: { precision: 0 } }, y: { grid: { display: false } } }
+        }
+    });
+
+    const products = data.por_categoria || [];
+    dashboardCharts.products = createDashboardChart("dashboard-products-chart", {
+        type: "bar",
+        data: { labels: products.map((item) => item.categoria), datasets: [{ label: "Solicitações", data: products.map((item) => Number(item.total)), backgroundColor: ["#212acf", "#68e69a", "#7df4ed"], borderRadius: 6 }] },
+        options: {
+            indexAxis: "y", responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { x: { beginAtZero: true, ticks: { precision: 0 } }, y: { grid: { display: false } } }
+        }
+    });
+}
+
+async function loadDashboard() {
+    showMessage("");
+    $("dashboard-period-label").textContent = "Carregando indicadores...";
+    try {
+        const data = await api("/relatorios/dashboard");
+        renderDashboard(data);
+        showMessage("");
+    } catch (error) {
+        $("dashboard-period-label").textContent = "Não foi possível carregar os indicadores.";
+        showMessage(error.message);
+    }
+}
+
 function reportQueryString() {
     const inicio = $("report-start").value;
     const fim = $("report-end").value;
@@ -1446,6 +1576,11 @@ $("search-input").addEventListener("input", renderList);
 $("status-filter").addEventListener("change", renderList);
 
 $("refresh-button").addEventListener("click", async () => {
+    if (state.view === "relatorios") {
+        await loadDashboard();
+        return;
+    }
+
     if (state.selectedId) {
         const id = state.selectedId;
 
