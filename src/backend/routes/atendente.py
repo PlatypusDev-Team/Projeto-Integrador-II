@@ -17,6 +17,8 @@ from services.relatorio_service import (
     gerar_pdf_relatorio,
 )
 
+from services.dashboard_service import montar_dashboard
+
 from datetime import datetime
 from flask import send_file
 
@@ -540,4 +542,15 @@ def relatorio_produtos():
             "mensagem": "Não foi possível gerar o relatório de produtos.",
         }), 500
 
-
+@atendente_bp.get("/relatorios/dashboard")
+@atendente_required
+def relatorio_dashboard():
+    try:
+        dados = montar_dashboard()
+        return jsonify({"success": True, **dados}), 200
+    except Exception:
+        logging.exception("Erro ao carregar dashboard de relatórios")
+        return jsonify({
+            "success": False,
+            "mensagem": "Não foi possível carregar os indicadores do dashboard.",
+        }), 500

@@ -1,9 +1,10 @@
-
 from collections import Counter
 from datetime import date, datetime
 from io import BytesIO
 
 from db import get_connection
+
+
 
 
 STATUS_VALIDOS = ("EM ANALISE", "ACEITO", "NEGADO")
