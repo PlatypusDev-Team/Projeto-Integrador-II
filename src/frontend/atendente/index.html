@@ -11,7 +11,8 @@
     <title>Central de atendimento | DM</title>
 
     <link rel="stylesheet" href="css/style.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+    <link rel="stylesheet" href="css/chat.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.js" defer></script>
     <script src="js/script.js" defer></script>
 </head>
 <body>
@@ -351,6 +352,87 @@
             <footer class="page-footer">DM Atendimento · Portal interno</footer>
         </main>
     </div>
+
+    <div id="chat-backdrop" class="chat-backdrop"></div>
+
+    <aside
+        id="chat-drawer"
+        class="chat-drawer"
+        role="dialog"
+        aria-labelledby="chat-title"
+        aria-hidden="true"
+    >
+        <header class="chat-drawer-header">
+            <span class="chat-header-avatar" aria-hidden="true">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false">
+                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                </svg>
+            </span>
+
+            <div class="chat-header-info">
+                <h2 id="chat-title">Conversa com o cliente</h2>
+                <p id="chat-subtitle">Selecione uma solicitação</p>
+            </div>
+
+            <button id="chat-close" class="chat-close" type="button" aria-label="Fechar conversa">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                    <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+                </svg>
+            </button>
+        </header>
+
+        <div class="chat-body">
+            <div id="chat-messages" class="chat-messages" aria-live="polite"></div>
+
+            <button id="chat-new-pill" class="chat-new-pill" type="button" hidden>
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                    <path d="M12 5v14"/><path d="m19 12-7 7-7-7"/>
+                </svg>
+                Novas mensagens
+            </button>
+        </div>
+
+        <footer class="chat-footer">
+            <p id="chat-error" class="chat-error" role="alert" hidden></p>
+
+            <form id="chat-form" class="chat-form" hidden>
+                <div class="chat-composer">
+                    <textarea
+                        id="chat-input"
+                        name="conteudo"
+                        rows="1"
+                        maxlength="2000"
+                        placeholder="Escreva uma mensagem..."
+                        aria-label="Mensagem para o cliente"
+                    ></textarea>
+
+                    <button
+                        id="chat-send-button"
+                        class="chat-send"
+                        type="submit"
+                        aria-label="Enviar mensagem"
+                        disabled
+                    >
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                            <path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="chat-meta">
+                    <span class="chat-hint">Enter envia · Shift + Enter quebra a linha</span>
+                    <span id="chat-counter">0/2000</span>
+                </div>
+            </form>
+
+            <p id="chat-notice" class="chat-notice">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                    <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+                <span id="chat-notice-text"></span>
+            </p>
+        </footer>
+    </aside>
 
     <!-- Modal de confirmação da decisão -->
     <div id="decision-modal" class="decision-modal" hidden>
