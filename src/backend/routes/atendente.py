@@ -1,6 +1,10 @@
 import logging
+from datetime import datetime
 from functools import wraps
 
+from flask import Blueprint, jsonify, request, send_file, session
+
+from services.atendente_service import autenticar_atendente
 from services.atendimento_service import (
     listar_solicitacoes_pendentes,
     buscar_detalhes_solicitacao,
@@ -8,15 +12,7 @@ from services.atendimento_service import (
     assumir_solicitacao,
     decidir_solicitacao,
 )
-
-from services.relatorio_service import (
-    montar_relatorio,
-    montar_relatorio_desempenho,
-    montar_relatorio_produtos,
-    gerar_excel_relatorio,
-    gerar_pdf_relatorio,
-)
-
+from services.dashboard_service import montar_dashboard
 from services.relatorio_service import (
     montar_relatorio,
     montar_relatorio_desempenho,
@@ -25,15 +21,6 @@ from services.relatorio_service import (
     gerar_excel_relatorio,
     gerar_pdf_relatorio,
 )
-
-from services.dashboard_service import montar_dashboard
-
-from datetime import datetime
-from flask import send_file
-
-from flask import Blueprint, jsonify, request, session
-
-from services.atendente_service import autenticar_atendente
 
 
 atendente_bp = Blueprint("atendente", __name__)
@@ -97,6 +84,8 @@ def login():
 
         session["tipo_usuario"] = "ATENDENTE"
         session["id_atendente"] = atendente["id_atendente"]
+        # Guardado aqui (e não no except) para que /sessao devolva o nome real.
+        session["nome_atendente"] = atendente["nome_atendente"]
 
         return jsonify({
             "success": True,
@@ -111,12 +100,11 @@ def login():
     except Exception:
         logging.exception("Erro ao autenticar atendente")
 
-        session["nome_atendente"] = atendente["nome_atendente"]
-
         return jsonify({
             "success": False,
             "mensagem": "Não foi possível realizar o login."
         }), 500
+
 
 @atendente_bp.route("/sessao", methods=["GET"])
 @atendente_required
@@ -356,6 +344,11 @@ def meus_atendimentos():
             "mensagem": "Não foi possível carregar seus atendimentos.",
         }), 500
 
+
+# =====================================================
+# RELATÓRIOS
+# =====================================================
+
 def obter_periodo_relatorio():
     inicio = request.args.get("inicio") or None
     fim = request.args.get("fim") or None
@@ -466,6 +459,20 @@ def exportar_relatorio_solicitacoes(formato):
             "mensagem": "Não foi possível exportar o relatório.",
         }), 500
 
+
+def _serializar_data(valor):
+    if valor is None:
+        return None
+
+    if isinstance(valor, datetime):
+        return valor.isoformat(sep=" ", timespec="seconds")
+
+    if hasattr(valor, "isoformat"):
+        return valor.isoformat()
+
+    return str(valor)
+
+
 @atendente_bp.get("/relatorios/desempenho")
 @atendente_required
 def relatorio_desempenho():
@@ -480,28 +487,14 @@ def relatorio_desempenho():
     try:
         relatorio = montar_relatorio_desempenho(inicio, fim)
 
-        def serializar_data(valor):
-            if valor is None:
-                return None
-
-            if hasattr(valor, "isoformat"):
-                if isinstance(valor, datetime):
-                    return valor.isoformat(sep=" ", timespec="seconds")
-
-                return valor.isoformat()
-
-            return str(valor)
-
-        registros = []
-
-        for item in relatorio.get("registros", []):
-            registros.append({
+        registros = [
+            {
                 "id_solicitacao": item.get("id_solicitacao"),
                 "status": item.get("status"),
-                "data_solicitacao": serializar_data(
+                "data_solicitacao": _serializar_data(
                     item.get("data_solicitacao")
                 ),
-                "data_conclusao": serializar_data(
+                "data_conclusao": _serializar_data(
                     item.get("data_conclusao")
                 ),
                 "tempo_analise_segundos": item.get(
@@ -510,8 +503,12 @@ def relatorio_desempenho():
                 "tempo_pendente_segundos": item.get(
                     "tempo_pendente_segundos"
                 ),
-            })
+            }
+            for item in relatorio.get("registros", [])
+        ]
 
+        # Os tempos podem ser None (sem dados). O front-end trata None
+        # mostrando "Não calculado", por isso NÃO trocamos por 0.
         return jsonify({
             "success": True,
             "total": relatorio.get("total", 0),
@@ -519,21 +516,16 @@ def relatorio_desempenho():
             "pendentes": relatorio.get("pendentes", 0),
             "aceitas": relatorio.get("aceitas", 0),
             "negadas": relatorio.get("negadas", 0),
-
-            "tempo_medio_segundos": relatorio.get(
-                "tempo_medio_segundos", 0
-            ),
+            "tempo_medio_segundos": relatorio.get("tempo_medio_segundos"),
             "quantidade_com_tempo_calculado": relatorio.get(
                 "quantidade_com_tempo_calculado", 0
             ),
-
             "tempo_medio_pendente_segundos": relatorio.get(
-                "tempo_medio_pendente_segundos", 0
+                "tempo_medio_pendente_segundos"
             ),
             "maior_tempo_pendente_segundos": relatorio.get(
-                "maior_tempo_pendente_segundos", 0
+                "maior_tempo_pendente_segundos"
             ),
-
             "por_mes": relatorio.get("por_mes", []),
             "registros": registros,
         }), 200
@@ -543,8 +535,11 @@ def relatorio_desempenho():
 
         return jsonify({
             "success": False,
-            "mensagem": "Não foi possível gerar o relatório de tempo de análise.",
+            "mensagem": (
+                "Não foi possível gerar o relatório de tempo de análise."
+            ),
         }), 500
+
 
 @atendente_bp.get("/relatorios/produtos")
 @atendente_required
@@ -571,8 +566,12 @@ def relatorio_produtos():
 
         return jsonify({
             "success": False,
-            "mensagem": "Não foi possível gerar o relatório de produtividade por loja.",
+            "mensagem": (
+                "Não foi possível gerar o relatório de produtividade "
+                "por loja."
+            ),
         }), 500
+
 
 @atendente_bp.get("/relatorios/tipos-cartao")
 @atendente_required
@@ -601,8 +600,11 @@ def relatorio_tipos_cartao():
 
         return jsonify({
             "success": False,
-            "mensagem": "Não foi possível gerar o relatório de tipos de cartão.",
+            "mensagem": (
+                "Não foi possível gerar o relatório de tipos de cartão."
+            ),
         }), 500
+
 
 @atendente_bp.get("/relatorios/dashboard")
 @atendente_required
@@ -614,5 +616,7 @@ def relatorio_dashboard():
         logging.exception("Erro ao carregar dashboard de relatórios")
         return jsonify({
             "success": False,
-            "mensagem": "Não foi possível carregar os indicadores do dashboard.",
+            "mensagem": (
+                "Não foi possível carregar os indicadores do dashboard."
+            ),
         }), 500

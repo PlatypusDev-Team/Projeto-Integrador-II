@@ -17,6 +17,12 @@ const dashboardCharts = {};
 
 let chatPolling = null;
 let chatLoadingId = null;
+// Guarda a "assinatura" da última lista de mensagens desenhada,
+// para só redesenhar o chat quando algo realmente mudou.
+let chatSignature = "";
+
+// Declarado aqui no topo (antes ficava no meio do arquivo).
+let activeReportType = "status";
 
 const reportResultsTemplate = $("report-results").innerHTML;
 
@@ -59,8 +65,6 @@ const STATUS_LABELS = {
 // =====================================================
 // API E SESSÃO
 // =====================================================
-
-
 
 async function api(path, options = {}) {
     let response;
@@ -130,7 +134,15 @@ async function mensagemAPI(idSolicitacao, options = {}) {
         throw new Error("Sua sessão expirou. Entre novamente.");
     }
 
-    const data = await response.json();
+    // Se o servidor devolver algo que não é JSON (ex.: página de erro HTML),
+    // evitamos o erro críptico "Unexpected token <".
+    let data = {};
+
+    try {
+        data = await response.json();
+    } catch {
+        data = {};
+    }
 
     if (!response.ok) {
         throw new Error(
@@ -354,8 +366,7 @@ function renderList() {
     });
 
     $("result-count").textContent =
-        `${filtered.length} ${filtered.length === 1 ? "registro" : "registros"
-        }`;
+        `${filtered.length} ${filtered.length === 1 ? "registro" : "registros"}`;
 
     $("list-heading").textContent =
         state.view === "meus"
@@ -732,6 +743,9 @@ function renderDetails(data) {
 
     const idSolicitacao = Number(request.id_solicitacao);
 
+    // O container do chat acabou de ser recriado, então zeramos a assinatura.
+    chatSignature = "";
+
     loadChatMessages(idSolicitacao);
 
     if (request.status === "EM ANALISE") {
@@ -746,6 +760,16 @@ function renderChatMessages(mensagens) {
 
     if (!container) return;
 
+    // Só redesenha se a lista mudou. Sem isso, a cada 3 s o chat era
+    // reconstruído e rolado para o fim, atrapalhando quem lia mensagens antigas.
+    const signature = JSON.stringify(
+        mensagens.map((m) => [m.id_mensagem ?? null, m.remetente, m.conteudo_mensagem, m.data_envio])
+    );
+
+    if (signature === chatSignature) return;
+
+    chatSignature = signature;
+
     if (!mensagens.length) {
         container.innerHTML = `
             <p class="chat-empty">
@@ -759,8 +783,7 @@ function renderChatMessages(mensagens) {
         const isAttendant = mensagem.remetente === "ATENDENTE";
 
         return `
-            <article class="chat-message ${isAttendant ? "attendant" : "client"
-            }">
+            <article class="chat-message ${isAttendant ? "attendant" : "client"}">
 
                 <span class="chat-message-author">
                     ${isAttendant ? "Você" : "Cliente"}
@@ -789,14 +812,10 @@ async function loadChatMessages(idSolicitacao) {
     chatLoadingId = idSolicitacao;
 
     try {
-        console.log("Consultando mensagens da solicitação:", idSolicitacao);
-
         const data = await mensagemAPI(idSolicitacao);
 
         // Não atualiza uma solicitação que não está mais aberta.
         if (Number(state.selectedId) !== Number(idSolicitacao)) return;
-
-        console.log("Mensagens recebidas:", data.mensagens);
 
         renderChatMessages(data.mensagens || []);
 
@@ -805,11 +824,15 @@ async function loadChatMessages(idSolicitacao) {
 
         console.error("Erro ao carregar mensagens:", error);
 
-        container.innerHTML = `
-            <p class="chat-empty">
-                ${escapeHTML(error.message)}
-            </p>
-        `;
+        // Se já havia mensagens na tela, não apaga tudo por causa de uma
+        // falha momentânea do polling.
+        if (!chatSignature) {
+            container.innerHTML = `
+                <p class="chat-empty">
+                    ${escapeHTML(error.message)}
+                </p>
+            `;
+        }
     } finally {
         if (chatLoadingId === idSolicitacao) {
             chatLoadingId = null;
@@ -820,8 +843,6 @@ async function loadChatMessages(idSolicitacao) {
 function iniciarPollingChat(idSolicitacao) {
     pararPollingChat();
 
-    console.log("Polling iniciado para:", idSolicitacao);
-
     chatPolling = setInterval(() => {
 
         if (document.visibilityState !== "visible") return;
@@ -830,8 +851,6 @@ function iniciarPollingChat(idSolicitacao) {
             pararPollingChat();
             return;
         }
-
-        console.log("Polling: buscando novas mensagens...");
 
         loadChatMessages(idSolicitacao);
 
@@ -1334,8 +1353,17 @@ function formatNumber(value) {
     return Number(value || 0).toLocaleString("pt-BR");
 }
 
+
 function formatDuration(seconds) {
-    const total = Math.max(0, Math.floor(Number(seconds) || 0));
+    if (
+        seconds === null ||
+        seconds === undefined ||
+        Number.isNaN(Number(seconds))
+    ) {
+        return "Não calculado";
+    }
+
+    const total = Math.max(0, Math.floor(Number(seconds)));
 
     const days = Math.floor(total / 86400);
     const hours = Math.floor((total % 86400) / 3600);
@@ -1350,46 +1378,21 @@ function formatDuration(seconds) {
     }
 
     return `${minutes}min`;
-
-    function formatDuration(seconds) {
-        if (
-            seconds === null ||
-            seconds === undefined ||
-            Number.isNaN(Number(seconds))
-        ) {
-            return "Não calculado";
-        }
-
-        const total = Math.max(0, Math.floor(Number(seconds)));
-
-        const days = Math.floor(total / 86400);
-        const hours = Math.floor((total % 86400) / 3600);
-        const minutes = Math.floor((total % 3600) / 60);
-
-        if (days > 0) {
-            return `${days}d ${hours}h ${minutes}min`;
-        }
-
-        if (hours > 0) {
-            return `${hours}h ${minutes}min`;
-        }
-
-        return `${minutes}min`;
-    }
+}
 
 
-    function formatMonth(value) {
-        if (!value) return "Não informado";
+function formatMonth(value) {
+    if (!value) return "Não informado";
 
-        const [year, month] = String(value).split("-");
+    const [year, month] = String(value).split("-");
 
-        return year && month
-            ? `${month}/${year}`
-            : value;
-    }
+    return year && month
+        ? `${month}/${year}`
+        : value;
+}
 
-    function renderReportMetrics(metrics) {
-        return `
+function renderReportMetrics(metrics) {
+    return `
         <div class="report-metrics">
             ${metrics.map((metric) => `
                 <article class="summary-card">
@@ -1399,11 +1402,11 @@ function formatDuration(seconds) {
             `).join("")}
         </div>
     `;
-    }
+}
 
-    function renderDetailedTable(title, columns, rows, emptyMessage) {
-        const tableRows = rows.length
-            ? rows.map((row) => `
+function renderDetailedTable(title, columns, rows, emptyMessage) {
+    const tableRows = rows.length
+        ? rows.map((row) => `
             <tr>
                 ${columns.map((column) => `
                     <td>
@@ -1412,7 +1415,7 @@ function formatDuration(seconds) {
                 `).join("")}
             </tr>
         `).join("")
-            : `
+        : `
             <tr>
                 <td colspan="${columns.length}">
                     ${escapeHTML(emptyMessage)}
@@ -1420,7 +1423,7 @@ function formatDuration(seconds) {
             </tr>
         `;
 
-        return `
+    return `
         <article class="report-chart-card">
             <h3>${escapeHTML(title)}</h3>
 
@@ -1441,54 +1444,54 @@ function formatDuration(seconds) {
             </div>
         </article>
     `;
-    }
+}
 
-    // =====================================================
-    // PRODUTIVIDADE POR LOJA
-    // =====================================================
+// =====================================================
+// PRODUTIVIDADE POR LOJA
+// =====================================================
 
-    function renderStoreProductivity(data) {
-        const container = $("generic-report-results");
+function renderStoreProductivity(data) {
+    const container = $("generic-report-results");
 
-        if (!container) return;
+    if (!container) return;
 
-        destroyDetailedReportCharts();
+    destroyDetailedReportCharts();
 
-        const lojas = data.lojas || [];
+    const lojas = data.lojas || [];
 
-        const total = Number(data.total || 0);
+    const total = Number(data.total || 0);
 
-        const aceitas = lojas.reduce(
-            (sum, loja) => sum + Number(loja.aceitas || 0),
-            0
-        );
+    const aceitas = lojas.reduce(
+        (sum, loja) => sum + Number(loja.aceitas || 0),
+        0
+    );
 
-        const emAnalise = lojas.reduce(
-            (sum, loja) => sum + Number(loja.em_analise || 0),
-            0
-        );
+    const emAnalise = lojas.reduce(
+        (sum, loja) => sum + Number(loja.em_analise || 0),
+        0
+    );
 
-        const negadas = lojas.reduce(
-            (sum, loja) => sum + Number(loja.negadas || 0),
-            0
-        );
+    const negadas = lojas.reduce(
+        (sum, loja) => sum + Number(loja.negadas || 0),
+        0
+    );
 
-        if (!lojas.length) {
-            container.innerHTML = `
+    if (!lojas.length) {
+        container.innerHTML = `
             <p class="empty-state">
                 Nenhuma solicitação de cartão encontrada no período.
             </p>
         `;
-            return;
-        }
+        return;
+    }
 
-        container.innerHTML = `
+    container.innerHTML = `
         ${renderReportMetrics([
-            { label: "Total de solicitações", value: formatNumber(total) },
-            { label: "Aceitas", value: formatNumber(aceitas) },
-            { label: "Em análise", value: formatNumber(emAnalise) },
-            { label: "Recusadas", value: formatNumber(negadas) }
-        ])}
+        { label: "Total de solicitações", value: formatNumber(total) },
+        { label: "Aceitas", value: formatNumber(aceitas) },
+        { label: "Em análise", value: formatNumber(emAnalise) },
+        { label: "Recusadas", value: formatNumber(negadas) }
+    ])}
 
         <div class="report-chart-grid">
             <article class="report-chart-card">
@@ -1505,158 +1508,158 @@ function formatDuration(seconds) {
         </div>
 
         ${renderDetailedTable(
-            "Detalhamento por loja",
-            [
-                { key: "nome_loja", label: "Loja" },
-                { key: "total", label: "Total" },
-                { key: "aceitas", label: "Aceitas" },
-                { key: "em_analise", label: "Em análise" },
-                { key: "negadas", label: "Recusadas" }
-            ],
-            lojas.map((loja) => ({
-                nome_loja: loja.nome_loja,
-                total: formatNumber(loja.total),
-                aceitas: formatNumber(loja.aceitas),
-                em_analise: formatNumber(loja.em_analise),
-                negadas: formatNumber(loja.negadas)
-            })),
-            "Nenhuma loja encontrada."
-        )}
+        "Detalhamento por loja",
+        [
+            { key: "nome_loja", label: "Loja" },
+            { key: "total", label: "Total" },
+            { key: "aceitas", label: "Aceitas" },
+            { key: "em_analise", label: "Em análise" },
+            { key: "negadas", label: "Recusadas" }
+        ],
+        lojas.map((loja) => ({
+            nome_loja: loja.nome_loja,
+            total: formatNumber(loja.total),
+            aceitas: formatNumber(loja.aceitas),
+            em_analise: formatNumber(loja.em_analise),
+            negadas: formatNumber(loja.negadas)
+        })),
+        "Nenhuma loja encontrada."
+    )}
     `;
 
-        detailedReportCharts.stores = createDetailedReportChart(
-            "store-productivity-chart",
-            {
-                type: "bar",
+    detailedReportCharts.stores = createDetailedReportChart(
+        "store-productivity-chart",
+        {
+            type: "bar",
 
-                data: {
-                    labels: lojas.map((loja) => loja.nome_loja),
+            data: {
+                labels: lojas.map((loja) => loja.nome_loja),
 
-                    datasets: [
-                        {
-                            label: "Aceitas",
-                            data: lojas.map((loja) => Number(loja.aceitas || 0)),
-                            backgroundColor: "#68e69a",
-                            borderRadius: 4
-                        },
-                        {
-                            label: "Em análise",
-                            data: lojas.map((loja) => Number(loja.em_analise || 0)),
-                            backgroundColor: "#212acf",
-                            borderRadius: 4
-                        },
-                        {
-                            label: "Recusadas",
-                            data: lojas.map((loja) => Number(loja.negadas || 0)),
-                            backgroundColor: "#ff9a98",
-                            borderRadius: 4
-                        }
-                    ]
+                datasets: [
+                    {
+                        label: "Aceitas",
+                        data: lojas.map((loja) => Number(loja.aceitas || 0)),
+                        backgroundColor: "#68e69a",
+                        borderRadius: 4
+                    },
+                    {
+                        label: "Em análise",
+                        data: lojas.map((loja) => Number(loja.em_analise || 0)),
+                        backgroundColor: "#212acf",
+                        borderRadius: 4
+                    },
+                    {
+                        label: "Recusadas",
+                        data: lojas.map((loja) => Number(loja.negadas || 0)),
+                        backgroundColor: "#ff9a98",
+                        borderRadius: 4
+                    }
+                ]
+            },
+
+            options: {
+                indexAxis: "y",
+                responsive: true,
+                maintainAspectRatio: false,
+
+                interaction: {
+                    mode: "index",
+                    intersect: false
                 },
 
-                options: {
-                    indexAxis: "y",
-                    responsive: true,
-                    maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: "bottom",
+                        labels: {
+                            usePointStyle: true,
+                            padding: 18
+                        }
+                    }
+                },
 
-                    interaction: {
-                        mode: "index",
-                        intersect: false
+                scales: {
+                    x: {
+                        stacked: true,
+                        beginAtZero: true,
+                        ticks: { precision: 0 }
                     },
 
-                    plugins: {
-                        legend: {
-                            position: "bottom",
-                            labels: {
-                                usePointStyle: true,
-                                padding: 18
-                            }
-                        }
-                    },
-
-                    scales: {
-                        x: {
-                            stacked: true,
-                            beginAtZero: true,
-                            ticks: { precision: 0 }
-                        },
-
-                        y: {
-                            stacked: true,
-                            grid: { display: false }
-                        }
+                    y: {
+                        stacked: true,
+                        grid: { display: false }
                     }
                 }
             }
-        );
-    }
+        }
+    );
+}
 
-    // =====================================================
-    // TEMPO DE ANÁLISE
-    // =====================================================
+// =====================================================
+// TEMPO DE ANÁLISE
+// =====================================================
 
-    function renderAnalysisTime(data) {
-        const container = $("generic-report-results");
+function renderAnalysisTime(data) {
+    const container = $("generic-report-results");
 
-        if (!container) return;
+    if (!container) return;
 
-        destroyDetailedReportCharts();
+    destroyDetailedReportCharts();
 
-        const registros = data.registros || [];
-        const meses = data.por_mes || [];
+    const registros = data.registros || [];
+    const meses = data.por_mes || [];
 
-        const mediaGeral = formatDuration(data.tempo_medio_segundos);
-        const mediaPendente = formatDuration(
-            data.tempo_medio_pendente_segundos
-        );
+    const mediaGeral = formatDuration(data.tempo_medio_segundos);
+    const mediaPendente = formatDuration(
+        data.tempo_medio_pendente_segundos
+    );
 
-        const maiorPendente = formatDuration(
-            data.maior_tempo_pendente_segundos
-        );
+    const maiorPendente = formatDuration(
+        data.maior_tempo_pendente_segundos
+    );
 
-        const concluidas = Number(data.concluidas || 0);
-        const pendentes = Number(data.pendentes || 0);
+    const concluidas = Number(data.concluidas || 0);
+    const pendentes = Number(data.pendentes || 0);
 
-        const registrosTabela = registros.map((item) => ({
-            id: `#${item.id_solicitacao}`,
-            status: statusLabel(item.status),
-            solicitacao: formatDate(item.data_solicitacao),
-            conclusao: item.data_conclusao
-                ? formatDate(item.data_conclusao)
-                : "Pendente",
-            tempo: item.tempo_analise_segundos !== null &&
-                item.tempo_analise_segundos !== undefined
-                ? formatDuration(item.tempo_analise_segundos)
-                : "Não concluída",
-            espera: item.tempo_pendente_segundos !== null &&
-                item.tempo_pendente_segundos !== undefined
-                ? formatDuration(item.tempo_pendente_segundos)
-                : "—"
-        }));
+    const registrosTabela = registros.map((item) => ({
+        id: `#${item.id_solicitacao}`,
+        status: statusLabel(item.status),
+        solicitacao: formatDate(item.data_solicitacao),
+        conclusao: item.data_conclusao
+            ? formatDate(item.data_conclusao)
+            : "Pendente",
+        tempo: item.tempo_analise_segundos !== null &&
+            item.tempo_analise_segundos !== undefined
+            ? formatDuration(item.tempo_analise_segundos)
+            : "Não concluída",
+        espera: item.tempo_pendente_segundos !== null &&
+            item.tempo_pendente_segundos !== undefined
+            ? formatDuration(item.tempo_pendente_segundos)
+            : "—"
+    }));
 
-        container.innerHTML = `
+    container.innerHTML = `
         ${renderReportMetrics([
-            {
-                label: "Tempo médio de análise",
-                value: mediaGeral
-            },
-            {
-                label: "Solicitações concluídas",
-                value: formatNumber(concluidas)
-            },
-            {
-                label: "Solicitações pendentes",
-                value: formatNumber(pendentes)
-            },
-            {
-                label: "Tempo médio em espera",
-                value: mediaPendente
-            },
-            {
-                label: "Maior tempo em espera",
-                value: maiorPendente
-            }
-        ])}
+        {
+            label: "Tempo médio de análise",
+            value: mediaGeral
+        },
+        {
+            label: "Solicitações concluídas",
+            value: formatNumber(concluidas)
+        },
+        {
+            label: "Solicitações pendentes",
+            value: formatNumber(pendentes)
+        },
+        {
+            label: "Tempo médio em espera",
+            value: mediaPendente
+        },
+        {
+            label: "Maior tempo em espera",
+            value: maiorPendente
+        }
+    ])}
 
         <div class="report-chart-grid">
             <article class="report-chart-card">
@@ -1673,140 +1676,140 @@ function formatDuration(seconds) {
         </div>
 
         ${renderDetailedTable(
-            "Solicitações no período",
-            [
-                { key: "id", label: "Solicitação" },
-                { key: "status", label: "Status" },
-                { key: "solicitacao", label: "Data da solicitação" },
-                { key: "conclusao", label: "Data da conclusão" },
-                { key: "tempo", label: "Tempo de análise" },
-                { key: "espera", label: "Tempo em espera" }
-            ],
-            registrosTabela,
-            "Nenhuma solicitação encontrada no período."
-        )}
+        "Solicitações no período",
+        [
+            { key: "id", label: "Solicitação" },
+            { key: "status", label: "Status" },
+            { key: "solicitacao", label: "Data da solicitação" },
+            { key: "conclusao", label: "Data da conclusão" },
+            { key: "tempo", label: "Tempo de análise" },
+            { key: "espera", label: "Tempo em espera" }
+        ],
+        registrosTabela,
+        "Nenhuma solicitação encontrada no período."
+    )}
     `;
 
-        detailedReportCharts.analysis = createDetailedReportChart(
-            "analysis-time-chart",
-            {
-                type: "bar",
+    detailedReportCharts.analysis = createDetailedReportChart(
+        "analysis-time-chart",
+        {
+            type: "bar",
 
-                data: {
-                    labels: meses.map((item) => formatMonth(item.mes)),
+            data: {
+                labels: meses.map((item) => formatMonth(item.mes)),
 
-                    datasets: [
-                        {
-                            label: "Tempo médio de análise",
-                            data: meses.map((item) =>
-                                Number(item.tempo_medio_segundos || 0) / 3600
-                            ),
-                            backgroundColor: "#212acf",
-                            borderRadius: 5
-                        }
-                    ]
-                },
+                datasets: [
+                    {
+                        label: "Tempo médio de análise",
+                        data: meses.map((item) =>
+                            Number(item.tempo_medio_segundos || 0) / 3600
+                        ),
+                        backgroundColor: "#212acf",
+                        borderRadius: 5
+                    }
+                ]
+            },
 
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
 
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-
-                        tooltip: {
-                            callbacks: {
-                                label: (context) =>
-                                    ` ${formatDuration(context.parsed.y * 3600)}`
-                            }
-                        }
+                plugins: {
+                    legend: {
+                        display: false
                     },
 
-                    scales: {
-                        y: {
-                            beginAtZero: true,
+                    tooltip: {
+                        callbacks: {
+                            label: (context) =>
+                                ` ${formatDuration(context.parsed.y * 3600)}`
+                        }
+                    }
+                },
 
-                            title: {
-                                display: true,
-                                text: "Horas"
-                            }
+                scales: {
+                    y: {
+                        beginAtZero: true,
+
+                        title: {
+                            display: true,
+                            text: "Horas"
                         }
                     }
                 }
             }
-        );
-    }
+        }
+    );
+}
 
-    // =====================================================
-    // TIPOS DE CARTÃO
-    // =====================================================
+// =====================================================
+// TIPOS DE CARTÃO
+// =====================================================
 
-    function renderCardTypes(data) {
-        const container = $("generic-report-results");
+function renderCardTypes(data) {
+    const container = $("generic-report-results");
 
-        if (!container) return;
+    if (!container) return;
 
-        destroyDetailedReportCharts();
+    destroyDetailedReportCharts();
 
-        const tipos = data.por_tipo || [];
-        const mesesTipos = data.por_mes_tipo || [];
+    const tipos = data.por_tipo || [];
+    const mesesTipos = data.por_mes_tipo || [];
 
-        const total = Number(data.total || 0);
+    const total = Number(data.total || 0);
 
-        if (!tipos.length) {
-            container.innerHTML = `
+    if (!tipos.length) {
+        container.innerHTML = `
             <p class="empty-state">
                 Nenhuma solicitação de cartão encontrada no período.
             </p>
         `;
-            return;
-        }
+        return;
+    }
 
-        const nomesTipos = [
-            ...new Set(mesesTipos.map((item) => item.tipo_cartao))
-        ];
+    const nomesTipos = [
+        ...new Set(mesesTipos.map((item) => item.tipo_cartao))
+    ];
 
-        const palette = [
-            "#212acf",
-            "#68e69a",
-            "#7df4ed",
-            "#ffe372",
-            "#ff9a98"
-        ];
+    const palette = [
+        "#212acf",
+        "#68e69a",
+        "#7df4ed",
+        "#ffe372",
+        "#ff9a98"
+    ];
 
-        const meses = [
-            ...new Set(mesesTipos.map((item) => item.mes))
-        ];
+    const meses = [
+        ...new Set(mesesTipos.map((item) => item.mes))
+    ];
 
-        const datasets = nomesTipos.map((tipo, index) => ({
-            label: tipo,
-            data: meses.map((mes) => {
-                const registro = mesesTipos.find(
-                    (item) =>
-                        item.mes === mes &&
-                        item.tipo_cartao === tipo
-                );
+    const datasets = nomesTipos.map((tipo, index) => ({
+        label: tipo,
+        data: meses.map((mes) => {
+            const registro = mesesTipos.find(
+                (item) =>
+                    item.mes === mes &&
+                    item.tipo_cartao === tipo
+            );
 
-                return Number(registro?.total || 0);
-            }),
-            backgroundColor: palette[index % palette.length],
-            borderRadius: 4,
-            stack: "cartoes"
-        }));
+            return Number(registro?.total || 0);
+        }),
+        backgroundColor: palette[index % palette.length],
+        borderRadius: 4,
+        stack: "cartoes"
+    }));
 
-        container.innerHTML = `
+    container.innerHTML = `
         ${renderReportMetrics([
-            {
-                label: "Total de solicitações",
-                value: formatNumber(total)
-            },
-            {
-                label: "Tipos de cartão",
-                value: formatNumber(tipos.length)
-            }
-        ])}
+        {
+            label: "Total de solicitações",
+            value: formatNumber(total)
+        },
+        {
+            label: "Tipos de cartão",
+            value: formatNumber(tipos.length)
+        }
+    ])}
 
         <div class="report-chart-grid">
             <article class="report-chart-card">
@@ -1827,423 +1830,418 @@ function formatDuration(seconds) {
         </div>
 
         ${renderDetailedTable(
-            "Solicitações por tipo de cartão",
-            [
-                { key: "tipo", label: "Tipo de cartão" },
-                { key: "total", label: "Solicitações" }
-            ],
-            tipos.map((item) => ({
-                tipo: item.tipo_cartao,
-                total: formatNumber(item.total)
-            })),
-            "Nenhum tipo de cartão encontrado."
-        )}
+        "Solicitações por tipo de cartão",
+        [
+            { key: "tipo", label: "Tipo de cartão" },
+            { key: "total", label: "Solicitações" }
+        ],
+        tipos.map((item) => ({
+            tipo: item.tipo_cartao,
+            total: formatNumber(item.total)
+        })),
+        "Nenhum tipo de cartão encontrado."
+    )}
     `;
 
-        detailedReportCharts.cardTypes = createDetailedReportChart(
-            "card-types-chart",
-            {
-                type: "doughnut",
+    detailedReportCharts.cardTypes = createDetailedReportChart(
+        "card-types-chart",
+        {
+            type: "doughnut",
 
-                data: {
-                    labels: tipos.map((item) => item.tipo_cartao),
+            data: {
+                labels: tipos.map((item) => item.tipo_cartao),
 
-                    datasets: [{
-                        data: tipos.map((item) => Number(item.total || 0)),
-                        backgroundColor: palette,
-                        borderWidth: 0
-                    }]
-                },
+                datasets: [{
+                    data: tipos.map((item) => Number(item.total || 0)),
+                    backgroundColor: palette,
+                    borderWidth: 0
+                }]
+            },
 
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    cutout: "58%",
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: "58%",
 
-                    plugins: {
-                        legend: {
-                            position: "bottom",
-                            labels: {
-                                usePointStyle: true,
-                                padding: 18
-                            }
+                plugins: {
+                    legend: {
+                        position: "bottom",
+                        labels: {
+                            usePointStyle: true,
+                            padding: 18
                         }
                     }
                 }
             }
-        );
+        }
+    );
 
-        detailedReportCharts.cardTypesMonth = createDetailedReportChart(
-            "card-types-month-chart",
-            {
-                type: "bar",
+    detailedReportCharts.cardTypesMonth = createDetailedReportChart(
+        "card-types-month-chart",
+        {
+            type: "bar",
 
-                data: {
-                    labels: meses.map(formatMonth),
-                    datasets
+            data: {
+                labels: meses.map(formatMonth),
+                datasets
+            },
+
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+
+                interaction: {
+                    mode: "index",
+                    intersect: false
                 },
 
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: "bottom",
+                        labels: {
+                            usePointStyle: true,
+                            padding: 18
+                        }
+                    }
+                },
 
-                    interaction: {
-                        mode: "index",
-                        intersect: false
+                scales: {
+                    x: {
+                        stacked: true,
+                        grid: { display: false }
                     },
 
-                    plugins: {
-                        legend: {
-                            position: "bottom",
-                            labels: {
-                                usePointStyle: true,
-                                padding: 18
-                            }
-                        }
-                    },
-
-                    scales: {
-                        x: {
-                            stacked: true,
-                            grid: { display: false }
-                        },
-
-                        y: {
-                            stacked: true,
-                            beginAtZero: true,
-                            ticks: { precision: 0 }
-                        }
+                    y: {
+                        stacked: true,
+                        beginAtZero: true,
+                        ticks: { precision: 0 }
                     }
                 }
             }
-        );
+        }
+    );
+}
+
+async function downloadReport(format) {
+    if (!validateReportDates()) return;
+
+    if (!["pdf", "xlsx"].includes(format)) {
+        showReportMessage("Formato de arquivo inválido.");
+        return;
     }
 
-    async function downloadReport(format) {
-        if (!validateReportDates()) return;
+    const url =
+        `${API}/relatorios/solicitacoes/exportar/${format}` +
+        reportQueryString();
 
-        if (!["pdf", "xlsx"].includes(format)) {
-            showReportMessage("Formato de arquivo inválido.");
+    const buttons = [$("export-pdf"), $("export-excel")];
+
+    setButtonsDisabled(buttons, true);
+    showReportMessage("Gerando arquivo...");
+
+    try {
+        const response = await fetch(url, {
+            method: "GET",
+            credentials: "include"
+        });
+
+        if (response.status === 401) {
+            window.location.replace("login.html");
             return;
         }
 
-        const url =
-            `${API}/relatorios/solicitacoes/exportar/${format}` +
-            reportQueryString();
+        if (!response.ok) {
+            const contentType =
+                response.headers.get("content-type") || "";
 
-        const buttons = [$("export-pdf"), $("export-excel")];
+            let mensagem = "Não foi possível gerar o relatório.";
 
-        setButtonsDisabled(buttons, true);
-        showReportMessage("Gerando arquivo...");
-
-        try {
-            const response = await fetch(url, {
-                method: "GET",
-                credentials: "include"
-            });
-
-            if (response.status === 401) {
-                window.location.replace("login.html");
-                return;
+            if (contentType.includes("application/json")) {
+                const error = await response.json();
+                mensagem = error.mensagem || mensagem;
             }
 
-            if (!response.ok) {
-                const contentType =
-                    response.headers.get("content-type") || "";
-
-                let mensagem = "Não foi possível gerar o relatório.";
-
-                if (contentType.includes("application/json")) {
-                    const error = await response.json();
-                    mensagem = error.mensagem || mensagem;
-                }
-
-                throw new Error(mensagem);
-            }
-
-            const blob = await response.blob();
-
-            if (!blob.size) {
-                throw new Error("O servidor retornou um arquivo vazio.");
-            }
-
-            const objectURL = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-
-            link.href = objectURL;
-            link.download = format === "pdf"
-                ? "relatorio_solicitacoes.pdf"
-                : "relatorio_solicitacoes.xlsx";
-
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-
-            URL.revokeObjectURL(objectURL);
-
-            showReportMessage("Arquivo gerado com sucesso!", true);
-
-            setTimeout(() => URL.revokeObjectURL(objectURL), 1000);
-        } catch (error) {
-            showReportMessage(error.message);
-        } finally {
-            setButtonsDisabled(buttons, false);
+            throw new Error(mensagem);
         }
 
+        const blob = await response.blob();
+
+        if (!blob.size) {
+            throw new Error("O servidor retornou um arquivo vazio.");
+        }
+
+        const objectURL = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+
+        link.href = objectURL;
+        link.download = format === "pdf"
+            ? "relatorio_solicitacoes.pdf"
+            : "relatorio_solicitacoes.xlsx";
+
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+
+        showReportMessage("Arquivo gerado com sucesso!", true);
+
+        // Libera a URL só depois de dar tempo ao navegador de iniciar o
+        // download (antes ela era revogada imediatamente, o que podia
+        // cancelar o download em alguns navegadores).
+        setTimeout(() => URL.revokeObjectURL(objectURL), 1000);
+    } catch (error) {
+        showReportMessage(error.message);
+    } finally {
+        setButtonsDisabled(buttons, false);
     }
 
-    function closeReport() {
-        $("report-viewer").hidden = true;
-        $("report-catalog").hidden = false;
+}
 
-        if (statusChart) {
-            statusChart.destroy();
-            statusChart = null;
-        }
+function closeReport() {
+    $("report-viewer").hidden = true;
+    $("report-catalog").hidden = false;
 
-        if (monthChart) {
-            monthChart.destroy();
-            monthChart = null;
-        }
-
-        destroyDetailedReportCharts();
+    if (statusChart) {
+        statusChart.destroy();
+        statusChart = null;
     }
 
-    function prepareReportViewer(type) {
-        const report = reportDefinitions[type];
+    if (monthChart) {
+        monthChart.destroy();
+        monthChart = null;
+    }
 
-        if (!report) return;
+    destroyDetailedReportCharts();
+}
 
-        activeReportType = type;
+function prepareReportViewer(type) {
+    const report = reportDefinitions[type];
 
-        destroyDetailedReportCharts();
+    if (!report) return;
 
-        $("report-catalog").hidden = true;
-        $("report-viewer").hidden = false;
+    activeReportType = type;
 
-        $("report-title").textContent = report.title;
-        $("report-description").textContent = report.description;
+    destroyDetailedReportCharts();
 
-        $("report-results").innerHTML = type === "status"
-            ? reportResultsTemplate
-            : `
+    $("report-catalog").hidden = true;
+    $("report-viewer").hidden = false;
+
+    $("report-title").textContent = report.title;
+    $("report-description").textContent = report.description;
+
+    $("report-results").innerHTML = type === "status"
+        ? reportResultsTemplate
+        : `
             <div id="generic-report-results">
                 <p class="empty-state">Carregando relatório...</p>
             </div>
         `;
 
-        document.querySelector(".report-toolbar").hidden = !report.exports;
-        document.querySelector(".report-filters").hidden = false;
+    document.querySelector(".report-toolbar").hidden = !report.exports;
+    document.querySelector(".report-filters").hidden = false;
 
-        showReportMessage("");
+    showReportMessage("");
+}
+
+
+async function openReport(type) {
+    const report = reportDefinitions[type];
+
+    if (!report) return;
+
+    prepareReportViewer(type);
+
+    if (!validateReportDates()) return;
+
+    if (type === "status") {
+        await loadStatusReport();
+        return;
     }
 
+    const container = $("generic-report-results");
 
-    async function openReport(type) {
-        const report = reportDefinitions[type];
-
-        if (!report) return;
-
-        prepareReportViewer(type);
-
-        if (!validateReportDates()) return;
-
-        if (type === "status") {
-            await loadStatusReport();
-            return;
-        }
-
-        const container = $("generic-report-results");
-
-        if (container) {
-            container.innerHTML = `
+    if (container) {
+        container.innerHTML = `
             <p class="empty-state">Consultando o servidor...</p>
         `;
+    }
+
+    try {
+        const data = await api(
+            `${report.endpoint}${reportQueryString()}`
+        );
+
+        switch (type) {
+            case "products":
+                renderStoreProductivity(data);
+                break;
+
+            case "performance":
+                renderAnalysisTime(data);
+                break;
+
+            case "cardTypes":
+                renderCardTypes(data);
+                break;
+
+            default:
+                throw new Error("Tipo de relatório desconhecido.");
         }
 
-        try {
-            const data = await api(
-                `${report.endpoint}${reportQueryString()}`
-            );
-
-            switch (type) {
-                case "products":
-                    renderStoreProductivity(data);
-                    break;
-
-                case "performance":
-                    renderAnalysisTime(data);
-                    break;
-
-                case "cardTypes":
-                    renderCardTypes(data);
-                    break;
-
-                default:
-                    throw new Error("Tipo de relatório desconhecido.");
-            }
-
-        } catch (error) {
-            if (container) {
-                container.innerHTML = `
+    } catch (error) {
+        if (container) {
+            container.innerHTML = `
                 <p class="empty-state">
                     Não foi possível exibir este relatório.
                 </p>
             `;
-            }
-
-            showReportMessage(error.message);
         }
+
+        showReportMessage(error.message);
+    }
+}
+
+// =====================================================
+// EVENTOS DA INTERFACE
+// =====================================================
+
+document.querySelectorAll(".nav-item").forEach((button) => {
+    button.addEventListener("click", async () => {
+        const view = button.dataset.view;
+
+        showView(view);
+
+        if (view === "pendentes" || view === "meus") {
+            await loadLists();
+        }
+    });
+});
+
+$("search-input").addEventListener("input", renderList);
+$("status-filter").addEventListener("change", renderList);
+
+$("refresh-button").addEventListener("click", async () => {
+    if (state.view === "relatorios") {
+        await loadDashboard();
+        return;
     }
 
-    // =====================================================
-    // EVENTOS DA INTERFACE
-    // =====================================================
+    if (state.selectedId) {
+        const id = state.selectedId;
 
-    document.querySelectorAll(".nav-item").forEach((button) => {
-        button.addEventListener("click", async () => {
-            const view = button.dataset.view;
+        await loadLists();
+        await openDetails(id);
+    } else {
+        await loadLists();
+    }
+});
 
-            showView(view);
+$("back-button").addEventListener("click", () => {
 
-            if (view === "pendentes" || view === "meus") {
-                await loadLists();
-            }
+    pararPollingChat();
+
+    $("detail-view").hidden = true;
+    $("reports-view").hidden = true;
+    $("list-view").hidden = false;
+
+    $("page-title").textContent =
+        state.view === "meus"
+            ? "Meus atendimentos"
+            : "Solicitações pendentes";
+
+    state.selectedId = null;
+    state.detail = null;
+
+    renderList();
+});
+
+$("logout-button").addEventListener("click", async () => {
+    try {
+        await api("/logout", {
+            method: "POST"
         });
-    });
-
-    $("search-input").addEventListener("input", renderList);
-    $("status-filter").addEventListener("change", renderList);
-
-    $("refresh-button").addEventListener("click", async () => {
-        if (state.view === "relatorios") {
-            await loadDashboard();
-            return;
-        }
-
-        if (state.selectedId) {
-            const id = state.selectedId;
-
-            await loadLists();
-            await openDetails(id);
-        } else {
-            await loadLists();
-        }
-    });
-
-    $("back-button").addEventListener("click", () => {
-
-        pararPollingChat();
-
-        $("detail-view").hidden = true;
-        $("reports-view").hidden = true;
-        $("list-view").hidden = false;
-
-        $("page-title").textContent =
-            state.view === "meus"
-                ? "Meus atendimentos"
-                : "Solicitações pendentes";
-
-        state.selectedId = null;
-        state.detail = null;
-
-        renderList();
-    });
-
-    $("logout-button").addEventListener("click", async () => {
-        try {
-            await api("/logout", {
-                method: "POST"
-            });
-        } catch (error) {
-            console.error("Erro ao encerrar a sessão:", error);
-        } finally {
-            window.location.replace("login.html");
-        }
-    });
-
-    // =====================================================
-    // EVENTOS DOS RELATÓRIOS
-    // =====================================================
-
-    let activeReportType = "status";
-
-    $("open-status-report").addEventListener("click", () => {
-        activeReportType = "status";
-        openReport("status");
-    });
-
-    $("open-products-report").addEventListener("click", () => {
-        activeReportType = "products";
-        openReport("products");
-    });
-
-    $("open-performance-report").addEventListener("click", () => {
-        activeReportType = "performance";
-        openReport("performance");
-    });
-
-    $("back-reports").addEventListener("click", () => {
-        closeReport();
-        $("report-results").innerHTML = reportResultsTemplate;
-        $("report-title").textContent = reportDefinitions.status.title;
-        $("report-description").textContent =
-            reportDefinitions.status.description;
-        $("report-message").hidden = true;
-    });
-
-    $("apply-report-filters").addEventListener("click", () => {
-        openReport(activeReportType);
-    });
-
-    $("clear-report-filters").addEventListener("click", () => {
-        $("report-start").value = "";
-        $("report-end").value = "";
-        openReport(activeReportType);
-    });
-
-    $("export-pdf").addEventListener("click", () => {
-        downloadReport("pdf");
-    });
-
-    $("export-excel").addEventListener("click", () => {
-        downloadReport("xlsx");
-    });
-
-    const cardTypesButton = $("open-card-types-report");
-
-    if (cardTypesButton) {
-        cardTypesButton.addEventListener("click", () => {
-            activeReportType = "cardTypes";
-            openReport("cardTypes");
-        });
+    } catch (error) {
+        console.error("Erro ao encerrar a sessão:", error);
+    } finally {
+        window.location.replace("login.html");
     }
+});
 
-    // =====================================================
-    // INICIALIZAÇÃO
-    // =====================================================
+// =====================================================
+// EVENTOS DOS RELATÓRIOS
+// =====================================================
 
-    async function init() {
-        try {
-            const session = await api("/sessao");
+$("open-status-report").addEventListener("click", () => {
+    openReport("status");
+});
 
-            state.idAtendente = Number(session.id_atendente);
+$("open-products-report").addEventListener("click", () => {
+    openReport("products");
+});
 
-            $("profile-name").textContent =
-                session.nome_atendente || `Atendente #${state.idAtendente}`;
+$("open-performance-report").addEventListener("click", () => {
+    openReport("performance");
+});
 
-            $("profile-avatar").textContent =
-                ($("profile-name").textContent.trim()[0] || "A").toUpperCase();
+$("back-reports").addEventListener("click", () => {
+    closeReport();
+    $("report-results").innerHTML = reportResultsTemplate;
+    $("report-title").textContent = reportDefinitions.status.title;
+    $("report-description").textContent =
+        reportDefinitions.status.description;
+    $("report-message").hidden = true;
+});
 
-            $("profile-avatar").textContent = "A";
+$("apply-report-filters").addEventListener("click", () => {
+    openReport(activeReportType);
+});
 
-            showView("pendentes");
-            await loadLists();
-        } catch (error) {
-            if (!error.message.toLowerCase().includes("sessão")) {
-                showMessage(error.message);
-            }
+$("clear-report-filters").addEventListener("click", () => {
+    $("report-start").value = "";
+    $("report-end").value = "";
+    openReport(activeReportType);
+});
+
+$("export-pdf").addEventListener("click", () => {
+    downloadReport("pdf");
+});
+
+$("export-excel").addEventListener("click", () => {
+    downloadReport("xlsx");
+});
+
+const cardTypesButton = $("open-card-types-report");
+
+if (cardTypesButton) {
+    cardTypesButton.addEventListener("click", () => {
+        openReport("cardTypes");
+    });
+}
+
+// =====================================================
+// INICIALIZAÇÃO
+// =====================================================
+
+async function init() {
+    try {
+        const session = await api("/sessao");
+
+        state.idAtendente = Number(session.id_atendente);
+
+        $("profile-name").textContent =
+            session.nome_atendente || `Atendente #${state.idAtendente}`;
+
+        // Inicial do nome (antes havia uma linha seguinte que
+        // sobrescrevia isso e deixava sempre "A").
+        $("profile-avatar").textContent =
+            ($("profile-name").textContent.trim()[0] || "A").toUpperCase();
+
+        showView("pendentes");
+        await loadLists();
+    } catch (error) {
+        if (!error.message.toLowerCase().includes("sessão")) {
+            showMessage(error.message);
         }
     }
+}
 
-    init();
+init();

@@ -11,7 +11,8 @@ STATUS_VALIDOS = ("EM ANALISE", "ACEITO", "NEGADO")
 def _filtro_periodo_sql(data_inicio=None, data_fim=None):
     """
     Retorna os parâmetros para filtrar data_solicitacao.
-    O limite final é exclusivo para incluir todo o último dia.
+    O limite final é exclusivo (dia seguinte) para incluir todo o último dia.
+    A ordem dos 4 valores corresponde aos 4 %s do trecho de WHERE.
     """
     return (
         data_inicio,
@@ -179,6 +180,7 @@ def gerar_excel_relatorio(relatorio):
             linha[2].alignment = Alignment(horizontal="center")
         else:
             linha[2].value = "Sem registro de data"
+            linha[2].alignment = Alignment(horizontal="center")
 
     for planilha in workbook.worksheets:
         for coluna in planilha.columns:
@@ -266,7 +268,9 @@ def gerar_pdf_relatorio(relatorio):
             colors.HexColor("#212ACF"),
         ),
         ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        # Corpo em fonte normal e cabeçalho em negrito.
         ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
         (
             "GRID",
             (0, 0),
@@ -320,6 +324,8 @@ def gerar_pdf_relatorio(relatorio):
             colors.HexColor("#212ACF"),
         ),
         ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
         (
             "GRID",
             (0, 0),
@@ -564,6 +570,12 @@ def montar_relatorio_produtos(data_inicio=None, data_fim=None):
 
             lojas = cursor.fetchall()
 
+        # SUM() no MySQL devolve Decimal, que nem todo JSON aceita.
+        # Convertemos tudo para int antes de sair do service.
+        for loja in lojas:
+            for campo in ("total", "em_analise", "aceitas", "negadas"):
+                loja[campo] = int(loja[campo] or 0)
+
         return {
             "total": sum(item["total"] for item in lojas),
             "lojas": lojas,
@@ -577,6 +589,9 @@ def montar_relatorio_tipos_cartao(data_inicio=None, data_fim=None):
     """
     Retorna o volume de solicitações por categoria de cartão e por mês.
     A regra de classificação é a mesma já utilizada no dashboard.
+
+    ATENÇÃO: como este SQL recebe parâmetros (%s), todo '%' literal
+    precisa ser escrito como '%%' (ex.: '%%Y-%%m' e '%%Loja DM%%').
     """
     conexao = get_connection()
 
@@ -585,41 +600,47 @@ def montar_relatorio_tipos_cartao(data_inicio=None, data_fim=None):
             cursor.execute(
                 """
                 SELECT
-                    DATE_FORMAT(
-                        s.data_solicitacao,
-                        '%Y-%m'
-                    ) AS mes,
-                    CASE
-                        WHEN ca.nome_cartao LIKE '%Loja DM%'
-                            THEN 'Cartão Loja DM'
-                        WHEN ca.nome_cartao LIKE '%Cartao DM%'
-                            THEN 'Cartão DM'
-                        WHEN ca.tipo_cartao = 'LOJA'
-                            THEN 'Cartão de loja'
-                        ELSE 'Outros cartões'
-                    END AS tipo_cartao,
-                    COUNT(s.id_solicitacao) AS total
-                FROM tb_solicitacao AS s
-                INNER JOIN tb_cartao AS ca
-                    ON ca.id_produto = s.id_produto
-                WHERE
-                    s.status IN ('EM ANALISE', 'ACEITO', 'NEGADO')
-                    AND (
-                        %s IS NULL
-                        OR s.data_solicitacao >= %s
-                    )
-                    AND (
-                        %s IS NULL
-                        OR s.data_solicitacao < DATE_ADD(
-                            %s, INTERVAL 1 DAY
+                    base.mes,
+                    base.tipo_cartao,
+                    COUNT(base.id_solicitacao) AS total
+                FROM (
+                    SELECT
+                        s.id_solicitacao,
+                        DATE_FORMAT(
+                            s.data_solicitacao,
+                            '%%Y-%%m'
+                        ) AS mes,
+                        CASE
+                            WHEN ca.nome_cartao LIKE '%%Loja DM%%'
+                                THEN 'Cartão Loja DM'
+                            WHEN ca.nome_cartao LIKE '%%Cartao DM%%'
+                                THEN 'Cartão DM'
+                            WHEN ca.tipo_cartao = 'LOJA'
+                                THEN 'Cartão de loja'
+                            ELSE 'Outros cartões'
+                        END AS tipo_cartao
+                    FROM tb_solicitacao AS s
+                    INNER JOIN tb_cartao AS ca
+                        ON ca.id_produto = s.id_produto
+                    WHERE
+                        s.status IN ('EM ANALISE', 'ACEITO', 'NEGADO')
+                        AND (
+                            %s IS NULL
+                            OR s.data_solicitacao >= %s
                         )
-                    )
+                        AND (
+                            %s IS NULL
+                            OR s.data_solicitacao < DATE_ADD(
+                                %s, INTERVAL 1 DAY
+                            )
+                        )
+                ) AS base
                 GROUP BY
-                    mes,
-                    tipo_cartao
+                    base.mes,
+                    base.tipo_cartao
                 ORDER BY
-                    mes ASC,
-                    tipo_cartao ASC
+                    base.mes ASC,
+                    base.tipo_cartao ASC
                 """,
                 _filtro_periodo_sql(data_inicio, data_fim),
             )
