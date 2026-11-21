@@ -320,7 +320,10 @@
 }
 
 .notice__button {
+    display: inline-flex;
     flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
     padding: 11px 18px;
     border: 0;
     border-radius: 999px;
@@ -336,6 +339,31 @@
 .notice__button:hover {
     background: var(--dm-cyan);
     transform: translateY(-1px);
+}
+
+.notice__button:focus-visible {
+    outline: 3px solid var(--dm-cyan);
+    outline-offset: 2px;
+}
+
+/* Na faixa clara (recusada) o botão branco sumiria: usamos o azul da marca */
+.notice[data-tone="rejeitada"] .notice__button {
+    color: #fff;
+    background: var(--dm-blue);
+}
+
+.notice[data-tone="rejeitada"] .notice__button:hover {
+    background: var(--dm-blue-dark);
+}
+
+/* Na faixa verde (aprovada) o botão fica azul-escuro para destacar */
+.notice[data-tone="aprovada"] .notice__button {
+    color: #fff;
+    background: var(--dm-deep-blue);
+}
+
+.notice[data-tone="aprovada"] .notice__button:hover {
+    background: var(--dm-blue);
 }
 
 /* Cores da faixa conforme a situação do pedido */
@@ -948,6 +976,7 @@
     font-size: 0.95rem;
     line-height: 1.55;
     -webkit-box-orient: vertical;
+    /* -webkit-line-clamp: 5; */
 }
 
 /* carregando / vazio / erro */

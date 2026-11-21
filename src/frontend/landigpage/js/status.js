@@ -68,6 +68,7 @@ const noticeIcon = $("#notice-icon");
 const noticeTitle = $("#notice-title");
 const noticeMessage = $("#notice-message");
 const noticeChatButton = $("#notice-chat");
+const noticeCardsLink = $("#notice-cards");
 
 const userName = $("#user-name");
 const userCpf = $("#user-cpf");
@@ -386,6 +387,14 @@ function renderStatus(solicitacao) {
     // O atalho "Falar com a equipe" só faz sentido enquanto o pedido está aberto.
     noticeChatButton.hidden = status !== "analise";
 
+    // Já o convite para ver os cartões só aparece quando o pedido terminou.
+    // (Em análise não pode haver uma nova solicitação, então fica oculto.)
+    noticeCardsLink.hidden = status === "analise";
+
+    noticeCardsLink.textContent = status === "rejeitada"
+        ? "Solicitar outro cartão"
+        : "Conhecer outros cartões";
+
     // ---- outros produtos (só quando recusado) ----
     outrosProdutos.hidden = status !== "rejeitada";
 
@@ -428,6 +437,7 @@ function mostrarErroDeCarregamento(mensagem) {
     );
 
     noticeChatButton.hidden = true;
+    noticeCardsLink.hidden = true;
 }
 
 
