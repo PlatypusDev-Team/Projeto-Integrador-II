@@ -1,16 +1,32 @@
-from collections import Counter
+from collections import Counter, defaultdict
 from datetime import date, datetime
 from io import BytesIO
 
 from db import get_connection
 
 
-
-
 STATUS_VALIDOS = ("EM ANALISE", "ACEITO", "NEGADO")
 
 
+def _filtro_periodo_sql(data_inicio=None, data_fim=None):
+    """
+    Retorna os parâmetros para filtrar data_solicitacao.
+    O limite final é exclusivo (dia seguinte) para incluir todo o último dia.
+    A ordem dos 4 valores corresponde aos 4 %s do trecho de WHERE.
+    """
+    return (
+        data_inicio,
+        data_inicio,
+        data_fim,
+        data_fim,
+    )
+
+
 def buscar_dados_relatorio(data_inicio=None, data_fim=None):
+    """
+    Busca somente solicitações de cartões.
+    A data usada para filtrar e agrupar é data_solicitacao.
+    """
     conexao = get_connection()
 
     try:
@@ -20,34 +36,27 @@ def buscar_dados_relatorio(data_inicio=None, data_fim=None):
                 SELECT
                     s.id_solicitacao,
                     s.status,
-                    historico.data_referencia
+                    s.data_solicitacao
                 FROM tb_solicitacao AS s
-                LEFT JOIN (
-                    SELECT
-                        id_solicitacao,
-                        MIN(data_atendimento) AS data_referencia
-                    FROM tb_atendimento
-                    GROUP BY id_solicitacao
-                ) AS historico
-                    ON historico.id_solicitacao = s.id_solicitacao
+                INNER JOIN tb_cartao AS ca
+                    ON ca.id_produto = s.id_produto
                 WHERE
-                    (%s IS NULL OR historico.data_referencia >= %s)
+                    s.status IN ('EM ANALISE', 'ACEITO', 'NEGADO')
                     AND (
                         %s IS NULL
-                        OR historico.data_referencia < DATE_ADD(
+                        OR s.data_solicitacao >= %s
+                    )
+                    AND (
+                        %s IS NULL
+                        OR s.data_solicitacao < DATE_ADD(
                             %s, INTERVAL 1 DAY
                         )
                     )
                 ORDER BY
-                    historico.data_referencia DESC,
+                    s.data_solicitacao DESC,
                     s.id_solicitacao DESC
                 """,
-                (
-                    data_inicio,
-                    data_inicio,
-                    data_fim,
-                    data_fim,
-                ),
+                _filtro_periodo_sql(data_inicio, data_fim),
             )
 
             return cursor.fetchall()
@@ -74,10 +83,10 @@ def montar_relatorio(data_inicio=None, data_fim=None):
     por_mes = Counter()
 
     for registro in registros:
-        data_referencia = registro["data_referencia"]
+        data_solicitacao = registro["data_solicitacao"]
 
-        if data_referencia:
-            mes = data_referencia.strftime("%Y-%m")
+        if data_solicitacao:
+            mes = data_solicitacao.strftime("%Y-%m")
             por_mes[mes] += 1
 
     return {
@@ -111,7 +120,7 @@ def gerar_excel_relatorio(relatorio):
     resumo = workbook.active
     resumo.title = "Resumo"
 
-    resumo.append(["Relatório de solicitações"])
+    resumo.append(["Relatório de solicitações de cartões"])
     resumo.append(["Total de solicitações", relatorio["total"]])
     resumo.append([])
     resumo.append(["Status", "Quantidade"])
@@ -139,14 +148,14 @@ def gerar_excel_relatorio(relatorio):
     detalhes.append([
         "ID da solicitação",
         "Status",
-        "Data do primeiro atendimento",
+        "Data da solicitação",
     ])
 
     for registro in relatorio["registros"]:
         detalhes.append([
             registro["id_solicitacao"],
             registro["status"],
-            registro["data_referencia"],
+            registro["data_solicitacao"],
         ])
 
     for celula in detalhes[1]:
@@ -171,6 +180,7 @@ def gerar_excel_relatorio(relatorio):
             linha[2].alignment = Alignment(horizontal="center")
         else:
             linha[2].value = "Sem registro de data"
+            linha[2].alignment = Alignment(horizontal="center")
 
     for planilha in workbook.worksheets:
         for coluna in planilha.columns:
@@ -232,7 +242,7 @@ def gerar_pdf_relatorio(relatorio):
 
     conteudo = [
         Paragraph(
-            "DM Financeira | Relatório de solicitações",
+            "DM Financeira | Relatório de solicitações de cartões",
             estilos["DMTitle"],
         ),
         Spacer(1, 0.4 * cm),
@@ -258,7 +268,9 @@ def gerar_pdf_relatorio(relatorio):
             colors.HexColor("#212ACF"),
         ),
         ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        # Corpo em fonte normal e cabeçalho em negrito.
         ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
         (
             "GRID",
             (0, 0),
@@ -281,11 +293,11 @@ def gerar_pdf_relatorio(relatorio):
     dados_detalhes = [[
         "Solicitação",
         "Status",
-        "Data do primeiro atendimento",
+        "Data da solicitação",
     ]]
 
     for registro in relatorio["registros"]:
-        data_ref = registro["data_referencia"]
+        data_ref = registro["data_solicitacao"]
 
         if isinstance(data_ref, (datetime, date)):
             data_formatada = data_ref.strftime("%d/%m/%Y %H:%M")
@@ -312,6 +324,8 @@ def gerar_pdf_relatorio(relatorio):
             colors.HexColor("#212ACF"),
         ),
         ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
         (
             "GRID",
             (0, 0),
@@ -330,12 +344,15 @@ def gerar_pdf_relatorio(relatorio):
     return arquivo
 
 
-
 def montar_relatorio_desempenho(
     data_inicio=None,
     data_fim=None,
 ):
-
+    """
+    Relatório de tempo de análise das solicitações de cartões.
+    O tempo concluído é calculado entre data_solicitacao e data_conclusao.
+    Solicitações em análise recebem métricas próprias de envelhecimento.
+    """
     conexao = get_connection()
 
     try:
@@ -345,38 +362,46 @@ def montar_relatorio_desempenho(
                 SELECT
                     s.id_solicitacao,
                     s.status,
-                    s.id_atendente_responsavel,
+                    s.data_solicitacao,
                     s.data_conclusao,
-                    historico.primeiro_atendimento,
-                    historico.ultimo_atendimento
+                    CASE
+                        WHEN s.data_conclusao IS NOT NULL
+                        THEN TIMESTAMPDIFF(
+                            SECOND,
+                            s.data_solicitacao,
+                            s.data_conclusao
+                        )
+                        ELSE NULL
+                    END AS tempo_analise_segundos,
+                    CASE
+                        WHEN s.status = 'EM ANALISE'
+                        THEN TIMESTAMPDIFF(
+                            SECOND,
+                            s.data_solicitacao,
+                            CURRENT_TIMESTAMP()
+                        )
+                        ELSE NULL
+                    END AS tempo_pendente_segundos
                 FROM tb_solicitacao AS s
-                INNER JOIN (
-                    SELECT
-                        id_solicitacao,
-                        MIN(data_atendimento) AS primeiro_atendimento,
-                        MAX(data_atendimento) AS ultimo_atendimento
-                    FROM tb_atendimento
-                    GROUP BY id_solicitacao
-                ) AS historico
-                    ON historico.id_solicitacao = s.id_solicitacao
+                INNER JOIN tb_cartao AS ca
+                    ON ca.id_produto = s.id_produto
                 WHERE
-                    (%s IS NULL OR historico.primeiro_atendimento >= %s)
+                    s.status IN ('EM ANALISE', 'ACEITO', 'NEGADO')
                     AND (
                         %s IS NULL
-                        OR historico.primeiro_atendimento < DATE_ADD(
+                        OR s.data_solicitacao >= %s
+                    )
+                    AND (
+                        %s IS NULL
+                        OR s.data_solicitacao < DATE_ADD(
                             %s, INTERVAL 1 DAY
                         )
                     )
                 ORDER BY
-                    historico.primeiro_atendimento DESC,
+                    s.data_solicitacao DESC,
                     s.id_solicitacao DESC
                 """,
-                (
-                    data_inicio,
-                    data_inicio,
-                    data_fim,
-                    data_fim,
-                ),
+                _filtro_periodo_sql(data_inicio, data_fim),
             )
 
             registros = cursor.fetchall()
@@ -385,52 +410,97 @@ def montar_relatorio_desempenho(
             registro["status"] for registro in registros
         )
 
-        concluidas = [
-            registro
+        tempos_conclusao = [
+            registro["tempo_analise_segundos"]
             for registro in registros
             if registro["status"] in ("ACEITO", "NEGADO")
+            and registro["tempo_analise_segundos"] is not None
+            and registro["tempo_analise_segundos"] >= 0
         ]
 
-        tempos_conclusao = []
+        tempos_pendentes = [
+            registro["tempo_pendente_segundos"]
+            for registro in registros
+            if registro["status"] == "EM ANALISE"
+            and registro["tempo_pendente_segundos"] is not None
+            and registro["tempo_pendente_segundos"] >= 0
+        ]
 
-        for registro in concluidas:
-            inicio = registro["primeiro_atendimento"]
-            fim = registro["data_conclusao"]
-
-            # Só calcula quando o histórico contém a decisão
-            # e ela ocorreu no mesmo instante ou após o início.
-            if inicio and fim and fim >= inicio:
-                segundos = (fim - inicio).total_seconds()
-                tempos_conclusao.append(segundos)
-
-        media_segundos = (
+        media_conclusao = (
             sum(tempos_conclusao) / len(tempos_conclusao)
             if tempos_conclusao
             else None
         )
 
-        por_mes = Counter()
+        media_pendencia = (
+            sum(tempos_pendentes) / len(tempos_pendentes)
+            if tempos_pendentes
+            else None
+        )
+
+        maior_pendencia = (
+            max(tempos_pendentes)
+            if tempos_pendentes
+            else None
+        )
+
+        por_mes = defaultdict(lambda: {
+            "total": 0,
+            "concluidas": 0,
+            "tempo_total_segundos": 0,
+            "quantidade_tempos": 0,
+        })
 
         for registro in registros:
-            data_referencia = registro["primeiro_atendimento"]
+            data_solicitacao = registro["data_solicitacao"]
 
-            if data_referencia:
-                por_mes[data_referencia.strftime("%Y-%m")] += 1
+            if not data_solicitacao:
+                continue
+
+            mes = data_solicitacao.strftime("%Y-%m")
+            item = por_mes[mes]
+            item["total"] += 1
+
+            tempo = registro["tempo_analise_segundos"]
+
+            if (
+                registro["status"] in ("ACEITO", "NEGADO")
+                and tempo is not None
+                and tempo >= 0
+            ):
+                item["concluidas"] += 1
+                item["tempo_total_segundos"] += tempo
+                item["quantidade_tempos"] += 1
+
+        resumo_mensal = []
+
+        for mes in sorted(por_mes):
+            item = por_mes[mes]
+            media_mes = (
+                item["tempo_total_segundos"] / item["quantidade_tempos"]
+                if item["quantidade_tempos"]
+                else None
+            )
+
+            resumo_mensal.append({
+                "mes": mes,
+                "total": item["total"],
+                "concluidas": item["concluidas"],
+                "tempo_medio_segundos": media_mes,
+            })
 
         return {
             "total": len(registros),
-            "concluidas": len(concluidas),
+            "concluidas": por_status.get("ACEITO", 0)
+                + por_status.get("NEGADO", 0),
             "pendentes": por_status.get("EM ANALISE", 0),
             "aceitas": por_status.get("ACEITO", 0),
             "negadas": por_status.get("NEGADO", 0),
-            "tempo_medio_segundos": media_segundos,
-            "quantidade_com_tempo_calculado": len(
-                tempos_conclusao
-            ),
-            "por_mes": [
-                {"mes": mes, "total": por_mes[mes]}
-                for mes in sorted(por_mes)
-            ],
+            "tempo_medio_segundos": media_conclusao,
+            "quantidade_com_tempo_calculado": len(tempos_conclusao),
+            "tempo_medio_pendente_segundos": media_pendencia,
+            "maior_tempo_pendente_segundos": maior_pendencia,
+            "por_mes": resumo_mensal,
             "registros": registros,
         }
 
@@ -438,10 +508,11 @@ def montar_relatorio_desempenho(
         conexao.close()
 
 
-
 def montar_relatorio_produtos(data_inicio=None, data_fim=None):
-    """Gera o ranking de produtos por quantidade de solicitações."""
-
+    """
+    Relatório de produtividade por loja.
+    Apesar do nome legado da função, retorna somente solicitações de cartões.
+    """
     conexao = get_connection()
 
     try:
@@ -449,17 +520,8 @@ def montar_relatorio_produtos(data_inicio=None, data_fim=None):
             cursor.execute(
                 """
                 SELECT
-                    p.id_produto,
-                    COALESCE(
-                        ca.nome_cartao,
-                        se.nome_servico,
-                        'Produto não identificado'
-                    ) AS nome_produto,
-                    CASE
-                        WHEN ca.id_produto IS NOT NULL THEN 'CARTAO'
-                        WHEN se.id_produto IS NOT NULL THEN 'SERVICO'
-                        ELSE 'PRODUTO'
-                    END AS tipo_produto,
+                    l.id_loja,
+                    l.nome_loja,
                     COUNT(s.id_solicitacao) AS total,
                     SUM(
                         CASE
@@ -479,53 +541,136 @@ def montar_relatorio_produtos(data_inicio=None, data_fim=None):
                             ELSE 0
                         END
                     ) AS negadas
-                FROM tb_produto AS p
-                LEFT JOIN tb_cartao AS ca
-                    ON ca.id_produto = p.id_produto
-                LEFT JOIN tb_servico AS se
-                    ON se.id_produto = p.id_produto
-                LEFT JOIN tb_solicitacao AS s
-                    ON s.id_produto = p.id_produto
-                LEFT JOIN (
-                    SELECT
-                        id_solicitacao,
-                        MIN(data_atendimento) AS primeira_data
-                    FROM tb_atendimento
-                    GROUP BY id_solicitacao
-                ) AS datas
-                    ON datas.id_solicitacao = s.id_solicitacao
+                FROM tb_solicitacao AS s
+                INNER JOIN tb_cartao AS ca
+                    ON ca.id_produto = s.id_produto
+                INNER JOIN tb_loja AS l
+                    ON l.id_loja = ca.id_loja
                 WHERE
-                    (
+                    s.status IN ('EM ANALISE', 'ACEITO', 'NEGADO')
+                    AND (
                         %s IS NULL
-                        OR datas.primeira_data >= %s
+                        OR s.data_solicitacao >= %s
                     )
                     AND (
                         %s IS NULL
-                        OR datas.primeira_data < DATE_ADD(
+                        OR s.data_solicitacao < DATE_ADD(
                             %s, INTERVAL 1 DAY
                         )
                     )
                 GROUP BY
-                    p.id_produto,
-                    ca.nome_cartao,
-                    se.nome_servico,
-                    ca.id_produto,
-                    se.id_produto
-                ORDER BY total DESC, nome_produto ASC
+                    l.id_loja,
+                    l.nome_loja
+                ORDER BY
+                    total DESC,
+                    l.nome_loja ASC
                 """,
-                (
-                    data_inicio,
-                    data_inicio,
-                    data_fim,
-                    data_fim,
-                ),
+                _filtro_periodo_sql(data_inicio, data_fim),
             )
 
-            produtos = cursor.fetchall()
+            lojas = cursor.fetchall()
+
+        # SUM() no MySQL devolve Decimal, que nem todo JSON aceita.
+        # Convertemos tudo para int antes de sair do service.
+        for loja in lojas:
+            for campo in ("total", "em_analise", "aceitas", "negadas"):
+                loja[campo] = int(loja[campo] or 0)
 
         return {
-            "total": sum(item["total"] for item in produtos),
-            "produtos": produtos,
+            "total": sum(item["total"] for item in lojas),
+            "lojas": lojas,
+        }
+
+    finally:
+        conexao.close()
+
+
+def montar_relatorio_tipos_cartao(data_inicio=None, data_fim=None):
+    """
+    Retorna o volume de solicitações por categoria de cartão e por mês.
+    A regra de classificação é a mesma já utilizada no dashboard.
+
+    ATENÇÃO: como este SQL recebe parâmetros (%s), todo '%' literal
+    precisa ser escrito como '%%' (ex.: '%%Y-%%m' e '%%Loja DM%%').
+    """
+    conexao = get_connection()
+
+    try:
+        with conexao.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT
+                    base.mes,
+                    base.tipo_cartao,
+                    COUNT(base.id_solicitacao) AS total
+                FROM (
+                    SELECT
+                        s.id_solicitacao,
+                        DATE_FORMAT(
+                            s.data_solicitacao,
+                            '%%Y-%%m'
+                        ) AS mes,
+                        CASE
+                            WHEN ca.nome_cartao LIKE '%%Loja DM%%'
+                                THEN 'Cartão Loja DM'
+                            WHEN ca.nome_cartao LIKE '%%Cartao DM%%'
+                                THEN 'Cartão DM'
+                            WHEN ca.tipo_cartao = 'LOJA'
+                                THEN 'Cartão de loja'
+                            ELSE 'Outros cartões'
+                        END AS tipo_cartao
+                    FROM tb_solicitacao AS s
+                    INNER JOIN tb_cartao AS ca
+                        ON ca.id_produto = s.id_produto
+                    WHERE
+                        s.status IN ('EM ANALISE', 'ACEITO', 'NEGADO')
+                        AND (
+                            %s IS NULL
+                            OR s.data_solicitacao >= %s
+                        )
+                        AND (
+                            %s IS NULL
+                            OR s.data_solicitacao < DATE_ADD(
+                                %s, INTERVAL 1 DAY
+                            )
+                        )
+                ) AS base
+                GROUP BY
+                    base.mes,
+                    base.tipo_cartao
+                ORDER BY
+                    base.mes ASC,
+                    base.tipo_cartao ASC
+                """,
+                _filtro_periodo_sql(data_inicio, data_fim),
+            )
+
+            registros = cursor.fetchall()
+
+        totais_por_tipo = Counter()
+        totais_por_mes = Counter()
+
+        for registro in registros:
+            totais_por_tipo[registro["tipo_cartao"]] += registro["total"]
+            totais_por_mes[registro["mes"]] += registro["total"]
+
+        return {
+            "total": sum(totais_por_tipo.values()),
+            "por_tipo": [
+                {
+                    "tipo_cartao": tipo,
+                    "total": total,
+                }
+                for tipo, total in sorted(totais_por_tipo.items())
+            ],
+            "por_mes": [
+                {
+                    "mes": mes,
+                    "total": total,
+                }
+                for mes, total in sorted(totais_por_mes.items())
+            ],
+            "por_mes_tipo": registros,
         }
 
     finally:

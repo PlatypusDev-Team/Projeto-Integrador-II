@@ -17,26 +17,41 @@ const dashboardCharts = {};
 
 let chatPolling = null;
 let chatLoadingId = null;
+// Guarda a "assinatura" da última lista de mensagens desenhada,
+// para só redesenhar o chat quando algo realmente mudou.
+let chatSignature = "";
+
+// Declarado aqui no topo (antes ficava no meio do arquivo).
+let activeReportType = "status";
 
 const reportResultsTemplate = $("report-results").innerHTML;
 
 const reportDefinitions = {
     status: {
         title: "Solicitações por status",
-        description: "Distribuição por status e evolução mensal.",
+        description: "Distribuição das solicitações por status e evolução mensal.",
         endpoint: "/relatorios/solicitacoes",
         exports: true
     },
+
     products: {
-        title: "Produtos mais solicitados",
-        description: "Consulte os produtos e serviços com maior volume de solicitações.",
+        title: "Produtividade por loja",
+        description: "Compare o volume de solicitações aceitas, recusadas e em análise em cada loja.",
         endpoint: "/relatorios/produtos",
         exports: false
     },
+
     performance: {
-        title: "Desempenho do atendimento",
-        description: "Consulte os indicadores de volume e tempo de atendimento.",
+        title: "Tempo de análise",
+        description: "Acompanhe o tempo médio de conclusão e o tempo de espera das solicitações pendentes.",
         endpoint: "/relatorios/desempenho",
+        exports: false
+    },
+
+    cardTypes: {
+        title: "Tipos de cartão",
+        description: "Analise a distribuição das solicitações por tipo de cartão e sua evolução mensal.",
+        endpoint: "/relatorios/tipos-cartao",
         exports: false
     }
 };
@@ -50,8 +65,6 @@ const STATUS_LABELS = {
 // =====================================================
 // API E SESSÃO
 // =====================================================
-
-
 
 async function api(path, options = {}) {
     let response;
@@ -121,7 +134,15 @@ async function mensagemAPI(idSolicitacao, options = {}) {
         throw new Error("Sua sessão expirou. Entre novamente.");
     }
 
-    const data = await response.json();
+    // Se o servidor devolver algo que não é JSON (ex.: página de erro HTML),
+    // evitamos o erro críptico "Unexpected token <".
+    let data = {};
+
+    try {
+        data = await response.json();
+    } catch {
+        data = {};
+    }
 
     if (!response.ok) {
         throw new Error(
@@ -345,8 +366,7 @@ function renderList() {
     });
 
     $("result-count").textContent =
-        `${filtered.length} ${filtered.length === 1 ? "registro" : "registros"
-        }`;
+        `${filtered.length} ${filtered.length === 1 ? "registro" : "registros"}`;
 
     $("list-heading").textContent =
         state.view === "meus"
@@ -723,6 +743,9 @@ function renderDetails(data) {
 
     const idSolicitacao = Number(request.id_solicitacao);
 
+    // O container do chat acabou de ser recriado, então zeramos a assinatura.
+    chatSignature = "";
+
     loadChatMessages(idSolicitacao);
 
     if (request.status === "EM ANALISE") {
@@ -737,6 +760,16 @@ function renderChatMessages(mensagens) {
 
     if (!container) return;
 
+    // Só redesenha se a lista mudou. Sem isso, a cada 3 s o chat era
+    // reconstruído e rolado para o fim, atrapalhando quem lia mensagens antigas.
+    const signature = JSON.stringify(
+        mensagens.map((m) => [m.id_mensagem ?? null, m.remetente, m.conteudo_mensagem, m.data_envio])
+    );
+
+    if (signature === chatSignature) return;
+
+    chatSignature = signature;
+
     if (!mensagens.length) {
         container.innerHTML = `
             <p class="chat-empty">
@@ -750,8 +783,7 @@ function renderChatMessages(mensagens) {
         const isAttendant = mensagem.remetente === "ATENDENTE";
 
         return `
-            <article class="chat-message ${isAttendant ? "attendant" : "client"
-            }">
+            <article class="chat-message ${isAttendant ? "attendant" : "client"}">
 
                 <span class="chat-message-author">
                     ${isAttendant ? "Você" : "Cliente"}
@@ -780,14 +812,10 @@ async function loadChatMessages(idSolicitacao) {
     chatLoadingId = idSolicitacao;
 
     try {
-        console.log("Consultando mensagens da solicitação:", idSolicitacao);
-
         const data = await mensagemAPI(idSolicitacao);
 
         // Não atualiza uma solicitação que não está mais aberta.
         if (Number(state.selectedId) !== Number(idSolicitacao)) return;
-
-        console.log("Mensagens recebidas:", data.mensagens);
 
         renderChatMessages(data.mensagens || []);
 
@@ -796,11 +824,15 @@ async function loadChatMessages(idSolicitacao) {
 
         console.error("Erro ao carregar mensagens:", error);
 
-        container.innerHTML = `
-            <p class="chat-empty">
-                ${escapeHTML(error.message)}
-            </p>
-        `;
+        // Se já havia mensagens na tela, não apaga tudo por causa de uma
+        // falha momentânea do polling.
+        if (!chatSignature) {
+            container.innerHTML = `
+                <p class="chat-empty">
+                    ${escapeHTML(error.message)}
+                </p>
+            `;
+        }
     } finally {
         if (chatLoadingId === idSolicitacao) {
             chatLoadingId = null;
@@ -811,8 +843,6 @@ async function loadChatMessages(idSolicitacao) {
 function iniciarPollingChat(idSolicitacao) {
     pararPollingChat();
 
-    console.log("Polling iniciado para:", idSolicitacao);
-
     chatPolling = setInterval(() => {
 
         if (document.visibilityState !== "visible") return;
@@ -821,8 +851,6 @@ function iniciarPollingChat(idSolicitacao) {
             pararPollingChat();
             return;
         }
-
-        console.log("Polling: buscando novas mensagens...");
 
         loadChatMessages(idSolicitacao);
 
@@ -1288,11 +1316,611 @@ function renderReportTable(registros) {
                 </span>
             </td>
 
-            <td>${escapeHTML(formatDate(item.data_referencia))}</td>
+            <td>
+                ${escapeHTML(formatDate(item.data_solicitacao))}
+            </td>
         </tr>
     `).join("");
 }
 
+// =====================================================
+// RELATÓRIOS DETALHADOS
+// =====================================================
+
+const detailedReportCharts = {};
+
+function destroyDetailedReportCharts() {
+    Object.values(detailedReportCharts).forEach((chart) => {
+        chart?.destroy();
+    });
+
+    Object.keys(detailedReportCharts).forEach((key) => {
+        delete detailedReportCharts[key];
+    });
+}
+
+function createDetailedReportChart(id, config) {
+    const canvas = $(id);
+
+    if (!canvas || typeof Chart === "undefined") {
+        return null;
+    }
+
+    return new Chart(canvas, config);
+}
+
+function formatNumber(value) {
+    return Number(value || 0).toLocaleString("pt-BR");
+}
+
+
+function formatDuration(seconds) {
+    if (
+        seconds === null ||
+        seconds === undefined ||
+        Number.isNaN(Number(seconds))
+    ) {
+        return "Não calculado";
+    }
+
+    const total = Math.max(0, Math.floor(Number(seconds)));
+
+    const days = Math.floor(total / 86400);
+    const hours = Math.floor((total % 86400) / 3600);
+    const minutes = Math.floor((total % 3600) / 60);
+
+    if (days > 0) {
+        return `${days}d ${hours}h ${minutes}min`;
+    }
+
+    if (hours > 0) {
+        return `${hours}h ${minutes}min`;
+    }
+
+    return `${minutes}min`;
+}
+
+
+function formatMonth(value) {
+    if (!value) return "Não informado";
+
+    const [year, month] = String(value).split("-");
+
+    return year && month
+        ? `${month}/${year}`
+        : value;
+}
+
+function renderReportMetrics(metrics) {
+    return `
+        <div class="report-metrics">
+            ${metrics.map((metric) => `
+                <article class="summary-card">
+                    <p>${escapeHTML(metric.label)}</p>
+                    <strong>${escapeHTML(metric.value)}</strong>
+                </article>
+            `).join("")}
+        </div>
+    `;
+}
+
+function renderDetailedTable(title, columns, rows, emptyMessage) {
+    const tableRows = rows.length
+        ? rows.map((row) => `
+            <tr>
+                ${columns.map((column) => `
+                    <td>
+                        ${escapeHTML(row[column.key] ?? "Não informado")}
+                    </td>
+                `).join("")}
+            </tr>
+        `).join("")
+        : `
+            <tr>
+                <td colspan="${columns.length}">
+                    ${escapeHTML(emptyMessage)}
+                </td>
+            </tr>
+        `;
+
+    return `
+        <article class="report-chart-card">
+            <h3>${escapeHTML(title)}</h3>
+
+            <div class="report-table-wrapper">
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            ${columns.map((column) => `
+                                <th>${escapeHTML(column.label)}</th>
+                            `).join("")}
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        ${tableRows}
+                    </tbody>
+                </table>
+            </div>
+        </article>
+    `;
+}
+
+// =====================================================
+// PRODUTIVIDADE POR LOJA
+// =====================================================
+
+function renderStoreProductivity(data) {
+    const container = $("generic-report-results");
+
+    if (!container) return;
+
+    destroyDetailedReportCharts();
+
+    const lojas = data.lojas || [];
+
+    const total = Number(data.total || 0);
+
+    const aceitas = lojas.reduce(
+        (sum, loja) => sum + Number(loja.aceitas || 0),
+        0
+    );
+
+    const emAnalise = lojas.reduce(
+        (sum, loja) => sum + Number(loja.em_analise || 0),
+        0
+    );
+
+    const negadas = lojas.reduce(
+        (sum, loja) => sum + Number(loja.negadas || 0),
+        0
+    );
+
+    if (!lojas.length) {
+        container.innerHTML = `
+            <p class="empty-state">
+                Nenhuma solicitação de cartão encontrada no período.
+            </p>
+        `;
+        return;
+    }
+
+    container.innerHTML = `
+        ${renderReportMetrics([
+        { label: "Total de solicitações", value: formatNumber(total) },
+        { label: "Aceitas", value: formatNumber(aceitas) },
+        { label: "Em análise", value: formatNumber(emAnalise) },
+        { label: "Recusadas", value: formatNumber(negadas) }
+    ])}
+
+        <div class="report-chart-grid">
+            <article class="report-chart-card">
+                <h3>Solicitações por loja</h3>
+
+                <p>
+                    Comparativo de solicitações aceitas, recusadas e em análise.
+                </p>
+
+                <div class="chart-container">
+                    <canvas id="store-productivity-chart"></canvas>
+                </div>
+            </article>
+        </div>
+
+        ${renderDetailedTable(
+        "Detalhamento por loja",
+        [
+            { key: "nome_loja", label: "Loja" },
+            { key: "total", label: "Total" },
+            { key: "aceitas", label: "Aceitas" },
+            { key: "em_analise", label: "Em análise" },
+            { key: "negadas", label: "Recusadas" }
+        ],
+        lojas.map((loja) => ({
+            nome_loja: loja.nome_loja,
+            total: formatNumber(loja.total),
+            aceitas: formatNumber(loja.aceitas),
+            em_analise: formatNumber(loja.em_analise),
+            negadas: formatNumber(loja.negadas)
+        })),
+        "Nenhuma loja encontrada."
+    )}
+    `;
+
+    detailedReportCharts.stores = createDetailedReportChart(
+        "store-productivity-chart",
+        {
+            type: "bar",
+
+            data: {
+                labels: lojas.map((loja) => loja.nome_loja),
+
+                datasets: [
+                    {
+                        label: "Aceitas",
+                        data: lojas.map((loja) => Number(loja.aceitas || 0)),
+                        backgroundColor: "#68e69a",
+                        borderRadius: 4
+                    },
+                    {
+                        label: "Em análise",
+                        data: lojas.map((loja) => Number(loja.em_analise || 0)),
+                        backgroundColor: "#212acf",
+                        borderRadius: 4
+                    },
+                    {
+                        label: "Recusadas",
+                        data: lojas.map((loja) => Number(loja.negadas || 0)),
+                        backgroundColor: "#ff9a98",
+                        borderRadius: 4
+                    }
+                ]
+            },
+
+            options: {
+                indexAxis: "y",
+                responsive: true,
+                maintainAspectRatio: false,
+
+                interaction: {
+                    mode: "index",
+                    intersect: false
+                },
+
+                plugins: {
+                    legend: {
+                        position: "bottom",
+                        labels: {
+                            usePointStyle: true,
+                            padding: 18
+                        }
+                    }
+                },
+
+                scales: {
+                    x: {
+                        stacked: true,
+                        beginAtZero: true,
+                        ticks: { precision: 0 }
+                    },
+
+                    y: {
+                        stacked: true,
+                        grid: { display: false }
+                    }
+                }
+            }
+        }
+    );
+}
+
+// =====================================================
+// TEMPO DE ANÁLISE
+// =====================================================
+
+function renderAnalysisTime(data) {
+    const container = $("generic-report-results");
+
+    if (!container) return;
+
+    destroyDetailedReportCharts();
+
+    const registros = data.registros || [];
+    const meses = data.por_mes || [];
+
+    const mediaGeral = formatDuration(data.tempo_medio_segundos);
+    const mediaPendente = formatDuration(
+        data.tempo_medio_pendente_segundos
+    );
+
+    const maiorPendente = formatDuration(
+        data.maior_tempo_pendente_segundos
+    );
+
+    const concluidas = Number(data.concluidas || 0);
+    const pendentes = Number(data.pendentes || 0);
+
+    const registrosTabela = registros.map((item) => ({
+        id: `#${item.id_solicitacao}`,
+        status: statusLabel(item.status),
+        solicitacao: formatDate(item.data_solicitacao),
+        conclusao: item.data_conclusao
+            ? formatDate(item.data_conclusao)
+            : "Pendente",
+        tempo: item.tempo_analise_segundos !== null &&
+            item.tempo_analise_segundos !== undefined
+            ? formatDuration(item.tempo_analise_segundos)
+            : "Não concluída",
+        espera: item.tempo_pendente_segundos !== null &&
+            item.tempo_pendente_segundos !== undefined
+            ? formatDuration(item.tempo_pendente_segundos)
+            : "—"
+    }));
+
+    container.innerHTML = `
+        ${renderReportMetrics([
+        {
+            label: "Tempo médio de análise",
+            value: mediaGeral
+        },
+        {
+            label: "Solicitações concluídas",
+            value: formatNumber(concluidas)
+        },
+        {
+            label: "Solicitações pendentes",
+            value: formatNumber(pendentes)
+        },
+        {
+            label: "Tempo médio em espera",
+            value: mediaPendente
+        },
+        {
+            label: "Maior tempo em espera",
+            value: maiorPendente
+        }
+    ])}
+
+        <div class="report-chart-grid">
+            <article class="report-chart-card">
+                <h3>Tempo médio de análise por mês</h3>
+
+                <p>
+                    Considera apenas solicitações concluídas com tempo calculável.
+                </p>
+
+                <div class="chart-container">
+                    <canvas id="analysis-time-chart"></canvas>
+                </div>
+            </article>
+        </div>
+
+        ${renderDetailedTable(
+        "Solicitações no período",
+        [
+            { key: "id", label: "Solicitação" },
+            { key: "status", label: "Status" },
+            { key: "solicitacao", label: "Data da solicitação" },
+            { key: "conclusao", label: "Data da conclusão" },
+            { key: "tempo", label: "Tempo de análise" },
+            { key: "espera", label: "Tempo em espera" }
+        ],
+        registrosTabela,
+        "Nenhuma solicitação encontrada no período."
+    )}
+    `;
+
+    detailedReportCharts.analysis = createDetailedReportChart(
+        "analysis-time-chart",
+        {
+            type: "bar",
+
+            data: {
+                labels: meses.map((item) => formatMonth(item.mes)),
+
+                datasets: [
+                    {
+                        label: "Tempo médio de análise",
+                        data: meses.map((item) =>
+                            Number(item.tempo_medio_segundos || 0) / 3600
+                        ),
+                        backgroundColor: "#212acf",
+                        borderRadius: 5
+                    }
+                ]
+            },
+
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+
+                    tooltip: {
+                        callbacks: {
+                            label: (context) =>
+                                ` ${formatDuration(context.parsed.y * 3600)}`
+                        }
+                    }
+                },
+
+                scales: {
+                    y: {
+                        beginAtZero: true,
+
+                        title: {
+                            display: true,
+                            text: "Horas"
+                        }
+                    }
+                }
+            }
+        }
+    );
+}
+
+// =====================================================
+// TIPOS DE CARTÃO
+// =====================================================
+
+function renderCardTypes(data) {
+    const container = $("generic-report-results");
+
+    if (!container) return;
+
+    destroyDetailedReportCharts();
+
+    const tipos = data.por_tipo || [];
+    const mesesTipos = data.por_mes_tipo || [];
+
+    const total = Number(data.total || 0);
+
+    if (!tipos.length) {
+        container.innerHTML = `
+            <p class="empty-state">
+                Nenhuma solicitação de cartão encontrada no período.
+            </p>
+        `;
+        return;
+    }
+
+    const nomesTipos = [
+        ...new Set(mesesTipos.map((item) => item.tipo_cartao))
+    ];
+
+    const palette = [
+        "#212acf",
+        "#68e69a",
+        "#7df4ed",
+        "#ffe372",
+        "#ff9a98"
+    ];
+
+    const meses = [
+        ...new Set(mesesTipos.map((item) => item.mes))
+    ];
+
+    const datasets = nomesTipos.map((tipo, index) => ({
+        label: tipo,
+        data: meses.map((mes) => {
+            const registro = mesesTipos.find(
+                (item) =>
+                    item.mes === mes &&
+                    item.tipo_cartao === tipo
+            );
+
+            return Number(registro?.total || 0);
+        }),
+        backgroundColor: palette[index % palette.length],
+        borderRadius: 4,
+        stack: "cartoes"
+    }));
+
+    container.innerHTML = `
+        ${renderReportMetrics([
+        {
+            label: "Total de solicitações",
+            value: formatNumber(total)
+        },
+        {
+            label: "Tipos de cartão",
+            value: formatNumber(tipos.length)
+        }
+    ])}
+
+        <div class="report-chart-grid">
+            <article class="report-chart-card">
+                <h3>Distribuição por tipo de cartão</h3>
+
+                <div class="chart-container">
+                    <canvas id="card-types-chart"></canvas>
+                </div>
+            </article>
+
+            <article class="report-chart-card">
+                <h3>Evolução mensal por tipo</h3>
+
+                <div class="chart-container">
+                    <canvas id="card-types-month-chart"></canvas>
+                </div>
+            </article>
+        </div>
+
+        ${renderDetailedTable(
+        "Solicitações por tipo de cartão",
+        [
+            { key: "tipo", label: "Tipo de cartão" },
+            { key: "total", label: "Solicitações" }
+        ],
+        tipos.map((item) => ({
+            tipo: item.tipo_cartao,
+            total: formatNumber(item.total)
+        })),
+        "Nenhum tipo de cartão encontrado."
+    )}
+    `;
+
+    detailedReportCharts.cardTypes = createDetailedReportChart(
+        "card-types-chart",
+        {
+            type: "doughnut",
+
+            data: {
+                labels: tipos.map((item) => item.tipo_cartao),
+
+                datasets: [{
+                    data: tipos.map((item) => Number(item.total || 0)),
+                    backgroundColor: palette,
+                    borderWidth: 0
+                }]
+            },
+
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: "58%",
+
+                plugins: {
+                    legend: {
+                        position: "bottom",
+                        labels: {
+                            usePointStyle: true,
+                            padding: 18
+                        }
+                    }
+                }
+            }
+        }
+    );
+
+    detailedReportCharts.cardTypesMonth = createDetailedReportChart(
+        "card-types-month-chart",
+        {
+            type: "bar",
+
+            data: {
+                labels: meses.map(formatMonth),
+                datasets
+            },
+
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+
+                interaction: {
+                    mode: "index",
+                    intersect: false
+                },
+
+                plugins: {
+                    legend: {
+                        position: "bottom",
+                        labels: {
+                            usePointStyle: true,
+                            padding: 18
+                        }
+                    }
+                },
+
+                scales: {
+                    x: {
+                        stacked: true,
+                        grid: { display: false }
+                    },
+
+                    y: {
+                        stacked: true,
+                        beginAtZero: true,
+                        ticks: { precision: 0 }
+                    }
+                }
+            }
+        }
+    );
+}
 
 async function downloadReport(format) {
     if (!validateReportDates()) return;
@@ -1354,10 +1982,11 @@ async function downloadReport(format) {
         link.click();
         link.remove();
 
-        URL.revokeObjectURL(objectURL);
-
         showReportMessage("Arquivo gerado com sucesso!", true);
 
+        // Libera a URL só depois de dar tempo ao navegador de iniciar o
+        // download (antes ela era revogada imediatamente, o que podia
+        // cancelar o download em alguns navegadores).
         setTimeout(() => URL.revokeObjectURL(objectURL), 1000);
     } catch (error) {
         showReportMessage(error.message);
@@ -1366,7 +1995,6 @@ async function downloadReport(format) {
     }
 
 }
-
 
 function closeReport() {
     $("report-viewer").hidden = true;
@@ -1381,14 +2009,18 @@ function closeReport() {
         monthChart.destroy();
         monthChart = null;
     }
+
+    destroyDetailedReportCharts();
 }
 
 function prepareReportViewer(type) {
     const report = reportDefinitions[type];
 
+    if (!report) return;
+
     activeReportType = type;
 
-    if (!report) return;
+    destroyDetailedReportCharts();
 
     $("report-catalog").hidden = true;
     $("report-viewer").hidden = false;
@@ -1398,9 +2030,11 @@ function prepareReportViewer(type) {
 
     $("report-results").innerHTML = type === "status"
         ? reportResultsTemplate
-        : `<div id="generic-report-results">
-               <p class="empty-state">Carregando relatório...</p>
-           </div>`;
+        : `
+            <div id="generic-report-results">
+                <p class="empty-state">Carregando relatório...</p>
+            </div>
+        `;
 
     document.querySelector(".report-toolbar").hidden = !report.exports;
     document.querySelector(".report-filters").hidden = false;
@@ -1408,112 +2042,6 @@ function prepareReportViewer(type) {
     showReportMessage("");
 }
 
-function renderGenericReport(data) {
-    const container = $("generic-report-results");
-
-    if (!container) return;
-
-    // Aceita tanto os dados diretamente quanto um objeto "relatorio".
-    const report = data.relatorio || data;
-    const ignoredKeys = new Set(["success", "mensagem", "relatorio"]);
-
-    const entries = Object.entries(report).filter(
-        ([key]) => !ignoredKeys.has(key)
-    );
-
-    const metrics = [];
-    const tables = [];
-
-    for (const [key, value] of entries) {
-        if (Array.isArray(value)) {
-            if (value.length > 0 && value.every(
-                item => item && typeof item === "object"
-                    && !Array.isArray(item)
-            )) {
-                tables.push({ key, rows: value });
-            } else {
-                metrics.push({
-                    label: key,
-                    value: value.length
-                });
-            }
-        } else if (value === null || typeof value !== "object") {
-            metrics.push({ label: key, value: value ?? "Não informado" });
-        } else {
-            metrics.push({
-                label: key,
-                value: JSON.stringify(value)
-            });
-        }
-    }
-
-    const labelize = (key) => String(key)
-        .replace(/_/g, " ")
-        .replace(/\b\w/g, char => char.toUpperCase());
-
-    const metricHTML = metrics.length
-        ? `<div class="report-metrics">
-            ${metrics.map(metric => `
-                <article class="summary-card">
-                    <p>${escapeHTML(labelize(metric.label))}</p>
-                    <strong>${escapeHTML(metric.value)}</strong>
-                </article>
-            `).join("")}
-           </div>`
-        : "";
-
-    const tableHTML = tables.map(({ key, rows }) => {
-        const columns = [...new Set(rows.flatMap(
-            row => Object.keys(row)
-        ))];
-
-        return `
-            <article class="report-chart-card">
-                <h3>${escapeHTML(labelize(key))}</h3>
-                <div class="report-table-wrapper">
-                    <table class="report-table">
-                        <thead>
-                            <tr>
-                                ${columns.map(column => `
-                                    <th>${escapeHTML(labelize(column))}</th>
-                                `).join("")}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${rows.map(row => `
-                                <tr>
-                                    ${columns.map(column => {
-            const value = row[column];
-
-            const displayValue =
-                value === null || value === undefined
-                    ? "Não informado"
-                    : typeof value === "object"
-                        ? JSON.stringify(value)
-                        : value;
-
-            return `<td>${escapeHTML(displayValue)}</td>`;
-        }).join("")}
-                                </tr>
-                            `).join("")}
-                        </tbody>
-                    </table>
-                </div>
-            </article>
-        `;
-    }).join("");
-
-    if (!metricHTML && !tableHTML) {
-        container.innerHTML = `
-            <p class="empty-state">
-                A rota respondeu, mas não retornou dados para exibir.
-            </p>
-        `;
-        return;
-    }
-
-    container.innerHTML = metricHTML + tableHTML;
-}
 
 async function openReport(type) {
     const report = reportDefinitions[type];
@@ -1522,12 +2050,12 @@ async function openReport(type) {
 
     prepareReportViewer(type);
 
+    if (!validateReportDates()) return;
+
     if (type === "status") {
         await loadStatusReport();
         return;
     }
-
-    if (!validateReportDates()) return;
 
     const container = $("generic-report-results");
 
@@ -1542,7 +2070,23 @@ async function openReport(type) {
             `${report.endpoint}${reportQueryString()}`
         );
 
-        renderGenericReport(data);
+        switch (type) {
+            case "products":
+                renderStoreProductivity(data);
+                break;
+
+            case "performance":
+                renderAnalysisTime(data);
+                break;
+
+            case "cardTypes":
+                renderCardTypes(data);
+                break;
+
+            default:
+                throw new Error("Tipo de relatório desconhecido.");
+        }
+
     } catch (error) {
         if (container) {
             container.innerHTML = `
@@ -1626,20 +2170,15 @@ $("logout-button").addEventListener("click", async () => {
 // EVENTOS DOS RELATÓRIOS
 // =====================================================
 
-let activeReportType = "status";
-
 $("open-status-report").addEventListener("click", () => {
-    activeReportType = "status";
     openReport("status");
 });
 
 $("open-products-report").addEventListener("click", () => {
-    activeReportType = "products";
     openReport("products");
 });
 
 $("open-performance-report").addEventListener("click", () => {
-    activeReportType = "performance";
     openReport("performance");
 });
 
@@ -1670,6 +2209,14 @@ $("export-excel").addEventListener("click", () => {
     downloadReport("xlsx");
 });
 
+const cardTypesButton = $("open-card-types-report");
+
+if (cardTypesButton) {
+    cardTypesButton.addEventListener("click", () => {
+        openReport("cardTypes");
+    });
+}
+
 // =====================================================
 // INICIALIZAÇÃO
 // =====================================================
@@ -1683,10 +2230,10 @@ async function init() {
         $("profile-name").textContent =
             session.nome_atendente || `Atendente #${state.idAtendente}`;
 
+        // Inicial do nome (antes havia uma linha seguinte que
+        // sobrescrevia isso e deixava sempre "A").
         $("profile-avatar").textContent =
             ($("profile-name").textContent.trim()[0] || "A").toUpperCase();
-
-        $("profile-avatar").textContent = "A";
 
         showView("pendentes");
         await loadLists();
