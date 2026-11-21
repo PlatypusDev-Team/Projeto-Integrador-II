@@ -376,26 +376,26 @@ function adicionarEventosBotoes() {
                             idCartao
                         );
 
-                        localStorage.setItem(
+                        sessionStorage.setItem(
                             "idCartao",
                             idCartao
                         );
 
-                        localStorage.setItem(
+                        sessionStorage.setItem(
                             "idLoja",
                             idLoja
                         );
 
                         if (idFilial) {
 
-                            localStorage.setItem(
+                            sessionStorage.setItem(
                                 "idFilial",
                                 idFilial
                             );
                         }
 
                         // Descarta uma lista antiga de uma busca anterior.
-                        localStorage.removeItem(
+                        sessionStorage.removeItem(
                             "cartoesDisponiveis"
                         );
 
@@ -419,21 +419,21 @@ function adicionarEventosBotoes() {
                             resultado.cartoes
                         );
 
-                        localStorage.setItem(
+                        sessionStorage.setItem(
                             "cartoesDisponiveis",
                             JSON.stringify(
                                 resultado.cartoes
                             )
                         );
 
-                        localStorage.setItem(
+                        sessionStorage.setItem(
                             "idLoja",
                             idLoja
                         );
 
                         if (idFilial) {
 
-                            localStorage.setItem(
+                            sessionStorage.setItem(
                                 "idFilial",
                                 idFilial
                             );
