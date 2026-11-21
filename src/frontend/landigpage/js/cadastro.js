@@ -431,7 +431,7 @@ function mostrarAvisoConfirmacao(quadro, mensagem, comLink = false) {
  * Quem não está logado vê o formulário completo, sem este quadro.
  */
 async function mostrarConfirmacao() {
-    const idCartao = localStorage.getItem("idCartao");
+    const idCartao = sessionStorage.getItem("idCartao");
 
     if (!clienteAutenticado || !idCartao) {
         removerConfirmacao();
@@ -463,7 +463,7 @@ async function mostrarConfirmacao() {
         // trocou de cartão): outra chamada cuida da tela.
         if (
             !clienteAutenticado ||
-            localStorage.getItem("idCartao") !== idCartao
+            sessionStorage.getItem("idCartao") !== idCartao
         ) {
             return;
         }
@@ -607,7 +607,7 @@ if (form) {
         }
 
         // Atualiza o cartão escolhido antes de montar o formulário.
-        inputCartao.value = localStorage.getItem("idCartao") || "";
+        inputCartao.value = sessionStorage.getItem("idCartao") || "";
 
         const dados = new FormData(form);
         const idCartao = (dados.get("id_produto") || "").trim();
@@ -658,8 +658,8 @@ if (form) {
                         mensagemErro
                     );
 
-                    localStorage.removeItem("idCartao");
-                    localStorage.removeItem("cartoesDisponiveis");
+                    sessionStorage.removeItem("idCartao");
+                    sessionStorage.removeItem("cartoesDisponiveis");
 
                     window.location.href = "status.html";
                     return;
@@ -668,8 +668,8 @@ if (form) {
                 // O cartão guardado não existe mais: descarta, senão a
                 // pessoa fica presa tentando o mesmo id para sempre.
                 if (resultado.codigo === "CARTAO_INEXISTENTE") {
-                    localStorage.removeItem("idCartao");
-                    localStorage.removeItem("cartoesDisponiveis");
+                    sessionStorage.removeItem("idCartao");
+                    sessionStorage.removeItem("cartoesDisponiveis");
                 }
 
                 // Estava logada na tela, mas a sessão expirou no servidor.
@@ -698,8 +698,8 @@ if (form) {
                 return;
             }
 
-            localStorage.removeItem("idCartao");
-            localStorage.removeItem("cartoesDisponiveis");
+            sessionStorage.removeItem("idCartao");
+            sessionStorage.removeItem("cartoesDisponiveis");
             sessionStorage.removeItem("avisoSolicitacao");
 
             mostrarMensagem(

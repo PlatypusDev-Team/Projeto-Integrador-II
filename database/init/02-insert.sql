@@ -1666,3 +1666,17 @@ insert into tb_solicitacao (id_solicitacao, status, id_cliente, id_produto, data
     (610, 'EM ANALISE', 94, 25, '2026-11-19 10:00:55', null, null),
     (611, 'EM ANALISE', 80, 24, '2026-11-19 10:31:21', null, null),
     (612, 'EM ANALISE', 138, 3, '2026-11-19 10:33:18', null, null);
+
+insert into tb_produto (id_produto, tipo_produto) values
+    (36, 'CARTAO'),
+    (37, 'CARTAO'),
+    (38, 'CARTAO');
+
+insert into tb_cartao (id_produto, nome_cartao, tipo_cartao, descricao_cartao, modalidade, bandeirado, id_loja) values
+    (36, 'Cartao Loja I', 'LOJA', 'Cartao exclusivo para compras na Loja I.', 'FISICO', 0, 9),
+    (37, 'Cartao Loja I Digital', 'LOJA', 'Cartao exclusivo para compras na Loja I.', 'DIGITAL', 0, 9),
+    (38, 'Cartao Loja J Digital', 'LOJA', 'Cartao digital oferecido pela Loja J.', 'DIGITAL', 1, 10);
+
+insert into tb_filial (cep_filial, uf_filial, id_loja) values
+    ('04101000', 'SP', 10),
+    ('22041000', 'RJ', 10);
