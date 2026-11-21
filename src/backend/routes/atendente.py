@@ -17,6 +17,15 @@ from services.relatorio_service import (
     gerar_pdf_relatorio,
 )
 
+from services.relatorio_service import (
+    montar_relatorio,
+    montar_relatorio_desempenho,
+    montar_relatorio_produtos,
+    montar_relatorio_tipos_cartao,
+    gerar_excel_relatorio,
+    gerar_pdf_relatorio,
+)
+
 from services.dashboard_service import montar_dashboard
 
 from datetime import datetime
@@ -375,28 +384,39 @@ def relatorio_solicitacoes():
     if erro:
         return jsonify({"success": False, "mensagem": erro}), 400
 
-    relatorio = montar_relatorio(inicio, fim)
+    try:
+        relatorio = montar_relatorio(inicio, fim)
 
-    registros = [
-        {
-            "id_solicitacao": item["id_solicitacao"],
-            "status": item["status"],
-            "data_referencia": (
-                item["data_referencia"].isoformat(sep=" ", timespec="seconds")
-                if item["data_referencia"]
-                else None
-            ),
-        }
-        for item in relatorio["registros"]
-    ]
+        registros = [
+            {
+                "id_solicitacao": item["id_solicitacao"],
+                "status": item["status"],
+                "data_solicitacao": (
+                    item["data_solicitacao"].isoformat(
+                        sep=" ", timespec="seconds"
+                    )
+                    if item["data_solicitacao"]
+                    else None
+                ),
+            }
+            for item in relatorio["registros"]
+        ]
 
-    return jsonify({
-        "success": True,
-        "total": relatorio["total"],
-        "por_status": relatorio["por_status"],
-        "por_mes": relatorio["por_mes"],
-        "registros": registros,
-    })
+        return jsonify({
+            "success": True,
+            "total": relatorio["total"],
+            "por_status": relatorio["por_status"],
+            "por_mes": relatorio["por_mes"],
+            "registros": registros,
+        }), 200
+
+    except Exception:
+        logging.exception("Erro ao gerar relatório de solicitações")
+
+        return jsonify({
+            "success": False,
+            "mensagem": "Não foi possível gerar o relatório de solicitações.",
+        }), 500
 
 
 @atendente_bp.get("/relatorios/solicitacoes/exportar/<formato>")
@@ -413,31 +433,38 @@ def exportar_relatorio_solicitacoes(formato):
     if erro:
         return jsonify({"success": False, "mensagem": erro}), 400
 
-    relatorio = montar_relatorio(inicio, fim)
+    try:
+        relatorio = montar_relatorio(inicio, fim)
 
-    if formato == "xlsx":
-        arquivo = gerar_excel_relatorio(relatorio)
+        if formato == "xlsx":
+            arquivo = gerar_excel_relatorio(relatorio)
+
+            return send_file(
+                arquivo,
+                mimetype=(
+                    "application/vnd.openxmlformats-officedocument."
+                    "spreadsheetml.sheet"
+                ),
+                as_attachment=True,
+                download_name="relatorio_solicitacoes.xlsx",
+            )
+
+        arquivo = gerar_pdf_relatorio(relatorio)
 
         return send_file(
             arquivo,
-            mimetype=(
-                "application/vnd.openxmlformats-officedocument."
-                "spreadsheetml.sheet"
-            ),
+            mimetype="application/pdf",
             as_attachment=True,
-            download_name="relatorio_solicitacoes.xlsx",
+            download_name="relatorio_solicitacoes.pdf",
         )
 
-    arquivo = gerar_pdf_relatorio(relatorio)
+    except Exception:
+        logging.exception("Erro ao exportar relatório de solicitações")
 
-    return send_file(
-        arquivo,
-        mimetype="application/pdf",
-        as_attachment=True,
-        download_name="relatorio_solicitacoes.pdf",
-    )
-
-
+        return jsonify({
+            "success": False,
+            "mensagem": "Não foi possível exportar o relatório.",
+        }), 500
 
 @atendente_bp.get("/relatorios/desempenho")
 @atendente_required
@@ -447,7 +474,7 @@ def relatorio_desempenho():
     if erro:
         return jsonify({
             "success": False,
-            "mensagem": erro
+            "mensagem": erro,
         }), 400
 
     try:
@@ -458,9 +485,10 @@ def relatorio_desempenho():
                 return None
 
             if hasattr(valor, "isoformat"):
-                return valor.isoformat(sep=" ") if isinstance(
-                    valor, datetime
-                ) else valor.isoformat()
+                if isinstance(valor, datetime):
+                    return valor.isoformat(sep=" ", timespec="seconds")
+
+                return valor.isoformat()
 
             return str(valor)
 
@@ -470,18 +498,18 @@ def relatorio_desempenho():
             registros.append({
                 "id_solicitacao": item.get("id_solicitacao"),
                 "status": item.get("status"),
-                "id_atendente_responsavel": item.get(
-                    "id_atendente_responsavel"
-                ),
-                "primeiro_atendimento": serializar_data(
-                    item.get("primeiro_atendimento")
+                "data_solicitacao": serializar_data(
+                    item.get("data_solicitacao")
                 ),
                 "data_conclusao": serializar_data(
                     item.get("data_conclusao")
                 ),
-                "ultimo_atendimento": serializar_data(
-                    item.get("ultimo_atendimento")
-                )
+                "tempo_analise_segundos": item.get(
+                    "tempo_analise_segundos"
+                ),
+                "tempo_pendente_segundos": item.get(
+                    "tempo_pendente_segundos"
+                ),
             })
 
         return jsonify({
@@ -491,28 +519,32 @@ def relatorio_desempenho():
             "pendentes": relatorio.get("pendentes", 0),
             "aceitas": relatorio.get("aceitas", 0),
             "negadas": relatorio.get("negadas", 0),
+
             "tempo_medio_segundos": relatorio.get(
                 "tempo_medio_segundos", 0
             ),
             "quantidade_com_tempo_calculado": relatorio.get(
                 "quantidade_com_tempo_calculado", 0
             ),
+
+            "tempo_medio_pendente_segundos": relatorio.get(
+                "tempo_medio_pendente_segundos", 0
+            ),
+            "maior_tempo_pendente_segundos": relatorio.get(
+                "maior_tempo_pendente_segundos", 0
+            ),
+
             "por_mes": relatorio.get("por_mes", []),
-            "registros": registros
-        })
+            "registros": registros,
+        }), 200
 
     except Exception:
-        import logging
-        logging.exception(
-            "Erro ao gerar relatório de desempenho"
-        )
+        logging.exception("Erro ao gerar relatório de tempo de análise")
 
         return jsonify({
             "success": False,
-            "mensagem": "Não foi possível gerar o relatório de desempenho."
+            "mensagem": "Não foi possível gerar o relatório de tempo de análise.",
         }), 500
-
-
 
 @atendente_bp.get("/relatorios/produtos")
 @atendente_required
@@ -531,15 +563,45 @@ def relatorio_produtos():
         return jsonify({
             "success": True,
             "total": relatorio["total"],
-            "produtos": relatorio["produtos"],
+            "lojas": relatorio["lojas"],
         }), 200
 
     except Exception:
-        logging.exception("Erro ao gerar relatório de produtos")
+        logging.exception("Erro ao gerar relatório de produtividade por loja")
 
         return jsonify({
             "success": False,
-            "mensagem": "Não foi possível gerar o relatório de produtos.",
+            "mensagem": "Não foi possível gerar o relatório de produtividade por loja.",
+        }), 500
+
+@atendente_bp.get("/relatorios/tipos-cartao")
+@atendente_required
+def relatorio_tipos_cartao():
+    inicio, fim, erro = obter_periodo_relatorio()
+
+    if erro:
+        return jsonify({
+            "success": False,
+            "mensagem": erro,
+        }), 400
+
+    try:
+        relatorio = montar_relatorio_tipos_cartao(inicio, fim)
+
+        return jsonify({
+            "success": True,
+            "total": relatorio["total"],
+            "por_tipo": relatorio["por_tipo"],
+            "por_mes": relatorio["por_mes"],
+            "por_mes_tipo": relatorio["por_mes_tipo"],
+        }), 200
+
+    except Exception:
+        logging.exception("Erro ao gerar relatório de tipos de cartão")
+
+        return jsonify({
+            "success": False,
+            "mensagem": "Não foi possível gerar o relatório de tipos de cartão.",
         }), 500
 
 @atendente_bp.get("/relatorios/dashboard")
