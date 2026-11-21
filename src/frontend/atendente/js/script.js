@@ -17,9 +17,8 @@ const dashboardCharts = {};
 
 let chatPolling = null;
 let chatLoadingId = null;
-// Guarda a "assinatura" da última lista de mensagens desenhada,
-// para só redesenhar o chat quando algo realmente mudou.
-let chatSignature = "";
+// Evita perder uma atualização pedida enquanto outra ainda está em andamento.
+let chatReloadQueued = false;
 
 // Declarado aqui no topo (antes ficava no meio do arquivo).
 let activeReportType = "status";
@@ -155,15 +154,393 @@ async function mensagemAPI(idSolicitacao, options = {}) {
     return data;
 }
 
+// =====================================================
+// CHAT (GAVETA LATERAL)
+// =====================================================
+
+const CHAT_MAX_LENGTH = 2000;
+
+const CHAT_ICONS = {
+    user: '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+    headset: '<path d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Zm0 0a9 9 0 1 1 18 0m0 0v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3Z"/><path d="M21 16v2a4 4 0 0 1-4 4h-5"/>',
+    message: '<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>',
+    alert: '<circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/>'
+};
+
+function chatIcon(name) {
+    return `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${CHAT_ICONS[name] || ""}</svg>`;
+}
+
+// Estado do chat da solicitação aberta no momento.
+const chat = {
+    id: null,
+    messages: [],
+    signature: "",
+    loaded: false,
+    loadError: "",
+    seenCount: 0,      // quantas mensagens o atendente já viu na gaveta
+    open: false,
+    canSend: false,
+    sending: false
+};
+
+// ---------- datas ----------
+
+function parseChatDate(value) {
+    if (!value) return null;
+
+    const date = new Date(
+        typeof value === "string" ? value.replace(" ", "T") : value
+    );
+
+    return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function chatDayKey(date) {
+    return date
+        ? `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`
+        : "sem-data";
+}
+
+function chatDayLabel(date) {
+    if (!date) return "Sem data";
+
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+
+    if (chatDayKey(date) === chatDayKey(today)) return "Hoje";
+    if (chatDayKey(date) === chatDayKey(yesterday)) return "Ontem";
+
+    return new Intl.DateTimeFormat("pt-BR", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric"
+    }).format(date);
+}
+
+function chatTime(date) {
+    return date
+        ? new Intl.DateTimeFormat("pt-BR", {
+            hour: "2-digit",
+            minute: "2-digit"
+        }).format(date)
+        : "";
+}
+
+// ---------- desenho das mensagens ----------
+
+function buildChatHTML(mensagens) {
+    let html = "";
+    let lastDay = null;
+    let lastSender = null;
+
+    mensagens.forEach((mensagem) => {
+        const date = parseChatDate(mensagem.data_envio);
+        const day = chatDayKey(date);
+        const isAttendant = mensagem.remetente === "ATENDENTE";
+        const sender = isAttendant ? "ATENDENTE" : "CLIENTE";
+
+        if (day !== lastDay) {
+            html += `
+                <div class="chat-day">
+                    <span>${escapeHTML(chatDayLabel(date))}</span>
+                </div>
+            `;
+            lastDay = day;
+            lastSender = null;
+        }
+
+        // Mensagens seguidas da mesma pessoa formam um "grupo":
+        // só a primeira mostra avatar e nome.
+        const first = sender !== lastSender;
+        lastSender = sender;
+
+        html += `
+            <div class="chat-row ${isAttendant ? "attendant" : "client"}${first ? " first" : ""}">
+                ${first
+                ? `<span class="chat-avatar" aria-hidden="true">${chatIcon(isAttendant ? "headset" : "user")}</span>`
+                : `<span class="chat-avatar-spacer" aria-hidden="true"></span>`}
+
+                <div class="chat-bubble-wrap">
+                    ${first
+                ? `<span class="chat-author">${isAttendant ? "Você" : "Cliente"}</span>`
+                : ""}
+
+                    <div class="chat-bubble">
+                        <p class="chat-text">${escapeHTML(mensagem.conteudo_mensagem)}</p>
+                        <time>${escapeHTML(chatTime(date))}</time>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+
+    return html;
+}
+
+function isChatNearBottom(container) {
+    return container.scrollHeight - container.scrollTop - container.clientHeight < 80;
+}
+
+function scrollChatToBottom() {
+    const container = $("chat-messages");
+
+    if (!container) return;
+
+    container.scrollTop = container.scrollHeight;
+    $("chat-new-pill").hidden = true;
+}
+
+function renderChatBody({ appended = false, forceScroll = false } = {}) {
+    const container = $("chat-messages");
+
+    if (!container) return;
+
+    if (!chat.loaded) {
+        container.innerHTML = `
+            <div class="chat-skeleton" aria-label="Carregando mensagens">
+                <span></span><span></span><span></span>
+            </div>
+        `;
+        return;
+    }
+
+    if (chat.loadError) {
+        container.innerHTML = `
+            <div class="chat-empty">
+                <span class="chat-empty-icon">${chatIcon("alert")}</span>
+                <strong>Não foi possível carregar a conversa</strong>
+                <p>${escapeHTML(chat.loadError)}</p>
+            </div>
+        `;
+        return;
+    }
+
+    if (!chat.messages.length) {
+        container.innerHTML = `
+            <div class="chat-empty">
+                <span class="chat-empty-icon">${chatIcon("message")}</span>
+                <strong>Nenhuma mensagem ainda</strong>
+                <p>As mensagens trocadas com o cliente sobre esta solicitação aparecerão aqui.</p>
+            </div>
+        `;
+        return;
+    }
+
+    const hadMessages = Boolean(container.querySelector(".chat-row"));
+    const wasNearBottom = isChatNearBottom(container);
+    const previousTop = container.scrollTop;
+
+    container.innerHTML = buildChatHTML(chat.messages);
+
+    if (forceScroll || !hadMessages || wasNearBottom) {
+        scrollChatToBottom();
+        return;
+    }
+
+    // O atendente está lendo mensagens antigas: não puxamos a tela para baixo.
+    container.scrollTop = previousTop;
+
+    if (appended) {
+        $("chat-new-pill").hidden = false;
+    }
+}
+
+function applyChatMessages(lista) {
+    const signature = JSON.stringify(
+        lista.map((m) => [
+            m.id_mensagem ?? null,
+            m.remetente,
+            m.conteudo_mensagem,
+            m.data_envio
+        ])
+    );
+
+    const firstLoad = !chat.loaded;
+
+    if (!firstLoad && !chat.loadError && signature === chat.signature) return;
+
+    const previousLength = chat.messages.length;
+
+    chat.signature = signature;
+    chat.messages = lista;
+    chat.loaded = true;
+    chat.loadError = "";
+
+    renderChatBody({
+        appended: !firstLoad && lista.length > previousLength
+    });
+
+    if (chat.open) chat.seenCount = lista.length;
+
+    updateChatBadge();
+}
+
+// ---------- indicador de mensagens novas ----------
+
+function updateChatBadge() {
+    const badge = $("chat-badge");
+    const button = $("open-chat");
+
+    const unread = chat.open
+        ? 0
+        : chat.messages
+            .slice(chat.seenCount)
+            .filter((m) => m.remetente !== "ATENDENTE")
+            .length;
+
+    if (badge) {
+        badge.textContent = unread > 9 ? "9+" : String(unread);
+        badge.hidden = unread === 0;
+    }
+
+    if (button) {
+        button.setAttribute(
+            "aria-label",
+            unread
+                ? `Abrir mensagens (${unread} nova${unread > 1 ? "s" : ""})`
+                : "Abrir mensagens"
+        );
+    }
+}
+
+// ---------- abrir, fechar e configurar a gaveta ----------
+
+function resetChat(id = null) {
+    chat.id = id;
+    chat.messages = [];
+    chat.signature = "";
+    chat.loaded = false;
+    chat.loadError = "";
+    chat.seenCount = 0;
+    chat.sending = false;
+
+    renderChatBody();
+    updateChatBadge();
+}
+
+function configureChat(request, canSend, concluded) {
+    const id = Number(request.id_solicitacao);
+
+    // Se for outra solicitação, começa do zero. Se for a mesma
+    // (ex.: depois de assumir), mantém a gaveta como estava.
+    if (chat.id !== id) resetChat(id);
+
+    chat.canSend = canSend;
+
+    $("chat-subtitle").textContent =
+        `Solicitação #${request.id_solicitacao} · ${request.nome_cliente || "Cliente"}`;
+
+    $("chat-form").hidden = !canSend;
+    $("chat-notice").hidden = canSend;
+
+    $("chat-notice-text").textContent = concluded
+        ? "Solicitação concluída. A conversa está disponível apenas para consulta."
+        : "Assuma esta solicitação para poder responder ao cliente.";
+
+    updateChatForm();
+}
+
+function openChat() {
+    if (!chat.id) return;
+
+    chat.open = true;
+    chat.seenCount = chat.messages.length;
+
+    $("chat-drawer").classList.add("open");
+    $("chat-drawer").setAttribute("aria-hidden", "false");
+    $("chat-backdrop").classList.add("open");
+    document.body.classList.add("chat-open");
+
+    syncChatButton();
+    updateChatBadge();
+    scrollChatToBottom();
+
+    // Aguarda a animação para o foco não "pular" a gaveta.
+    setTimeout(() => {
+        if (!chat.open) return;
+
+        if (chat.canSend) {
+            $("chat-input").focus();
+        } else {
+            $("chat-close").focus();
+        }
+    }, 280);
+}
+
+function closeChat(restoreFocus = true) {
+    if (!chat.open) return;
+
+    chat.open = false;
+
+    $("chat-drawer").classList.remove("open");
+    $("chat-drawer").setAttribute("aria-hidden", "true");
+    $("chat-backdrop").classList.remove("open");
+    document.body.classList.remove("chat-open");
+
+    syncChatButton();
+    updateChatBadge();
+
+    if (restoreFocus) {
+        const button = $("open-chat");
+        if (button) button.focus();
+    }
+}
+
+function syncChatButton() {
+    const button = $("open-chat");
+
+    if (!button) return;
+
+    button.classList.toggle("active", chat.open);
+    button.setAttribute("aria-expanded", String(chat.open));
+}
+
+// Chamada ao sair da solicitação (trocar de aba ou voltar para a lista).
+function leaveChat() {
+    pararPollingChat();
+    closeChat(false);
+    resetChat(null);
+
+    chatLoadingId = null;
+    chatReloadQueued = false;
+}
+
+// ---------- formulário ----------
+
+function autoResizeChatInput() {
+    const input = $("chat-input");
+
+    input.style.height = "auto";
+    input.style.height = `${Math.min(input.scrollHeight, 120)}px`;
+}
+
+function updateChatForm() {
+    const input = $("chat-input");
+
+    $("chat-send-button").disabled =
+        chat.sending || !input.value.trim();
+
+    $("chat-counter").textContent =
+        `${input.value.length}/${CHAT_MAX_LENGTH}`;
+}
+
+function showChatError(message) {
+    const element = $("chat-error");
+
+    element.textContent = message;
+    element.hidden = !message;
+}
+
 async function sendChatMessage(event) {
     event.preventDefault();
 
-    const form = event.target;
-    const input = $("chat-input");
-    const button = $("chat-send-button");
+    if (!chat.canSend || chat.sending) return;
 
+    const input = $("chat-input");
     const conteudo = input.value.trim();
-    const idSolicitacao = Number(state.selectedId);
+    const idSolicitacao = Number(chat.id);
 
     if (!conteudo) {
         input.focus();
@@ -171,39 +548,166 @@ async function sendChatMessage(event) {
     }
 
     if (!idSolicitacao) {
-        alert("Nenhuma solicitação selecionada.");
+        showChatError("Nenhuma solicitação selecionada.");
         return;
     }
 
-    button.disabled = true;
-    button.textContent = "Enviando...";
+    chat.sending = true;
+    showChatError("");
+    updateChatForm();
 
     try {
         await mensagemAPI(idSolicitacao, {
             method: "POST",
-            body: JSON.stringify({
-                conteudo: conteudo
-            })
+            body: JSON.stringify({ conteudo })
         });
 
-        form.reset();
+        input.value = "";
+        autoResizeChatInput();
 
         await loadChatMessages(idSolicitacao);
 
+        renderChatBody({ forceScroll: true });
     } catch (error) {
-        alert(error.message);
-
+        showChatError(error.message);
     } finally {
-        if (button.isConnected) {
-            button.disabled = false;
-            button.textContent = "Enviar";
+        chat.sending = false;
+        updateChatForm();
+        input.focus();
+    }
+}
+
+// ---------- busca de mensagens e atualização automática ----------
+
+async function loadChatMessages(idSolicitacao) {
+    if (!idSolicitacao) return;
+
+    // Já existe uma consulta em andamento: pede para repetir ao terminar,
+    // assim uma mensagem recém-enviada nunca fica sem aparecer.
+    if (chatLoadingId === idSolicitacao) {
+        chatReloadQueued = true;
+        return;
+    }
+
+    chatLoadingId = idSolicitacao;
+
+    try {
+        const data = await mensagemAPI(idSolicitacao);
+
+        // Não atualiza uma solicitação que não está mais aberta.
+        if (Number(state.selectedId) !== Number(idSolicitacao)) return;
+
+        applyChatMessages(data.mensagens || []);
+    } catch (error) {
+        if (Number(state.selectedId) !== Number(idSolicitacao)) return;
+
+        console.error("Erro ao carregar mensagens:", error);
+
+        // Se já havia mensagens na tela, uma falha momentânea do
+        // polling não apaga a conversa.
+        if (!chat.loaded) {
+            chat.loaded = true;
+            chat.loadError = error.message;
+            renderChatBody();
+        }
+    } finally {
+        if (chatLoadingId === idSolicitacao) {
+            chatLoadingId = null;
+        }
+
+        if (chatReloadQueued) {
+            chatReloadQueued = false;
+
+            if (Number(state.selectedId) === Number(idSolicitacao)) {
+                loadChatMessages(idSolicitacao);
+            }
         }
     }
 }
 
-document.addEventListener("submit", function (event) {
-    if (event.target.id === "chat-form") {
-        sendChatMessage(event);
+function iniciarPollingChat(idSolicitacao) {
+    pararPollingChat();
+
+    chatPolling = setInterval(() => {
+        if (document.visibilityState !== "visible") return;
+
+        if (Number(state.selectedId) !== Number(idSolicitacao)) {
+            pararPollingChat();
+            return;
+        }
+
+        loadChatMessages(idSolicitacao);
+    }, 3000);
+}
+
+function pararPollingChat() {
+    if (chatPolling) {
+        clearInterval(chatPolling);
+        chatPolling = null;
+    }
+}
+
+// ---------- eventos do chat ----------
+
+$("chat-form").addEventListener("submit", sendChatMessage);
+
+$("chat-input").addEventListener("input", () => {
+    showChatError("");
+    autoResizeChatInput();
+    updateChatForm();
+});
+
+// Enter envia; Shift+Enter quebra a linha.
+// Em celulares (teclado virtual) o Enter continua quebrando a linha.
+$("chat-input").addEventListener("keydown", (event) => {
+    const isDesktop = window.matchMedia("(pointer: fine)").matches;
+
+    if (
+        event.key === "Enter" &&
+        !event.shiftKey &&
+        !event.isComposing &&
+        isDesktop
+    ) {
+        event.preventDefault();
+        $("chat-form").requestSubmit();
+    }
+});
+
+$("chat-close").addEventListener("click", () => closeChat());
+$("chat-backdrop").addEventListener("click", () => closeChat());
+$("chat-new-pill").addEventListener("click", scrollChatToBottom);
+
+$("chat-messages").addEventListener("scroll", () => {
+    if (isChatNearBottom($("chat-messages"))) {
+        $("chat-new-pill").hidden = true;
+    }
+});
+
+// O botão "Mensagens" é recriado a cada renderização dos detalhes,
+// por isso usamos delegação de eventos.
+document.addEventListener("click", (event) => {
+    if (!event.target.closest("#open-chat")) return;
+
+    if (chat.open) {
+        closeChat();
+    } else {
+        openChat();
+    }
+});
+
+document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape" || !chat.open) return;
+
+    // Se o modal de decisão estiver aberto, ele tem prioridade.
+    if (!$("decision-modal").hidden) return;
+
+    closeChat();
+});
+
+// Ao voltar para a aba do navegador, atualiza na hora.
+document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible" && chat.id) {
+        loadChatMessages(chat.id);
     }
 });
 
@@ -288,7 +792,7 @@ function setButtonsDisabled(buttons, disabled) {
 // =====================================================
 
 function showView(view) {
-    pararPollingChat();
+    leaveChat();
 
     state.view = view;
     state.selectedId = null;
@@ -515,53 +1019,6 @@ function renderDetails(data) {
 
     const canSendMessage = assignedToMe && !isConcluded;
 
-    const chatHTML = `
-        <section class="chat-section">
-
-            <div class="chat-header">
-                <div>
-                    <h3>Conversa da solicitação</h3>
-                    <p>
-                        Comunicação entre cliente e atendente
-                        sobre esta solicitação.
-                    </p>
-                </div>
-            </div>
-
-            <div id="chat-messages" class="chat-messages">
-                <p class="chat-empty">
-                    Carregando mensagens...
-                </p>
-            </div>
-
-            ${canSendMessage ? `
-                <form id="chat-form" class="chat-form">
-
-                    <textarea
-                        id="chat-input"
-                        name="conteudo"
-                        placeholder="Digite sua mensagem..."
-                        maxlength="2000"
-                        required
-                    ></textarea>
-
-                    <button type="submit" id="chat-send-button">
-                        Enviar
-                    </button>
-
-                </form>
-            ` : ""}
-
-            ${!canSendMessage ? `
-                <p class="chat-notice">
-                    ${isConcluded
-                ? "Solicitação concluída. O histórico está disponível para consulta."
-                : "Assuma esta solicitação para poder responder às mensagens."}
-                </p>
-            ` : ""}
-        </section>
-    `;
-
     let actionHTML = "";
 
     if (isConcluded) {
@@ -638,9 +1095,24 @@ function renderDetails(data) {
                 </p>
             </div>
 
-            <span class="status ${statusClass(request.status)}">
-                ${escapeHTML(statusLabel(request.status))}
-            </span>
+            <div class="detail-header-actions">
+                <button
+                    id="open-chat"
+                    class="chat-open-button${chat.open ? " active" : ""}"
+                    type="button"
+                    aria-controls="chat-drawer"
+                    aria-expanded="${chat.open}"
+                    aria-label="Abrir mensagens"
+                >
+                    ${chatIcon("message")}
+                    <span>Mensagens</span>
+                    <span id="chat-badge" class="chat-badge" hidden>0</span>
+                </button>
+
+                <span class="status ${statusClass(request.status)}">
+                    ${escapeHTML(statusLabel(request.status))}
+                </span>
+            </div>
         </div>
 
         <section class="detail-section">
@@ -714,8 +1186,6 @@ function renderDetails(data) {
             <div class="history-list">${historyHTML}</div>
         </section>
 
-        ${chatHTML}
-
         ${actionHTML}
     `;
 
@@ -743,8 +1213,9 @@ function renderDetails(data) {
 
     const idSolicitacao = Number(request.id_solicitacao);
 
-    // O container do chat acabou de ser recriado, então zeramos a assinatura.
-    chatSignature = "";
+    configureChat(request, canSendMessage, isConcluded);
+    syncChatButton();
+    updateChatBadge();
 
     loadChatMessages(idSolicitacao);
 
@@ -752,116 +1223,6 @@ function renderDetails(data) {
         iniciarPollingChat(idSolicitacao);
     } else {
         pararPollingChat();
-    }
-}
-
-function renderChatMessages(mensagens) {
-    const container = $("chat-messages");
-
-    if (!container) return;
-
-    // Só redesenha se a lista mudou. Sem isso, a cada 3 s o chat era
-    // reconstruído e rolado para o fim, atrapalhando quem lia mensagens antigas.
-    const signature = JSON.stringify(
-        mensagens.map((m) => [m.id_mensagem ?? null, m.remetente, m.conteudo_mensagem, m.data_envio])
-    );
-
-    if (signature === chatSignature) return;
-
-    chatSignature = signature;
-
-    if (!mensagens.length) {
-        container.innerHTML = `
-            <p class="chat-empty">
-                Nenhuma mensagem enviada ainda.
-            </p>
-        `;
-        return;
-    }
-
-    container.innerHTML = mensagens.map((mensagem) => {
-        const isAttendant = mensagem.remetente === "ATENDENTE";
-
-        return `
-            <article class="chat-message ${isAttendant ? "attendant" : "client"}">
-
-                <span class="chat-message-author">
-                    ${isAttendant ? "Você" : "Cliente"}
-                </span>
-
-                <p class="chat-message-content">
-                    ${escapeHTML(mensagem.conteudo_mensagem)}
-                </p>
-
-                <time>
-                    ${escapeHTML(formatDate(mensagem.data_envio))}
-                </time>
-
-            </article>
-        `;
-    }).join("");
-
-    container.scrollTop = container.scrollHeight;
-}
-
-async function loadChatMessages(idSolicitacao) {
-    const container = $("chat-messages");
-
-    if (!container || chatLoadingId === idSolicitacao) return;
-
-    chatLoadingId = idSolicitacao;
-
-    try {
-        const data = await mensagemAPI(idSolicitacao);
-
-        // Não atualiza uma solicitação que não está mais aberta.
-        if (Number(state.selectedId) !== Number(idSolicitacao)) return;
-
-        renderChatMessages(data.mensagens || []);
-
-    } catch (error) {
-        if (Number(state.selectedId) !== Number(idSolicitacao)) return;
-
-        console.error("Erro ao carregar mensagens:", error);
-
-        // Se já havia mensagens na tela, não apaga tudo por causa de uma
-        // falha momentânea do polling.
-        if (!chatSignature) {
-            container.innerHTML = `
-                <p class="chat-empty">
-                    ${escapeHTML(error.message)}
-                </p>
-            `;
-        }
-    } finally {
-        if (chatLoadingId === idSolicitacao) {
-            chatLoadingId = null;
-        }
-    }
-}
-
-function iniciarPollingChat(idSolicitacao) {
-    pararPollingChat();
-
-    chatPolling = setInterval(() => {
-
-        if (document.visibilityState !== "visible") return;
-
-        if (Number(state.selectedId) !== Number(idSolicitacao)) {
-            pararPollingChat();
-            return;
-        }
-
-        loadChatMessages(idSolicitacao);
-
-    }, 3000);
-}
-
-
-function pararPollingChat() {
-    if (chatPolling) {
-        clearInterval(chatPolling);
-        chatPolling = null;
     }
 }
 
@@ -2136,8 +2497,7 @@ $("refresh-button").addEventListener("click", async () => {
 });
 
 $("back-button").addEventListener("click", () => {
-
-    pararPollingChat();
+    leaveChat();
 
     $("detail-view").hidden = true;
     $("reports-view").hidden = true;
