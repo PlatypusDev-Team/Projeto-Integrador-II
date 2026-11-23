@@ -11,7 +11,7 @@
 
 > **Status:** 🟨 Em andamento
 > 
-> **Etapa:** Sprint 2
+> **Etapa:** Review Sprint 3
 
 <br>
 
@@ -43,8 +43,8 @@
 | 8 | US10 | Como equipe DM, quero visualizar indicadores das solicitações de cartões, para acompanhar os resultados da captação de clientes. | Alta | 5 | 2 | ✅ |
 | 9 | US12 | Como atendente DM, quero realizar login na área administrativa, para acessar com segurança as solicitações e informações necessárias ao atendimento dos clientes. | Alta | 3 | 2 | ✅ |
 | 10 | US11 | Como cliente DM, quero criar uma conta e realizar login na plataforma, para acessar minhas solicitações sem precisar informar novamente meus dados pessoais a cada atendimento. | Alta | 3 | 2 | ✅ |
-| 11 | US07 | Como cliente que não foi aprovado para um cartão, quero visualizar outros produtos disponíveis, para conhecer alternativas que possam atender às minhas necessidades. | Baixa | 5 | 3 | |
-| 12 | US09 | Como atendente DM, quero enviar mensagens ao cliente pela plataforma, para orientá-lo sem depender dos canais externos de atendimento. | Média | 8 | 3 | |
+| 11 | US07 | Como cliente que não foi aprovado para um cartão, quero visualizar outros produtos disponíveis, para conhecer alternativas que possam atender às minhas necessidades. | Baixa | 5 | 3 | ✅ |
+| 12 | US09 | Como atendente DM, quero enviar mensagens ao cliente pela plataforma, para orientá-lo sem depender dos canais externos de atendimento. | Média | 8 | 3 | ✅ |
 
 ## **🟢 DoR - Definition of Ready**
 
@@ -90,6 +90,7 @@ Uma User Story é considerada concluída quando:
   <a href="https://git-scm.com/"><img src="https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white"/></a>
   <a href="https://www.atlassian.com/software/jira"><img src="https://img.shields.io/badge/Jira-0052CC?style=for-the-badge&logo=jira&logoColor=white"/></a>
   <a href="https://github.com/"><img src="https://img.shields.io/badge/github-%23121011.svg?style=for-the-badge&logo=github&logoColor=white"/></a>
+  <a href="https://www.postman.com/"><img src="https://img.shields.io/badge/Postman-FF6C37?style=for-the-badge&logo=postman&logoColor=white"/></a>
 </div>
 
 ## **🧱 Estrutura do projeto**
@@ -140,11 +141,7 @@ DM-LandingPage/
 ├── requirements.txt
 ├── README.md
 └── tsconfig.json
-```
-
-> A estrutura será atualizada conforme o desenvolvimento do projeto e a definição da arquitetura da aplicação.
-
----
+````
 
 # 📖 Manual do Usuário
 
@@ -229,19 +226,62 @@ Na área **Minha conta**, o cliente poderá consultar as solicitações vinculad
 
 Caso ainda não possua solicitações registradas, o sistema apresentará uma indicação de que não existem solicitações para consultar.
 
-A consulta permite acompanhar o andamento do processo sem precisar preencher novamente o formulário para verificar uma solicitação já enviada.
+### **5.2. 💬 Mensagens com o atendente**
 
-**Importante:** a pré-qualificação não representa, por si só, a conclusão de todas as etapas de contratação do produto.
+O sistema disponibiliza um canal de comunicação entre clientes e atendentes, permitindo esclarecer dúvidas relacionadas às solicitações sem depender de canais externos.
+
+Para acessar o chat, o cliente deverá utilizar o botão **Mensagens**, localizado no canto superior direito da área de acompanhamento.
+
+A partir dessa funcionalidade, será possível:
+
+- Visualizar as mensagens enviadas pelo atendente;
+- Consultar o histórico da conversa;
+- Enviar novas mensagens;
+- Acompanhar as respostas recebidas pelo sistema.
+
+As mensagens ficam associadas à solicitação correspondente, permitindo que a comunicação permaneça contextualizada.
+
+O histórico é atualizado automaticamente para apresentar novas mensagens recebidas.
+
+**Importante:** o envio de mensagens fica disponível enquanto a solicitação permite interação. Após a conclusão da análise, com resultado aceito ou negado, o campo de envio deixa de ser disponibilizado.
+
+### **5.3. ⭕ Solicitação negada e recomendação de produtos**
+
+Caso uma solicitação seja negada, a área da conta apresentará uma opção para que o cliente possa iniciar uma nova solicitação.
+
+Além disso, será disponibilizada uma seção de recomendação de outros produtos da DM, permitindo conhecer alternativas além do cartão inicialmente solicitado.
+
+Essa funcionalidade busca oferecer outras possibilidades ao cliente mesmo quando sua primeira solicitação não é aprovada.
+
+---
 
 ## **6. 🧑‍💼 Acessar a área do atendente**
 
 A aplicação possui uma área administrativa exclusiva para atendentes, separada da área destinada aos clientes.
 
-Para acessá-la, o atendente deverá utilizar o **login específico de atendente**, com suas credenciais de acesso.
+Para acessá-la, o atendente deverá utilizar o login específico de atendente, com suas credenciais de acesso.
 
-Após a autenticação, será disponibilizada a área de gerenciamento das solicitações, conforme as permissões associadas à conta autenticada.
+Após a autenticação, será disponibilizada a **Central de Atendimento DM**, que reúne ferramentas para gerenciamento das solicitações, comunicação com clientes e acompanhamento dos resultados por meio de indicadores e relatórios.
 
-### **6.1. 📋 Consultar solicitações pendentes**
+### **6.1. 📊 Dashboard de indicadores**
+
+Ao acessar a área administrativa, o atendente poderá consultar um dashboard com indicadores gerais das solicitações registradas no sistema.
+
+O painel apresenta informações consolidadas para facilitar o acompanhamento dos resultados da captação de clientes.
+
+Entre os indicadores e visualizações disponíveis estão:
+
+- **Total de solicitações:** quantidade de solicitações registradas no período mensal;
+- **Taxa de aprovação:** percentual de solicitações aceitas;
+- **Taxa de rejeição:** percentual de solicitações negadas;
+- **Distribuição por status:** gráficos que apresentam a proporção de solicitações aceitas, negadas e em análise, considerando períodos mensal e anual;
+- **Evolução mensal:** gráfico de colunas empilhadas que permite acompanhar a quantidade de solicitações ao longo dos 12 meses;
+- **Lojas em destaque:** classificação das três lojas que mais receberam solicitações de cartões no período mensal;
+- **Comparativo de cartões:** visualização da distribuição das solicitações conforme os tipos de cartão.
+
+O dashboard permite acompanhar o comportamento das solicitações e identificar tendências na captação de clientes.
+
+### **6.2. 📋 Consultar solicitações pendentes**
 
 Na área de atendimento, o atendente poderá consultar as solicitações que aguardam atendimento.
 
@@ -249,7 +289,7 @@ A tela permite localizar solicitações e utilizar os recursos de pesquisa e fil
 
 Ao selecionar uma solicitação, o atendente poderá acessar seus detalhes e consultar o histórico de atendimento associado ao processo.
 
-### **6.2. 🗂️ Assumir uma solicitação**
+### **6.3. 🗂️ Assumir uma solicitação**
 
 O atendente poderá assumir uma solicitação disponível na fila de atendimento.
 
@@ -257,7 +297,7 @@ Após assumir a solicitação, ela passará a integrar a área de **Meus atendim
 
 O sistema controla a atribuição das solicitações para impedir que uma mesma solicitação disponível seja assumida simultaneamente por atendentes diferentes.
 
-### **6.3. 🔍 Consultar meus atendimentos**
+### **6.4. 🔍 Consultar meus atendimentos**
 
 Na seção **Meus atendimentos**, o atendente poderá consultar as solicitações que estão sob sua responsabilidade.
 
@@ -271,7 +311,22 @@ A área disponibiliza recursos para:
 
 Esses recursos permitem organizar a fila de trabalho e acompanhar o andamento dos processos em atendimento.
 
-### **6.4. ⚖️ Concluir a análise de uma solicitação**
+### **6.5. 💬 Comunicação com clientes**
+
+Dentro dos detalhes de uma solicitação, o atendente poderá acessar o histórico de mensagens e estabelecer comunicação direta com o cliente correspondente.
+
+O chat permite:
+
+- Consultar mensagens enviadas pelo cliente;
+- Visualizar o histórico da conversa;
+- Enviar mensagens para orientar o cliente;
+- Acompanhar novas mensagens recebidas.
+
+As mensagens são associadas à solicitação selecionada, facilitando a identificação do contexto de cada atendimento.
+
+A atualização automática do histórico permite acompanhar novas interações sem precisar atualizar manualmente a página.
+
+### **6.6. ⚖️ Concluir a análise de uma solicitação**
 
 Ao analisar uma solicitação, o atendente poderá registrar uma decisão de acordo com as opções disponibilizadas pelo sistema.
 
@@ -284,40 +339,79 @@ Quando solicitado pela interface, o atendente poderá incluir uma observação r
 
 Após o registro, o sistema atualiza o status da solicitação, registra as informações correspondentes no histórico de atendimento e atualiza sua situação na área de gerenciamento.
 
-## **7. 📈 Consultar relatórios de solicitações**
+## **7. 📈 Consultar relatórios**
 
-A área administrativa disponibiliza um relatório para acompanhar a distribuição das solicitações conforme seus status.
+Além do dashboard de indicadores, a Central de Atendimento disponibiliza relatórios para analisar os dados das solicitações sob diferentes perspectivas.
+
+Os relatórios possuem filtros de período, permitindo delimitar as informações consultadas por meio das datas inicial e final.
 
 ### **7.1. 📊 Relatório de solicitações por status**
 
-O relatório apresenta informações consolidadas sobre as solicitações registradas no sistema, permitindo visualizar:
+Apresenta informações consolidadas sobre a quantidade de solicitações registradas e sua distribuição conforme o resultado da análise.
+
+O relatório permite visualizar:
 
 - Quantidade total de solicitações;
-- Distribuição das solicitações por status;
+- Distribuição entre solicitações aceitas, negadas e em análise;
 - Evolução mensal das solicitações;
-- Tabela com os dados apresentados no relatório.
+- Tabela com os registros correspondentes ao período consultado.
 
-O usuário poderá utilizar os filtros de **data inicial** e **data final** para delimitar o período consultado.
+Esse relatório auxilia no acompanhamento dos resultados da pré-qualificação.
 
-A consulta considera a data do primeiro atendimento registrado para a solicitação.
+### **7.2. 🏪 Relatório de produtividade por loja**
 
-### **7.2. 📄 Exportar relatório**
+Apresenta a quantidade de solicitações de cartões associadas a cada estabelecimento parceiro.
 
-O relatório permite exportar os dados para os seguintes formatos:
+A análise considera os resultados das solicitações vinculadas às lojas, permitindo comparar:
 
-- **PDF:** para consulta e compartilhamento do relatório em documento;
-- **XLSX:** para análise dos dados em uma planilha eletrônica.
+- Solicitações aceitas;
+- Solicitações negadas;
+- Solicitações em análise.
 
-A exportação facilita o armazenamento e a utilização das informações em atividades de acompanhamento e análise.
+O relatório apresenta informações em gráficos e tabelas, permitindo identificar quais estabelecimentos concentram o maior volume de solicitações e acompanhar seus respectivos resultados.
 
-> 💡 **Observação:** nesta versão, o relatório funcional disponibilizado é o de solicitações por status. Outros modelos de relatório previstos no catálogo não devem ser considerados funcionalidades concluídas desta versão.
+**Observação:** esse relatório considera exclusivamente as solicitações de cartões associadas às lojas parceiras, não incluindo serviços ou outros produtos.
+
+### **7.3. 💳 Relatório de tipos de cartão**
+
+Permite analisar a distribuição das solicitações conforme os tipos de cartão disponibilizados pela DM.
+
+O relatório apresenta a quantidade de solicitações por tipo de cartão e sua evolução mensal, possibilitando comparar o comportamento dos diferentes produtos ao longo do período consultado.
+
+Essa visualização auxilia na identificação dos cartões com maior volume de solicitações e nas variações de interesse dos clientes.
+
+### **7.4. ⏱️ Relatório de tempo de análise**
+
+Apresenta informações sobre o tempo necessário para a conclusão das solicitações.
+
+O cálculo considera a diferença entre as datas de solicitação e de conclusão:
+
+- `data_solicitacao`: momento em que a solicitação foi registrada;
+- `data_conclusao`: momento em que a análise foi concluída.
+
+A partir dessas informações, é possível acompanhar o tempo de processamento das solicitações e avaliar a duração dos atendimentos.
+
+Solicitações ainda não concluídas não possuem uma data de conclusão registrada e, portanto, não entram no cálculo do tempo de análise concluído.
+
+### **7.5. 📄 Filtrar e exportar relatórios**
+
+Os relatórios disponibilizam filtros de **data inicial** e **data final**, permitindo selecionar o intervalo desejado para consulta.
+
+Após definir o período, o usuário poderá aplicar os filtros e visualizar os resultados correspondentes. Também é possível limpar os filtros para realizar uma nova consulta.
+
+Os dados podem ser exportados nos seguintes formatos:
+
+- **PDF:** para consulta, armazenamento e compartilhamento dos relatórios em documento;
+- **XLSX:** para análise dos dados em planilhas eletrônicas.
+
+A exportação facilita o acompanhamento dos indicadores e a utilização das informações em atividades administrativas.
 
 ## **8. 🔒 Segurança e acesso às funcionalidades**
 
 O sistema diferencia as funcionalidades destinadas aos clientes daquelas destinadas aos atendentes.
 
-- **Clientes:** podem realizar cadastro, acessar sua conta e acompanhar as solicitações vinculadas ao próprio cadastro.
-- **Atendentes:** podem acessar a área de atendimento para consultar, assumir e analisar solicitações, além de consultar os relatórios disponibilizados.
+- **Clientes:** podem realizar cadastro, acessar sua conta, acompanhar as próprias solicitações, consultar mensagens e conversar com o atendente responsável.
+- **Atendentes:** podem acessar a Central de Atendimento para consultar, assumir e analisar solicitações, comunicar-se com clientes, visualizar indicadores e consultar relatórios.
 
 As operações protegidas exigem autenticação e respeitam as permissões correspondentes ao perfil de acesso.
 
@@ -325,11 +419,9 @@ As operações protegidas exigem autenticação e respeitam as permissões corre
 
 O escopo atual do projeto está concentrado na **captação de clientes, pré-qualificação de solicitações e gerenciamento do atendimento**.
 
-A aplicação permite registrar solicitações, acompanhar seus status, organizar o trabalho dos atendentes e consultar informações consolidadas por meio do relatório implementado.
+A aplicação permite registrar solicitações, acompanhar seus status, organizar o trabalho dos atendentes, estabelecer comunicação entre clientes e atendentes e consultar informações consolidadas por meio do dashboard e dos relatórios.
 
 Processos posteriores à pré-qualificação, como emissão, envio e entrega física do cartão, bem como as demais etapas da contratação, não fazem parte do escopo desta versão.
-
----
 
 ---
 
@@ -731,8 +823,6 @@ O backend deverá permanecer ativo para que as operações de autenticação, co
 | Erro de CORS no navegador | Confira a origem do frontend e as permissões configuradas no backend. |
 | Login não persiste entre requisições | Verifique o envio de cookies, a configuração de sessão e as credenciais utilizadas. |
 | Página abre, mas não carrega os dados | Confirme se o backend está ativo e se as URLs da API estão corretas. |
-
----
   
 ---
 
