@@ -531,3 +531,137 @@ body footer {
         width: 280px;
     }
 }
+
+
+/* Área dos filtros */
+.filtroLojas {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Pesquisa por nome */
+.pesquisaNome {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.pesquisaNome input {
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 15px;
+}
+
+/* Botão filtros */
+#btnFiltros {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    width: fit-content;
+    min-width: 130px;
+
+    padding: 11px 16px;
+
+    border: 1px solid #ccc;
+    border-radius: 8px;
+
+    background: white;
+    color: #333;
+
+    font-size: 15px;
+    font-weight: 600;
+
+    cursor: pointer;
+}
+
+#painelFiltros {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: 20px;
+
+    padding: 18px;
+
+    border: 1px solid #ddd;
+    border-radius: 10px;
+
+    background: #f9f9f9;
+}
+
+#painelFiltros[hidden] {
+    display: none;
+}
+
+/* Campos */
+.filtroModalidade,
+.filtroCategoria {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+#painelFiltros select {
+    min-width: 180px;
+    padding: 10px;
+
+    border: 1px solid #ccc;
+    border-radius: 7px;
+
+    background: white;
+    font-size: 14px;
+}
+
+/* Limpar filtros */
+#btnLimparFiltros {
+    padding: 10px 14px;
+
+    border: none;
+    border-radius: 7px;
+
+    background: #e5e5e5;
+
+    cursor: pointer;
+}
+
+#btnLimparFiltros:hover {
+    background: #d5d5d5;
+}
+
+/* Responsividade */
+@media (max-width: 600px) {
+
+    #painelFiltros {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    #painelFiltros select {
+        width: 100%;
+    }
+
+}
+
+.categorias-loja {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+
+    margin: 15px 0;
+}
+
+.tag-categoria {
+    display: inline-block;
+
+    padding: 5px 12px;
+
+    background-color: #dceaff;
+    color: #344f83;
+
+    border-radius: 20px;
+
+    font-size: 12px;
+    font-weight: 600;
+}
