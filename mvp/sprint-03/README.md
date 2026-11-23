@@ -4,17 +4,17 @@
 
 Expandir as funcionalidades da plataforma DM Financeira, aprimorando a experiência do cliente e os recursos de gerenciamento disponíveis para os atendentes.
 
-A sprint teve como foco implementar a comunicação interna entre clientes e atendentes, disponibilizar recomendações de outros produtos para clientes com solicitações negadas e aprimorar os recursos administrativos de acompanhamento, análise e visualização de dados.
+A sprint teve como foco implementar a comunicação interna entre clientes e atendentes, aprimorar a busca por lojas parceiras por meio de filtros de categorias e recomendações baseadas na proximidade, disponibilizar recomendações de outros produtos para clientes com solicitações de cartão negadas e evoluir os recursos administrativos de acompanhamento, análise e visualização de dados.
 
 ## 💡 Solução
 
-Foram implementadas melhorias nas áreas do cliente e do atendente, ampliando as funcionalidades já existentes na plataforma.
+Foram implementadas melhorias nas áreas do cliente e do atendente, ampliando e aperfeiçoando funcionalidades já existentes na plataforma.
 
-Na **área do cliente**, foi desenvolvido um sistema de mensagens para comunicação direta com os atendentes, além de uma seção de recomendação de outros produtos da DM para clientes que tiveram suas solicitações de cartão negadas.
+Na **área do cliente**, foi desenvolvido um sistema de mensagens para permitir a comunicação direta com os atendentes durante o processo de atendimento. A busca por lojas parceiras também foi aprimorada, permitindo a filtragem por categorias e facilitando a localização de estabelecimentos de acordo com a proximidade. Além disso, foi criada uma seção de recomendação de outros produtos da DM para clientes que tiveram suas solicitações de cartão negadas, apresentando alternativas disponíveis na plataforma.
 
-Na **área do atendente**, foram aprimorados os recursos administrativos, incluindo a evolução do dashboard de indicadores, a ampliação dos relatórios gerenciais e a integração do sistema de mensagens ao fluxo de atendimento.
+Na **área do atendente**, foram aprimorados os recursos administrativos, incluindo a evolução do dashboard de indicadores, a ampliação dos relatórios gerenciais e a integração do sistema de mensagens ao fluxo de atendimento. Essas melhorias permitem acompanhar as solicitações com mais informações, visualizar dados relevantes e consultar resultados por meio de diferentes indicadores e relatórios.
 
-Também foram realizadas melhorias na organização e apresentação das informações, proporcionando maior facilidade no acompanhamento das solicitações e na análise dos resultados.
+Também foram realizadas melhorias na organização e na apresentação das informações, buscando tornar a navegação mais clara e facilitar tanto o acompanhamento das solicitações quanto a análise dos resultados da plataforma.
 
 ## 👤 User Stories
 
@@ -25,7 +25,7 @@ Também foram realizadas melhorias na organização e apresentação das informa
 
 ## 🔗 Sprints Relacionadas
 
-Sprint 2, que estabeleceu a estrutura inicial da área administrativa, do gerenciamento de solicitações e do acompanhamento de indicadores, servindo de base para as melhorias implementadas nesta sprint.
+**Sprint 2:** estabeleceu a estrutura inicial da área administrativa, do gerenciamento de solicitações e do acompanhamento de indicadores. Essa estrutura serviu como base para a evolução do dashboard, dos relatórios e dos recursos de atendimento implementados na Sprint 3.
 
 ---
 
@@ -42,6 +42,8 @@ Sprint 2, que estabeleceu a estrutura inicial da área administrativa, do gerenc
 
 - O cliente deve conseguir visualizar outros produtos disponíveis quando sua solicitação de cartão for negada.
 - A recomendação de produtos deve apresentar alternativas disponíveis na plataforma.
+- O cliente deve conseguir buscar lojas parceiras utilizando filtros por categorias.
+- A busca por lojas deve considerar a proximidade para facilitar a localização de estabelecimentos.
 - O cliente deve conseguir acessar o sistema de mensagens pela sua área de acompanhamento.
 - O atendente deve conseguir visualizar e responder às mensagens dos clientes vinculadas às solicitações.
 - O histórico de mensagens deve permanecer disponível para consulta durante o atendimento.
@@ -53,8 +55,8 @@ Sprint 2, que estabeleceu a estrutura inicial da área administrativa, do gerenc
 
 | Critério | Descrição |
 |---------|----------|
-| Critérios atendidos | Todos os critérios de aceitação foram cumpridos |
-| Implementação | As funcionalidades e melhorias foram implementadas |
+| Critérios atendidos | Os critérios de aceitação definidos para as funcionalidades foram cumpridos |
+| Implementação | As funcionalidades e melhorias previstas foram implementadas |
 | Testes | Foram realizados testes de rotas com Postman e testes manuais das interfaces |
 | Integração | As novas funcionalidades estão integradas às áreas do cliente e do atendente |
 | Qualidade | Código organizado, versionado e sem comprometer funcionalidades existentes |
@@ -64,12 +66,21 @@ Sprint 2, que estabeleceu a estrutura inicial da área administrativa, do gerenc
 
 Foram realizados testes de rotas utilizando o **Postman**, verificando as respostas da API e o funcionamento das operações implementadas.
 
-Também foram realizados testes manuais nas interfaces do cliente e do atendente, validando a comunicação entre frontend e backend, o funcionamento do sistema de mensagens, a apresentação dos indicadores e relatórios e a integração com as funcionalidades existentes.
+Também foram realizados testes manuais nas interfaces do cliente e do atendente, validando a comunicação entre frontend e backend, o funcionamento do sistema de mensagens, a busca e filtragem de lojas, a apresentação das recomendações de produtos e a exibição dos indicadores e relatórios.
 
-## 🚀 Próximos Passos
+Por fim, foram verificadas as integrações entre as funcionalidades novas e os fluxos já existentes, garantindo o funcionamento conjunto das diferentes áreas da aplicação.
 
-- Manutenção e correção de possíveis inconsistências;
-- Aprimoramento contínuo da experiência do usuário;
-- Expansão das funcionalidades administrativas;
-- Melhorias de desempenho, segurança e organização do sistema;
-- Preparação para futuras atualizações e evolução da plataforma.
+## 🚀 Possibilidades de Evolução Futura
+
+Com a conclusão do desenvolvimento da aplicação, as próximas etapas representam oportunidades de manutenção e evolução do projeto, não funcionalidades pendentes da entrega atual.
+
+Entre as possibilidades para futuras versões, destacam-se:
+
+- **Manutenção corretiva:** identificação e correção de eventuais falhas ou inconsistências após a entrega.
+- **Aprimoramento da experiência do usuário:** evolução da interface, acessibilidade, navegação e apresentação das informações.
+- **Expansão funcional:** inclusão de novos recursos para clientes e atendentes, conforme necessidades identificadas.
+- **Desempenho e segurança:** otimização de consultas, melhoria da eficiência da aplicação e revisão de mecanismos de segurança.
+- **Evolução administrativa:** ampliação dos indicadores, relatórios e ferramentas de acompanhamento.
+- **Atualizações tecnológicas:** manutenção das dependências e adaptação da aplicação a futuras necessidades e tecnologias.
+
+Essas possibilidades poderão orientar futuras versões da plataforma, permitindo sua continuidade e evolução após a conclusão do escopo desenvolvido.
