@@ -55,7 +55,9 @@ def buscar_lojas_por_uf(uf):
                             THEN f.cep_filial
                             ELSE NULL
                         END
-                    ) AS cep_filial
+                    ) AS cep_filial,
+
+                    cat.categorias
 
                 FROM tb_loja AS l
 
@@ -65,10 +67,29 @@ def buscar_lojas_por_uf(uf):
                 LEFT JOIN tb_filial AS f
                     ON f.id_loja = l.id_loja
 
+                LEFT JOIN (
+                    SELECT
+                        cl.id_loja,
+                        GROUP_CONCAT(
+                            DISTINCT ca.nome_categoria
+                            ORDER BY ca.nome_categoria
+                            SEPARATOR '|'
+                        ) AS categorias
+
+                    FROM tb_categoria_loja AS cl
+
+                    JOIN tb_categoria AS ca
+                        ON ca.id_categoria = cl.id_categoria
+
+                    GROUP BY cl.id_loja
+                ) AS cat
+                    ON cat.id_loja = l.id_loja
+
                 GROUP BY
                     l.id_loja,
                     l.nome_loja,
-                    l.descricao_loja
+                    l.descricao_loja,
+                    cat.categorias
 
                 HAVING
                     cartao_digital = 1
@@ -77,7 +98,16 @@ def buscar_lojas_por_uf(uf):
                 (uf, uf, uf, uf)
             )
 
-            return cursor.fetchall()
+            lojas = cursor.fetchall()
+
+            for loja in lojas:
+                loja["categorias"] = (
+                    loja["categorias"].split("|")
+                    if loja["categorias"]
+                    else []
+                )
+
+            return lojas
 
     finally:
         conexao.close()

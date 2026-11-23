@@ -139,6 +139,49 @@
                 placeholder="Digite o nome da loja..."
                 autocomplete="off"
             >
+
+            <button
+            type="button"
+            id="btnFiltros"
+            aria-expanded="false"
+            aria-controls="painelFiltros"
+        >
+            <span>Filtros</span>
+            <span id="iconeFiltro">▼</span>
+        </button>
+
+        <!-- Painel recolhível -->
+        <div id="painelFiltros" hidden>
+
+            <div class="filtroModalidade">
+                <label for="filtrarModalidade">
+                    Modalidade do cartão:
+                </label>
+
+                <select id="filtrarModalidade">
+                    <option value="TODAS">Todas</option>
+                    <option value="FISICO">Físico</option>
+                    <option value="DIGITAL">Digital</option>
+                    <option value="AMBOS">Ambos</option>
+                </select>
+            </div>
+
+            <div class="filtroCategoria">
+                <label for="filtrarCategoria">
+                    Categoria:
+                </label>
+
+                <select id="filtrarCategoria">
+                    <option value="TODAS">Todas as categorias</option>
+                </select>
+            </div>
+
+            <button type="button" id="btnLimparFiltros">
+                Limpar filtros
+            </button>
+
+        </div>
+
         </div>
 
         <div class="listaLojas" id="listaLojas"></div>

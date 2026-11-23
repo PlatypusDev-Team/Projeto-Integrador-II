@@ -209,6 +209,68 @@ insert into tb_loja (nome_loja, descricao_loja) values
     ('Loja S', 'Rede parceira de cinemas e entretenimento.'),
     ('Loja T', 'Loja parceira de instrumentos musicais e áudio.');
 
+-- categorias
+
+-- categorias das lojas
+insert into tb_categoria (nome_categoria) VALUES
+    ('Moda'),
+    ('Eletronicos'),
+    ('Casa e Decoracao'),
+    ('Supermercado'),
+    ('Farmacia'),
+    ('Construcao'),
+    ('Calcados'),
+    ('Livraria e Papelaria'),
+    ('Pet Shop'),
+    ('Joalheria'),
+    ('Esportes'),
+    ('Otica'),
+    ('Moveis'),
+    ('Restaurantes'),
+    ('Automotivo'),
+    ('Brinquedos e Jogos'),
+    ('Perfumaria'),
+    ('Viagens'),
+    ('Entretenimento'),
+    ('Musica');
+
+-- relacionamento entre lojas e categorias
+
+INSERT INTO tb_categoria_loja (id_categoria, id_loja)
+
+SELECT
+    c.id_categoria,
+    l.id_loja
+
+FROM (
+    SELECT 'Loja A' AS loja, 'Moda' AS categoria
+    UNION ALL SELECT 'Loja B', 'Eletronicos'
+    UNION ALL SELECT 'Loja C', 'Casa e Decoracao'
+    UNION ALL SELECT 'Loja D', 'Supermercado'
+    UNION ALL SELECT 'Loja E', 'Farmacia'
+    UNION ALL SELECT 'Loja F', 'Construcao'
+    UNION ALL SELECT 'Loja G', 'Calcados'
+    UNION ALL SELECT 'Loja H', 'Livraria e Papelaria'
+    UNION ALL SELECT 'Loja I', 'Pet Shop'
+    UNION ALL SELECT 'Loja J', 'Joalheria'
+    UNION ALL SELECT 'Loja K', 'Esportes'
+    UNION ALL SELECT 'Loja L', 'Otica'
+    UNION ALL SELECT 'Loja M', 'Moveis'
+    UNION ALL SELECT 'Loja N', 'Restaurantes'
+    UNION ALL SELECT 'Loja O', 'Automotivo'
+    UNION ALL SELECT 'Loja P', 'Brinquedos e Jogos'
+    UNION ALL SELECT 'Loja Q', 'Perfumaria'
+    UNION ALL SELECT 'Loja R', 'Viagens'
+    UNION ALL SELECT 'Loja S', 'Entretenimento'
+    UNION ALL SELECT 'Loja T', 'Musica'
+) AS relacionamento
+
+INNER JOIN tb_loja l
+    ON l.nome_loja = relacionamento.loja
+
+INNER JOIN tb_categoria c
+    ON c.nome_categoria = relacionamento.categoria;
+
 -- filiais
 
 insert into tb_filial (cep_filial, uf_filial, id_loja) values

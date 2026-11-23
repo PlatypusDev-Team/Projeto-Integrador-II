@@ -19,6 +19,24 @@ const barraBuscar =
 const buscarLoja =
     document.querySelector("#buscarLoja");
 
+const filtrarModalidade =
+    document.querySelector("#filtrarModalidade");
+
+const filtrarCategoria =
+    document.querySelector("#filtrarCategoria");
+
+const btnFiltros =
+    document.querySelector("#btnFiltros");
+
+const painelFiltros =
+    document.querySelector("#painelFiltros");
+
+const iconeFiltro =
+    document.querySelector("#iconeFiltro");
+
+const btnLimparFiltros =
+    document.querySelector("#btnLimparFiltros");
+
 let lojasDisponiveis = [];
 
 
@@ -174,9 +192,29 @@ async function carregarLojas(cep) {
 
         lojasDisponiveis = dados.lojas || [];
 
+        // Limpa os filtros de uma pesquisa anterior
+        filtrarLojas.value = "";
+        filtrarModalidade.value = "TODAS";
+
+        // Carrega as categorias encontradas
+        carregarCategorias();
+
+        filtrarCategoria.value = "TODAS";
+
+        // Exibe os filtros quando houver lojas
         filtroLojas.hidden = lojasDisponiveis.length === 0;
 
+        // Exibe todas as lojas inicialmente
         mostrarLojas(lojasDisponiveis);
+
+        painelFiltros.hidden = true;
+
+        btnFiltros.setAttribute(
+            "aria-expanded",
+            "false"
+        );
+
+        iconeFiltro.textContent = "▼";
 
     } catch (erro) {
         console.error(erro);
@@ -195,24 +233,20 @@ async function carregarLojas(cep) {
 }
 
 
-filtrarLojas.addEventListener("input", () => {
-    const termo = filtrarLojas.value
-        .trim()
-        .toLocaleLowerCase("pt-BR");
+filtrarLojas.addEventListener(
+    "input",
+    aplicarFiltros
+);
 
-    const lojasFiltradas = lojasDisponiveis.filter(loja => {
-        const nome = String(loja.nome_loja || "")
-            .toLocaleLowerCase("pt-BR");
+filtrarModalidade.addEventListener(
+    "change",
+    aplicarFiltros
+);
 
-        const descricao = String(loja.descricao_loja || "")
-            .toLocaleLowerCase("pt-BR");
-
-        return nome.includes(termo) ||
-               descricao.includes(termo);
-    });
-
-    mostrarLojas(lojasFiltradas);
-});
+filtrarCategoria.addEventListener(
+    "change",
+    aplicarFiltros
+);
 
 
 function mostrarLojas(lojas) {
@@ -234,7 +268,7 @@ function mostrarLojas(lojas) {
 
         mensagem.textContent = lojasDisponiveis.length === 0
             ? "Nenhuma loja disponível para este CEP."
-            : "Nenhuma loja encontrada com esse nome ou descrição.";
+            : "Nenhuma loja encontrada com os filtros selecionados.";
 
         listaLojas.appendChild(mensagem);
         return;
@@ -259,6 +293,14 @@ function mostrarLojas(lojas) {
             `;
         }
 
+        const categoriasHTML = (loja.categorias || [])
+            .map(categoria => `
+                <span class="tag-categoria">
+                    ${categoria}
+                </span>
+            `)
+            .join("");
+
         card.innerHTML = `
             <h1>
                 ${loja.nome_loja}
@@ -271,6 +313,10 @@ function mostrarLojas(lojas) {
                     "Loja disponível para solicitação de cartão."
                 }
             </p>
+
+            <div class="categorias-loja">
+                ${categoriasHTML}
+            </div>
 
             <button
                 type="button"
@@ -474,3 +520,120 @@ function adicionarEventosBotoes() {
         );
     });
 }
+
+
+function carregarCategorias() {
+
+    const categorias = [
+        ...new Set(
+            lojasDisponiveis.flatMap(loja =>
+                loja.categorias || []
+            )
+        )
+    ];
+
+    categorias.sort((a, b) =>
+        a.localeCompare(b, "pt-BR")
+    );
+
+    filtrarCategoria.innerHTML = `
+        <option value="TODAS">Todas</option>
+    `;
+
+    categorias.forEach(categoria => {
+
+        const opcao = document.createElement("option");
+
+        opcao.value = categoria;
+        opcao.textContent = categoria;
+
+        filtrarCategoria.appendChild(opcao);
+    });
+}
+
+
+function aplicarFiltros() {
+
+    const termo = filtrarLojas.value
+        .trim()
+        .toLocaleLowerCase("pt-BR");
+
+    const modalidade = filtrarModalidade.value;
+
+    const categoria = filtrarCategoria.value;
+
+    const lojasFiltradas = lojasDisponiveis.filter(loja => {
+
+        // Pesquisa por nome ou descrição
+        const nome = String(loja.nome_loja || "")
+            .toLocaleLowerCase("pt-BR");
+
+        const descricao = String(loja.descricao_loja || "")
+            .toLocaleLowerCase("pt-BR");
+
+        const correspondeTexto =
+            nome.includes(termo) ||
+            descricao.includes(termo);
+
+        // Filtro de modalidade
+        const possuiFisico =
+            Number(loja.cartao_fisico) === 1;
+
+        const possuiDigital =
+            Number(loja.cartao_digital) === 1;
+
+        let correspondeModalidade = true;
+
+        if (modalidade === "FISICO") {
+            correspondeModalidade = possuiFisico;
+        }
+
+        else if (modalidade === "DIGITAL") {
+            correspondeModalidade = possuiDigital;
+        }
+
+        else if (modalidade === "AMBOS") {
+            correspondeModalidade =
+                possuiFisico && possuiDigital;
+        }
+
+        // Filtro de categoria
+        const categoriasLoja = loja.categorias || [];
+
+        const correspondeCategoria =
+            categoria === "TODAS" ||
+            categoriasLoja.includes(categoria);
+
+        return correspondeTexto &&
+               correspondeModalidade &&
+               correspondeCategoria;
+    });
+
+    mostrarLojas(lojasFiltradas);
+}
+
+btnFiltros.addEventListener("click", () => {
+
+    const aberto = !painelFiltros.hidden;
+
+    painelFiltros.hidden = aberto;
+
+    btnFiltros.setAttribute(
+        "aria-expanded",
+        String(!aberto)
+    );
+
+    iconeFiltro.textContent =
+        aberto ? "▼" : "▲";
+
+});
+
+btnLimparFiltros.addEventListener("click", () => {
+
+    filtrarModalidade.value = "TODAS";
+    filtrarCategoria.value = "TODAS";
+    filtrarLojas.value = "";
+
+    aplicarFiltros();
+
+});
